@@ -56,12 +56,13 @@ app.set('secret', 'thisismysecret');
 app.use(expressJWT({
 	secret: 'thisismysecret'
 }).unless({
-	path: ['/users']
+	path: ['/users','/monitor']
 }));
 app.use(bearerToken());
 app.use(function(req, res, next) {
 	logger.debug(' ------>>>>>> new request for %s',req.originalUrl);
-	if (req.originalUrl.indexOf('/users') >= 0) {
+	if (req.originalUrl.indexOf('/users') >= 0 ||
+		req.originalUrl.indexOf('/monitor') >= 0) {
 		return next();
 	}
 
@@ -84,6 +85,23 @@ app.use(function(req, res, next) {
 			return next();
 		}
 	});
+});
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// VIEW CONFIG //////////////////////////////////////
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+app.engine('jsp', require('ejs').renderFile);
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// PUSHER CONFIG //////////////////////////////////////
+var Pusher = require('pusher');
+
+var pusher = new Pusher({
+	appId: 'pusherId',
+	key: 'pusherKey',
+	secret: 'pusherSecret',
+	cluster: 'pusherCluster',
+	encrypted: true
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -411,3 +429,65 @@ app.get('/channels', async function(req, res) {
 	let message = await query.getChannels(peer, req.username, req.orgname);
 	res.send(message);
 });
+
+app.get('/monitor', async function(req, res) {
+	logger.debug('================== MONITOR BLOCKCHAIN =====================');
+	
+	res.render('monitor.ejs');
+});
+
+
+/////////////////////////////////////////////////////////////////////
+////////////////////PUSHER TEMPLETE /////////////////////////////////
+var londonTempData = {
+    city: 'London',
+    unit: 'celsius',
+    dataPoints: [
+      {
+        time: 1130,
+        temperature: 12 
+      },
+      {
+        time: 1200,
+        temperature: 13 
+      },
+      {
+        time: 1230,
+        temperature: 15 
+      },
+      {
+        time: 1300,
+        temperature: 14 
+      },
+      {
+        time: 1330,
+        temperature: 15 
+      },
+      {
+        time: 1406,
+        temperature: 12 
+      },
+    ]
+  }
+
+app.get('/getTemperature', function(req,res){
+  res.send(londonTempData);
+});
+
+app.get('/addTemperature', function(req,res){
+	var temp = parseInt(req.query.temperature);
+	var time = parseInt(req.query.time);
+	if(temp && time && !isNaN(temp) && !isNaN(time)){
+	  var newDataPoint = {
+		temperature: temp,
+		time: time
+	  };
+	  londonTempData.dataPoints.push(newDataPoint);
+	  pusher.trigger('london-temp-chart', 'new-temperature', {
+		dataPoint: newDataPoint
+	  });
+	  res.send({success:true});
+	}else{
+	  res.send({success:false, errorMessage: 'Invalid Query Paramaters, required - temperature & time.'});
+	}
+  });
