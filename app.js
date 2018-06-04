@@ -149,17 +149,19 @@ app.use(express.static(path.join(__dirname,'/public')));
 var Pusher = require('pusher');
 
 var pusher = new Pusher({
-	appId: 'pusherId',
-	key: 'pusherKey',
-	secret: 'pusherSecret',
-	cluster: 'pusherCluster',
+	appId: '536693',
+	key: '616e101eae6f91509bcc',
+	secret: '3db8b3b17318ec21aec2',
+	cluster: 'ap1',
 	encrypted: true
-});
+  });
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
 var txData = require('./data/txData.js');
 txData.init();
+
+var monitorChannelName = 'kcoinchannel';
 
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// START SERVER /////////////////////////////////
@@ -501,3 +503,38 @@ app.get('/monitor', async function(req, res) {
 
 /////////////////////////////////////////////////////////////////////
 ////////////////////PUSHER TEMPLETE /////////////////////////////////
+var chartTempData = {
+    city: 'kcoin',
+    unit: 'coin',
+    dataPoints: [
+    ]
+  }
+
+app.get('/getChartData', function(req,res){
+  res.send(chartTempData);
+});
+
+app.get('/addChartData', function(req,res){
+	//var temp = parseInt(req.query.data);
+	var temp = txData.get(monitorChannelName);
+	//console.log("addChart = %d", temp);
+	var time = parseInt(req.query.time);
+
+	if(temp != null && time && !isNaN(temp) && !isNaN(time)){
+	  var newDataPoint = {
+		tranPerSec: temp,
+		time: time
+	  };
+	  chartTempData.dataPoints.push(newDataPoint);
+	  pusher.trigger('tranPerSec-temp-chart', 'new-data', {
+		dataPoint: newDataPoint
+	  });
+
+	  ///////////////////////////transaction count 초기화
+	  txData.set(monitorChannelName, 0);
+	  
+	  res.send({success:true});
+	}else{
+	  res.send({success:false, errorMessage: 'Invalid Query Paramaters, required - data & time.'});
+	}
+  });

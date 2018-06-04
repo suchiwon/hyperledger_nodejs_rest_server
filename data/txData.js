@@ -2,16 +2,22 @@
 
 var txPerSecMap;
 
-exports.init = function() {
+exports.init = function(channelNames) {
     txPerSecMap = new Map();
 
+    txPerSecMap.set('kcoinchannel', 0);
+
+    /*
     setInterval(function(){
-        console.log("txPerSecMap interval");
+        //console.log("txPerSecMap interval");
         txPerSecMap.forEach(function(value, key, mapObj){
-            console.log("txPerSecMap search: key = %s, value = %d", key, value);
-            txPerSecMap.set(key, 0);
+            //console.log("txPerSecMap search: key = %s, value = %d", key, value);
+            if (value > 0) {
+                txPerSecMap.set(key, 0);
+            }
         });
     }, 1000);
+    */
 };
 
 exports.set = function(key, val) {

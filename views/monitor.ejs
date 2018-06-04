@@ -4,6 +4,11 @@
         <title>Realtime Analytics</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/purecss@0.6.2/build/pure-min.css" integrity="sha384-UQiGfs9ICog+LwheBSRCt1o5cbyKIHbwjWscjemyBMT9YCUMZffs6UqUTd0hObXD" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200">
+        <link rel="stylesheet" href="css/style.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+        <script src="https://js.pusher.com/4.0/pusher.min.js"></script>
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/smoothie.js"></script>
         <script>
@@ -32,5 +37,13 @@
           <canvas id="chart" width="400" height="100">
           </canvas>
        </section>
+       <section>
+        <div id="loader" class="loader">
+         Loading...
+        </div>
+        <canvas id="transactionChart">
+        </canvas>
+     </section>
+    <script type="text/javascript" src="js/charts.js"></script>
     </body>
 </html>
