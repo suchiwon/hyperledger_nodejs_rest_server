@@ -22,11 +22,13 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var http = require('http');
 var util = require('util');
+var path = require('path');
 var app = express();
 var expressJWT = require('express-jwt');
 var jwt = require('jsonwebtoken');
 var bearerToken = require('express-bearer-token');
 var cors = require('cors');
+var expressLayouts = require('express-ejs-layouts');
 
 require('./config.js');
 var hfc = require('fabric-client');
@@ -51,22 +53,64 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
 	extended: false
 }));
+
+
+app.use(session({
+	secret: '@#SIGN#@',
+	resave: false,
+	saveUninitialized: true
+}));
+
+
+
+app.use(function(req, res, next) {
+	if (req.session) {
+		res.locals.username = req.session.username;
+		res.locals.orgname = req.session.orgname;
+	}
+
+	next();
+})
+
 // set secret variable
 app.set('secret', 'thisismysecret');
+
+/*
 app.use(expressJWT({
 	secret: 'thisismysecret'
 }).unless({
 	path: ['/users','/monitor']
 }));
 app.use(bearerToken());
+*/
+
 app.use(function(req, res, next) {
 	logger.debug(' ------>>>>>> new request for %s',req.originalUrl);
-	if (req.originalUrl.indexOf('/users') >= 0 ||
+	if (req.originalUrl.indexOf('/js') >= 0 ||
+		req.originalUrl.indexOf('/users') >= 0 ||
 		req.originalUrl.indexOf('/monitor') >= 0) {
 		return next();
 	}
 
+	if (req.session) {
+		req.username = req.session.username;
+		req.orgname = req.session.orgname;
+		logger.debug(util.format('session finded: username - %s, orgname - %s', req.username, req.orgname));
+		return next();
+	} else {
+		res.send({
+			success: false,
+			message: 'Failed to authenticate token. Make sure to include the ' +
+				'token returned from /users call in the authorization header ' +
+				' as a Bearer token'
+		});
+		return;
+	}
+	
+	
+	/*
 	var token = req.token;
+
 	jwt.verify(token, app.get('secret'), function(err, decoded) {
 		if (err) {
 			res.send({
@@ -85,24 +129,39 @@ app.use(function(req, res, next) {
 			return next();
 		}
 	});
+	*/
+	
+	
 });
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// VIEW CONFIG //////////////////////////////////////
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.engine('jsp', require('ejs').renderFile);
+app.set('layout','layout');
+app.use(expressLayouts);
+
+app.use(express.static(path.join(__dirname,'/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// PUSHER CONFIG //////////////////////////////////////
 var Pusher = require('pusher');
 
 var pusher = new Pusher({
-	appId: 'pusherId',
-	key: 'pusherKey',
-	secret: 'pusherSecret',
-	cluster: 'pusherCluster',
+	appId: '536693',
+	key: '616e101eae6f91509bcc',
+	secret: '3db8b3b17318ec21aec2',
+	cluster: 'ap1',
 	encrypted: true
-});
+  });
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
+var txData = require('./data/txData.js');
+txData.init();
+
+var monitorChannelName = 'kcoinchannel';
 
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// START SERVER /////////////////////////////////
@@ -127,6 +186,7 @@ function getErrorMessage(field) {
 app.post('/users', async function(req, res) {
 	var username = req.body.username;
 	var orgName = req.body.orgName;
+	var sess = req.session;
 	logger.debug('End point : /users');
 	logger.debug('User name : ' + username);
 	logger.debug('Org name  : ' + orgName);
@@ -148,6 +208,10 @@ app.post('/users', async function(req, res) {
 	if (response && typeof response !== 'string') {
 		logger.debug('Successfully registered the username %s for organization %s',username,orgName);
 		response.token = token;
+
+		sess.username = username;
+		sess.orgname = orgName;
+
 		res.json(response);
 	} else {
 		logger.debug('Failed to register the username %s for organization %s with::%s',username,orgName,response);
@@ -172,7 +236,7 @@ app.post('/channels', async function(req, res) {
 		return;
 	}
 
-	let message = await createChannel.createChannel(channelName, channelConfigPath, req.username, req.orgname);
+	let message = await createChannel.createChannel(channelName, channelConfigPath, req.username, req.orgname, txData);
 	res.send(message);
 });
 // Join Channel
@@ -305,7 +369,7 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 		return;
 	}
 
-	let message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname);
+	let message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData);
 	res.send(message);
 });
 // Query on chaincode on target peers
@@ -439,55 +503,38 @@ app.get('/monitor', async function(req, res) {
 
 /////////////////////////////////////////////////////////////////////
 ////////////////////PUSHER TEMPLETE /////////////////////////////////
-var londonTempData = {
-    city: 'London',
-    unit: 'celsius',
+var chartTempData = {
+    city: 'kcoin',
+    unit: 'coin',
     dataPoints: [
-      {
-        time: 1130,
-        temperature: 12 
-      },
-      {
-        time: 1200,
-        temperature: 13 
-      },
-      {
-        time: 1230,
-        temperature: 15 
-      },
-      {
-        time: 1300,
-        temperature: 14 
-      },
-      {
-        time: 1330,
-        temperature: 15 
-      },
-      {
-        time: 1406,
-        temperature: 12 
-      },
     ]
   }
 
-app.get('/getTemperature', function(req,res){
-  res.send(londonTempData);
+app.get('/getChartData', function(req,res){
+  res.send(chartTempData);
 });
 
-app.get('/addTemperature', function(req,res){
-	var temp = parseInt(req.query.temperature);
+app.get('/addChartData', function(req,res){
+	//var temp = parseInt(req.query.data);
+	var temp = txData.get(monitorChannelName);
+	//console.log("addChart = %d", temp);
 	var time = parseInt(req.query.time);
-	if(temp && time && !isNaN(temp) && !isNaN(time)){
+
+	if(temp != null && time && !isNaN(temp) && !isNaN(time)){
 	  var newDataPoint = {
-		temperature: temp,
+		tranPerSec: temp,
 		time: time
 	  };
-	  londonTempData.dataPoints.push(newDataPoint);
-	  pusher.trigger('london-temp-chart', 'new-temperature', {
+	  chartTempData.dataPoints.push(newDataPoint);
+	  pusher.trigger('tranPerSec-temp-chart', 'new-data', {
 		dataPoint: newDataPoint
 	  });
+
+	  ///////////////////////////transaction count 초기화
+	  txData.set(monitorChannelName, 0);
+	  
 	  res.send({success:true});
 	}else{
-	  res.send({success:false, errorMessage: 'Invalid Query Paramaters, required - temperature & time.'});
+	  res.send({success:false, errorMessage: 'Invalid Query Paramaters, required - data & time.'});
 	}
   });

@@ -20,7 +20,7 @@ var path = require('path');
 var helper = require('./helper.js');
 var logger = helper.getLogger('Create-Channel');
 //Attempt to send a request to the orderer with the sendTransaction method
-var createChannel = async function(channelName, channelConfigPath, username, orgName) {
+var createChannel = async function(channelName, channelConfigPath, username, orgName, txPerSecMap) {
 	logger.debug('\n====== Creating Channel \'' + channelName + '\' ======\n');
 	try {
 		// first setup the client for this org
@@ -54,6 +54,8 @@ var createChannel = async function(channelName, channelConfigPath, username, org
 				success: true,
 				message: 'Channel \'' + channelName + '\' created Successfully'
 			};
+
+			txPerSecMap.set(channelName, 10);
 			return response;
 		} else {
 			logger.error('\n!!!!!!!!! Failed to create the channel \'' + channelName +

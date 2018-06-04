@@ -97,6 +97,7 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 			txId: client.newTransactionID(true), //get an admin based transactionID
 			block: genesis_block
 		};
+		
 		let join_promise = channel.joinChannel(join_request);
 		promises.push(join_promise);
 		let results = await Promise.all(promises);

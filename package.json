@@ -25,11 +25,13 @@
     "express-bearer-token": "^2.1.0",
     "express-jwt": "^5.1.0",
     "express-session": "^1.15.2",
+    "express-ejs-layouts": "*",
     "fabric-ca-client": "~1.1.0",
     "fabric-client": "~1.1.0",
     "fs-extra": "^2.0.0",
     "jsonwebtoken": "^7.3.0",
     "log4js": "^0.6.38",
-    "pusher": "^2.0.0"
+    "pusher": "^2.0.0",
+    "smoothie": "*"
   }
 }
