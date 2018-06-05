@@ -29,6 +29,11 @@ var jwt = require('jsonwebtoken');
 var bearerToken = require('express-bearer-token');
 var cors = require('cors');
 var expressLayouts = require('express-ejs-layouts');
+var requirejs = require('requirejs');
+
+requirejs.config({
+	nodeRequire: require
+});
 
 require('./config.js');
 var hfc = require('fabric-client');
@@ -95,6 +100,9 @@ app.use(function(req, res, next) {
 	if (req.session) {
 		req.username = req.session.username;
 		req.orgname = req.session.orgname;
+
+		req.username = 'Jim';
+		req.orgname = 'Org1';
 		logger.debug(util.format('session finded: username - %s, orgname - %s', req.username, req.orgname));
 		return next();
 	} else {
@@ -158,7 +166,7 @@ var pusher = new Pusher({
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
-var txData = require('./data/txData.js');
+var txData = requirejs('./public/js/txData.js');
 txData.init();
 
 var monitorChannelName = 'kcoinchannel';
@@ -402,8 +410,8 @@ app.get('/channels/:channelName/chaincodes/:chaincodeName', async function(req, 
 		res.json(getErrorMessage('\'args\''));
 		return;
 	}
-	//args = args.replace(/'/g, '"');
-	//args = JSON.parse(args);
+	args = args.replace(/'/g, '"');
+	args = JSON.parse(args);
 	logger.debug(args);
 
 	let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname);
@@ -497,7 +505,7 @@ app.get('/channels', async function(req, res) {
 app.get('/monitor', async function(req, res) {
 	logger.debug('================== MONITOR BLOCKCHAIN =====================');
 	
-	res.render('monitor.ejs');
+	res.render('monitor.ejs', {txData: txData});
 });
 
 

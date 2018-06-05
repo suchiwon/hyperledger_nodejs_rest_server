@@ -1,5 +1,6 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
-(function() {
+
+define(["txData"], function(txData) {
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true;
 
@@ -9,7 +10,7 @@
           cluster: 'ap1',
           encrypted: true
         }),
-        channel,transactionChartRef;
+        channel, coinChannel,transactionChartRef, coinChartRef;
 
     function showEle(elementId){
       document.getElementById(elementId).style.display = 'flex';
@@ -31,22 +32,48 @@
     }
 
     function rendertransactionChart(transactionData) {
+      //hideEle("transactionChartLoader");
         var ctx = document.getElementById("transactionChart").getContext("2d");
-        var options = { };
+        var options = { 
+           hover: 'index',
+           animation: {
+             easing: 'linear',
+             duration: 500
+           },
+           legend: {
+             display: true,
+             labels: {
+               fontSize: 20,
+               fontColot: '#666',
+               padding: 10
+             }
+           }
+        };
         transactionChartRef = new Chart(ctx, {
           type: "line",
           data: transactionData,
           options: options
         });
      }
+
+     function renderCoinChart(data) {
+       //hideEle("coinChartLoader");
+      var ctx = document.getElementById("coinChart").getContext("2d");
+      var options = { };
+      coinChartRef = new Chart(ctx, {
+        type: "line",
+        data: data,
+        options: options
+      });
+   }
   
-     var chartConfig = {
+     var transactionChartConfig = {
         labels: [],
         datasets: [
            {
               label: "Transaction Per Sec",
-              fill: false,
-              lineTension: 0.1,
+              fill: true,
+              lineTension: 0.5,
               backgroundColor: "rgba(75,192,192,0.4)",
               borderColor: "rgba(75,192,192,1)",
               borderCapStyle: 'butt',
@@ -60,23 +87,79 @@
               pointHoverBackgroundColor: "rgba(75,192,192,1)",
               pointHoverBorderColor: "rgba(220,220,220,1)",
               pointHoverBorderWidth: 2,
-              pointRadius: 1,
+              pointRadius: 2,
               pointHitRadius: 10,
               data: [],
               spanGaps: false,
            }
         ]
      };
+
+     var coinChartConfig = {
+      labels: [],
+      datasets: [
+         {
+            label: "발행량",
+            fill: false,
+            lineTension: 0.1,
+            backgroundColor: "rgba(75,192,192,0.4)",
+            borderColor: "rgba(75,192,192,1)",
+            borderCapStyle: 'butt',
+            borderDash: [],
+            borderDashOffset: 0.0,
+            borderJoinStyle: 'miter',
+            pointBorderColor: "rgba(75,192,192,1)",
+            pointBackgroundColor: "#fff",
+            pointBorderWidth: 1,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "rgba(75,192,192,1)",
+            pointHoverBorderColor: "rgba(220,220,220,1)",
+            pointHoverBorderWidth: 2,
+            pointRadius: 1,
+            pointHitRadius: 10,
+            data: [],
+            spanGaps: false,
+         },
+         {
+          label: "사용량",
+          fill: false,
+          lineTension: 0.1,
+          backgroundColor: "rgba(255,0,0,0.4)",
+          borderColor: "rgba(255,0,0,1)",
+          borderCapStyle: 'butt',
+          borderDash: [],
+          borderDashOffset: 0.0,
+          borderJoinStyle: 'miter',
+          pointBorderColor: "rgba(75,192,192,1)",
+          pointBackgroundColor: "#fff",
+          pointBorderWidth: 1,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "rgba(75,192,192,1)",
+          pointHoverBorderColor: "rgba(220,220,220,1)",
+          pointHoverBorderWidth: 2,
+          pointRadius: 1,
+          pointHitRadius: 10,
+          data: [],
+          spanGaps: false,
+       }
+      ]
+   };
   
+  /*
      ajax("/getChartData", "GET",{}, onFetchTempSuccess);
   
      function onFetchTempSuccess(response){
         hideEle("loader");
         var respData = JSON.parse(response);
-        chartConfig.labels = respData.dataPoints.map(dataPoint => dataPoint.time);
-        chartConfig.datasets[0].data = respData.dataPoints.map(dataPoint => dataPoint.temperature);
-        rendertransactionChart(chartConfig)
+        //chartConfig.labels = respData.dataPoints.map(dataPoint => dataPoint.time);
+        //chartConfig.datasets[0].data = respData.dataPoints.map(dataPoint => dataPoint.temperature);
+        rendertransactionChart(transactionChartConfig);
     }
+  */
+
+    rendertransactionChart(transactionChartConfig);
+
+    renderCoinChart(coinChartConfig);
 
     channel = pusher.subscribe('tranPerSec-temp-chart');
     channel.bind('new-data', function(data) {
@@ -90,8 +173,27 @@
         transactionChartRef.update();
     });
 
+    coinChannel = pusher.subscribe('coin-chart');
+    coinChannel.bind('new-data', function(data) {
+        var netTempData = data.dataPoint;
+
+        if (coinChartRef.data.labels.length > 15) {
+          coinChartRef.data.labels.shift();  
+          coinChartRef.data.datasets[0].data.shift();
+          coinChartRef.data.datasets[1].data.shift();
+        }
+
+        coinChartRef.data.labels.push(newTempData.time);
+        coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
+        coinChartRef.data.datasets[1].data.push(getRandomInt(10, 100));
+        coinChartRef.update();
+    });
+
+
     /* TEMP CODE FOR TESTING */
   var dummyTime = 1500;
+  var createdCoin = 0;
+
   setInterval(function(){
     dummyTime = dummyTime + 10;
     ajax("/addChartData?data="+ getRandomInt(10,20) +"&time="+dummyTime,"GET",{},() => {});
@@ -102,4 +204,4 @@
   }
 /* TEMP CODE ENDS */
 
-})();
+});

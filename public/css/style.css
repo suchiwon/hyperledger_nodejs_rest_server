@@ -36,7 +36,23 @@ header{
 }
 
 #transactionChart{
-    height: 30% !important;
-    width: 50% !important;
-    margin: 0 auto;
+    height: 10% !important;
+    width: 40% !important;
+}
+
+#coinChart {
+    height: 10% !important;
+    width: 40% !important;
+}
+
+#transactionChartSection {
+    position: relative;
+    top: 0px;
+    left: 0px;
+}
+
+#coinChartSection {
+    position: relative;
+    top: 0px;
+    left: 400px;
 }

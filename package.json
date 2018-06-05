@@ -23,9 +23,9 @@
     "ejs": "^2.6.1",
     "express": "^4.15.2",
     "express-bearer-token": "^2.1.0",
+    "express-ejs-layouts": "*",
     "express-jwt": "^5.1.0",
     "express-session": "^1.15.2",
-    "express-ejs-layouts": "*",
     "fabric-ca-client": "~1.1.0",
     "fabric-client": "~1.1.0",
     "fs-extra": "^2.0.0",
@@ -33,5 +33,10 @@
     "log4js": "^0.6.38",
     "pusher": "^2.0.0",
     "smoothie": "*"
+  },
+  "devDependencies": {
+    "browserify": "^16.2.2",
+    "requirejs": "^2.3.5",
+    "webpack": "^4.10.2"
   }
 }
