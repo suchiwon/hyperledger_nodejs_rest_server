@@ -25,6 +25,8 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 	logger.debug(util.format('\n============ invoke transaction on channel %s ============\n', channelName));
 	var error_message = null;
 	var tx_id_string = null;
+	var block_num_save = null;
+
 	try {
 		// first setup the client for this org
 		var client = await helper.getClientForOrg(org_name, username);
@@ -94,6 +96,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 					eh.registerTxEvent(tx_id_string, (tx, code, block_num) => {
 						logger.info('The chaincode invoke chaincode transaction has been committed on peer %s',eh.getPeerAddr());
 						logger.info('Transaction %s has status of %s in block %s', tx, code, block_num);
+						block_num_save = block_num;
 						clearTimeout(event_timeout);
 
 						if (code !== 'VALID') {
@@ -174,6 +177,9 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 			console.log("add coin:%s %d", args[1], parseInt(args[1]));
 			txData.addCreatedCoin(parseInt(args[1]));
 		}
+
+		//get current block number
+		txData.catchBlockCreate(block_num_save);
 
 		return tx_id_string;
 	} else {

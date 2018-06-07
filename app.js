@@ -169,7 +169,7 @@ var pusher = new Pusher({
 var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
 txData.startChartInterval();
-txData.startBlockScanner(query);
+//txData.startBlockScanner(query);
 
 var monitorChannelName = 'kcoinchannel';
 

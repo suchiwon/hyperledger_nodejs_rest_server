@@ -91,6 +91,13 @@ define(["pusher"], function(Pusher) {
                 time += 10;
             }, 1000);
         },
+        catchBlockCreate: function(currentBlockNumber) {
+            if (blockNumber < currentBlockNumber) {
+                console.log("block created:(block number:%d)", currentBlockNumber);
+
+                blockNumber = currentBlockNumber;
+            }
+        },
         startBlockScanner: function(query) {
             setInterval(async function() {
                 let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
