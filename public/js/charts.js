@@ -1,6 +1,6 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
-define(["txData"], function(txData) {
+define(function() {
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true;
 
@@ -103,7 +103,7 @@ define(["txData"], function(txData) {
             fill: false,
             lineTension: 0.1,
             backgroundColor: "rgba(75,192,192,0.4)",
-            borderColor: "rgba(75,192,192,1)",
+            borderColor: "rgba(255,0,255,1)",
             borderCapStyle: 'butt',
             borderDash: [],
             borderDashOffset: 0.0,
@@ -161,7 +161,7 @@ define(["txData"], function(txData) {
 
     renderCoinChart(coinChartConfig);
 
-    channel = pusher.subscribe('tranPerSec-temp-chart');
+    channel = pusher.subscribe('pusher-chart');
     channel.bind('new-data', function(data) {
         var newTempData = data.dataPoint;
         if(transactionChartRef.data.labels.length > 15){
@@ -171,6 +171,17 @@ define(["txData"], function(txData) {
         transactionChartRef.data.labels.push(newTempData.time);
         transactionChartRef.data.datasets[0].data.push(newTempData.tranPerSec);
         transactionChartRef.update();
+
+        if (coinChartRef.data.labels.length > 15) {
+          coinChartRef.data.labels.shift();  
+          coinChartRef.data.datasets[0].data.shift();
+          coinChartRef.data.datasets[1].data.shift();
+        }
+
+        coinChartRef.data.labels.push(newTempData.time);
+        coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
+        coinChartRef.data.datasets[1].data.push(getRandomInt(10, 100));
+        coinChartRef.update();
     });
 
     coinChannel = pusher.subscribe('coin-chart');
@@ -185,19 +196,20 @@ define(["txData"], function(txData) {
 
         coinChartRef.data.labels.push(newTempData.time);
         coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
-        coinChartRef.data.datasets[1].data.push(getRandomInt(10, 100));
+        coinChartRef.data.datasets[1].data.push(netTempData.consumeCoin);
         coinChartRef.update();
     });
 
 
     /* TEMP CODE FOR TESTING */
+  /*
   var dummyTime = 1500;
-  var createdCoin = 0;
 
   setInterval(function(){
     dummyTime = dummyTime + 10;
     ajax("/addChartData?data="+ getRandomInt(10,20) +"&time="+dummyTime,"GET",{},() => {});
   }, 1000);
+  */
 
   function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;

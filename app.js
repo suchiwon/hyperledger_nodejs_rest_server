@@ -167,7 +167,9 @@ var pusher = new Pusher({
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
 var txData = requirejs('./public/js/txData.js');
-txData.init();
+txData.init('Jim','Org1');
+txData.startChartInterval();
+txData.startBlockScanner(query);
 
 var monitorChannelName = 'kcoinchannel';
 
