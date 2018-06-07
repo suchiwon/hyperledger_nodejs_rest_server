@@ -1,5 +1,5 @@
 
-define(["pusher"], function(Pusher) {
+define(["pusher", "socket.io"], function(Pusher, io) {
 
     "use strict";
 
@@ -16,6 +16,7 @@ define(["pusher"], function(Pusher) {
     var consumeCoin;
     var that = this;
     var time = 100;
+    var ws;
 
     const monitorChannelName = 'kcoinchannel';
     var username;
@@ -30,7 +31,7 @@ define(["pusher"], function(Pusher) {
 
     var exports = {
 
-        init : function(_username, _orgname) {
+        init : function(_username, _orgname, _ws) {
             txPerSecMap = new Map();
 
             txPerSecMap.set(monitorChannelName, 0);
@@ -40,6 +41,8 @@ define(["pusher"], function(Pusher) {
 
             username = _username;
             orgname = _orgname;
+
+            ws = _ws;
 
             blockNumber = 0;
 
@@ -81,9 +84,13 @@ define(["pusher"], function(Pusher) {
                       time: time
                     };
 
+                    /*
                     pusher.trigger('pusher-chart', 'new-data', {
                       dataPoint: newDataPoint
                     });
+                    */
+
+                    ws.emit('new-chart-data', newDataPoint);
               
                     ///////////////////////////transaction count 초기화
                     txPerSecMap.set(monitorChannelName, 0);
@@ -97,9 +104,12 @@ define(["pusher"], function(Pusher) {
 
                 blockNumber = currentBlockNumber;
 
+                /*
                 pusher.trigger('block-number', 'block-create', {
                     currentBlockNumber: blockNumber
                 });
+                */
+               ws.emit('block-create', blockNumber);
             }
         },
         startBlockScanner: function(query) {

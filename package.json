@@ -35,8 +35,8 @@
     "smoothie": "*"
   },
   "devDependencies": {
-    "browserify": "^16.2.2",
     "requirejs": "^2.3.5",
+    "socket.io": "^2.1.1",
     "webpack": "^4.10.2"
   }
 }

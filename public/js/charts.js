@@ -4,6 +4,13 @@ define(function() {
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true;
 
+    var ws = io.connect("http://localhost:4000");
+
+    ws.on('news', function(data) {
+      console.log(data);
+      ws.emit('event', {my: 'data'});
+    });
+
     var currentBlockNum = document.getElementById('currentBlockNumber');
 
     var serverUrl = "/",
@@ -12,7 +19,7 @@ define(function() {
           cluster: 'ap1',
           encrypted: true
         }),
-        channel, coinChannel, blockChannel, transactionChartRef, coinChartRef;
+        channel, blockChannel, transactionChartRef, coinChartRef;
 
     function showEle(elementId){
       document.getElementById(elementId).style.display = 'flex';
@@ -163,9 +170,9 @@ define(function() {
 
     renderCoinChart(coinChartConfig);
 
-    channel = pusher.subscribe('pusher-chart');
-    channel.bind('new-data', function(data) {
-        var newTempData = data.dataPoint;
+    ws.on('new-chart-data', function(data) {
+        console.log("get chart new data");
+        var newTempData = data;
         if(transactionChartRef.data.labels.length > 15){
         transactionChartRef.data.labels.shift();  
         transactionChartRef.data.datasets[0].data.shift();
@@ -186,26 +193,9 @@ define(function() {
         coinChartRef.update();
     });
 
-    coinChannel = pusher.subscribe('coin-chart');
-    coinChannel.bind('new-data', function(data) {
-        var netTempData = data.dataPoint;
-
-        if (coinChartRef.data.labels.length > 15) {
-          coinChartRef.data.labels.shift();  
-          coinChartRef.data.datasets[0].data.shift();
-          coinChartRef.data.datasets[1].data.shift();
-        }
-
-        coinChartRef.data.labels.push(newTempData.time);
-        coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
-        coinChartRef.data.datasets[1].data.push(netTempData.consumeCoin);
-        coinChartRef.update();
-    });
-
-    blockChannel = pusher.subscribe('block-number');
-    blockChannel.bind('block-create', function(data) {
-      //console.log("get new block");
-      currentBlockNum.innerHTML = data.currentBlockNumber;
+    ws.on('block-create', function(currentBlockNumber) {
+      console.log("get new block");
+      currentBlockNum.innerHTML = currentBlockNumber;
     });
 
 
