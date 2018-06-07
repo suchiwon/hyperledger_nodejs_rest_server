@@ -4,13 +4,15 @@ define(function() {
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true;
 
+    var currentBlockNum = document.getElementById('currentBlockNumber');
+
     var serverUrl = "/",
         members = [],
         pusher = new Pusher('616e101eae6f91509bcc', {
           cluster: 'ap1',
           encrypted: true
         }),
-        channel, coinChannel,transactionChartRef, coinChartRef;
+        channel, coinChannel, blockChannel, transactionChartRef, coinChartRef;
 
     function showEle(elementId){
       document.getElementById(elementId).style.display = 'flex';
@@ -198,6 +200,12 @@ define(function() {
         coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
         coinChartRef.data.datasets[1].data.push(netTempData.consumeCoin);
         coinChartRef.update();
+    });
+
+    blockChannel = pusher.subscribe('block-number');
+    blockChannel.bind('block-create', function(data) {
+      //console.log("get new block");
+      currentBlockNum.innerHTML = data.currentBlockNumber;
     });
 
 

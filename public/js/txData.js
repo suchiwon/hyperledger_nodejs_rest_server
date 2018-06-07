@@ -96,6 +96,10 @@ define(["pusher"], function(Pusher) {
                 console.log("block created:(block number:%d)", currentBlockNumber);
 
                 blockNumber = currentBlockNumber;
+
+                pusher.trigger('block-number', 'block-create', {
+                    currentBlockNumber: blockNumber
+                });
             }
         },
         startBlockScanner: function(query) {
