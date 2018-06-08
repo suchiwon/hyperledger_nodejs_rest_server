@@ -179,7 +179,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		}
 
 		//get current block number
-		txData.catchBlockCreate(block_num_save);
+		txData.catchBlockCreate(parseInt(block_num_save) + 1);
 
 		return tx_id_string;
 	} else {

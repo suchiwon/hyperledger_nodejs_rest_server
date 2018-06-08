@@ -184,15 +184,19 @@ function getErrorMessage(field) {
 ////////////////////////// WEBSOCKET CONFIG ///////////////////////////////////
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
 var txData = requirejs('./public/js/txData.js');
+txData.init('Jim','Org1');
 
-var io = require('socket.io').listen(server);
+var io = require('socket.io').listen(4001);
+var ioBlock = require('socket.io').listen(4002);
 
 io.sockets.on("connection", function(ws) {
-	txData.init('Jim', 'Org1', ws);
+
+	txData.setWs(ws);
+	txData.initBlockNumber(query);
 	txData.startChartInterval();
-	//txData.startBlockScanner(query);
 
 	ws.emit('news', {hello: 'world'});
+	ws.emit('send-block-number', txData.getBlockNumber);
 	ws.on("event", function(message) {
 		console.log("Received: %s", message);
 	});

@@ -1,13 +1,17 @@
+html {
+    overflow-x: scroll;
+}
+
 body{
     margin:0;
     padding:0;
-    overflow: hidden;
+    position: absolute;
     font-family: Raleway;
 }
 
 header{
     background: #2b303b;
-    height: 50px;
+    height: 10%;
     width:100%;
     display: flex;
     color:#fff;
@@ -35,20 +39,64 @@ header{
     text-decoration: none;
 }
 
-#transactionChart{
+#chartDiv {
+    position: fixed;
+    left: 0px;
+    top: 100px;
+    width: 85%;
+    height: 30%;
+    float: center;
+}
+
+#blockDiv {
+    position: fixed;
+    top: 550px;
+    width: 100%;
+}
+
+#blockList {
+    overflow:scroll;
+    white-space: nowrap;
+}
+
+#transactionChart {
 }
 
 #coinChart {
 }
 
-#transactionChartSection {
-    position: absolute;
-    top: 100px;
-    left: 0px;
+#transactionChartDiv {
+    float: left;
+    width: 45%;
+    height: 30%;
+    padding: 10px;
 }
 
-#coinChartSection {
-    position: absolute;
-    top: 100px;
-    left: 800px;
+#coinChartDiv {
+    float: left;
+    width: 45%;
+    height: 30%;
+    padding: 10px;
 }
+
+#container {
+    position: relative;
+    display: block;
+}
+
+.box {
+    float: left;
+    color: #fff;
+    font-size: 40px;
+    line-height:150px;
+    text-align: center;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 10px;
+    float: left;
+    position: absolute; top: 70px;
+}
+
+.b1 { background-color: #9C27B0; }
+.b2 { background-color: #2196F3; }
+.b3 { background-color: #FF5722; }
