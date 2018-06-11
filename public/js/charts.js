@@ -186,7 +186,9 @@ define(function() {
         coinChartRef.data.datasets[1].data.push(getRandomInt(10, 100));
         coinChartRef.update();
 
-        addBlock(newTempData.currentBlockNumber);
+        if (newTempData.currentBlockNumber > currentBlockNumber) {
+          addBlock(newTempData.currentBlockNumber);
+        }
 
         currentBlockNumber = newTempData.currentBlockNumber;
 
@@ -227,7 +229,7 @@ $(document).ready(function() {
     console.log("button click");
 
     var tween = $(".box").to({left: leftSet}, 
-      { easing: 'easingBackInOut', delay: 1000, offset: 300, duration: 1500}).start();
+      { easing: 'easingBackInOut', delay: 0, offset: 300, duration: 300}).start();
 
     leftSet += 1000;
   });
@@ -238,22 +240,83 @@ $(document).ready(function() {
     var i, count = 0;
     if (currentBlockNumber > max_block_gif) {
       for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div class="box block" style="left: ' + count * 200 + 'px;"><img id="block' + i + '" class="block-gif" src="img/block.gif"/></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/></div>');
         count++;
       }
     } else {
       for (i = 0; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div class="box block" style="left: ' + count * 200 + 'px;"><img id="block' + i + '" class="block-gif" src="img/block.gif"/></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/></div>');
         count++;
       }
     }
   };
 
-  function addBlock(newBlockNum) {
-    var i;
+  async function addBlock(newBlockNum) {
+    var i, j;
+    var count = newBlockNum - currentBlockNumber;
+
+    var startIndex;
+    if (currentBlockNumber >= max_block_gif) {
+      startIndex = currentBlockNumber - max_block_gif;
+    } else {
+      startIndex = 0;
+    }
+
+    j = 0;
+
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div class="box block"><img id="block' + i + '" class="block-gif" src="img/block.gif"/></div>');
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * 200 + 'px; opacity:0"><img class="block-gif" src="img/block.gif"/></div>');
+      ++j;
+    }
+
+    $('.deleteBlock').remove();
+
+    animateBlock(count, startIndex, newBlockNum);
+  }
+
+  function animateBlock(count, startIndex, newBlockNum) {
+    var j = 0;
+    var left;
+    var tween;
+    
+    if (currentBlockNumber >= max_block_gif) {
+
+      for (i = startIndex; i < startIndex + count; i++) {
+        left = (200 * (j - count));
+
+        //console.log("i: %d, left: %d", i, left);
+      
+        KUTE.to('#block' + i, {left:left, opacity: 0}, {duration: 400}).start();
+        $('#block' + i).addClass("deleteBlock");
+        ++j;
+      }
+
+      for (i = startIndex + count; i < currentBlockNumber; i++) {
+  
+        left = (200 * (j - count));
+  
+        //console.log("i: %d, left: %d", i, left);
+  
+        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+        ++j;
+      }
+    } else {
+      for (i = startIndex; i < currentBlockNumber; i++) {
+        left = (200 * (max_block_gif - currentBlockNumber + i - count));
+        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+      }
+    }
+
+    for (i = currentBlockNumber; i < newBlockNum; i++) {
+      $("#block" + i).to({opacity:1},{duration:600}).start();
+      startIndex++;
     }
   }
 
+  function removeBlock(index) {
+    //console.log("remove block:%d", index);
+    $("#block" + index).remove(); 
+  }
+
 });
+

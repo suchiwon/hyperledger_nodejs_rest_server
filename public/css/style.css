@@ -55,8 +55,6 @@ header{
 }
 
 #blockList {
-    overflow:scroll;
-    white-space: nowrap;
 }
 
 #transactionChart {
@@ -85,6 +83,8 @@ header{
 }
 
 .box {
+    width: 100px;
+    height: 100px;
     float: left;
     color: #fff;
     font-size: 40px;
