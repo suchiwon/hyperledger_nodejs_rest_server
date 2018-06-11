@@ -1,25 +1,28 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
 define(function() {
-    // Enable pusher logging - don't include this in production
-    Pusher.logToConsole = true;
+  
+  const max_block_gif = 8;
+  var currentBlockNumber;
 
-    var ws = io.connect("http://localhost:4000");
+    var ws = io.connect("http://localhost:4001");
 
     ws.on('news', function(data) {
       console.log(data);
-      ws.emit('event', {my: 'data'});
+      ws.emit('event', {my: 'transaction io socket read'});
+    });
+
+    ws.on('send-block-number', function(data){
+      console.log("recv block number:%d", data);
+      currentBlockNumber = data;
+      initBlock();
     });
 
     var currentBlockNum = document.getElementById('currentBlockNumber');
 
     var serverUrl = "/",
         members = [],
-        pusher = new Pusher('616e101eae6f91509bcc', {
-          cluster: 'ap1',
-          encrypted: true
-        }),
-        channel, blockChannel, transactionChartRef, coinChartRef;
+        transactionChartRef, coinChartRef;
 
     function showEle(elementId){
       document.getElementById(elementId).style.display = 'flex';
@@ -153,26 +156,17 @@ define(function() {
        }
       ]
    };
-  
-  /*
-     ajax("/getChartData", "GET",{}, onFetchTempSuccess);
-  
-     function onFetchTempSuccess(response){
-        hideEle("loader");
-        var respData = JSON.parse(response);
-        //chartConfig.labels = respData.dataPoints.map(dataPoint => dataPoint.time);
-        //chartConfig.datasets[0].data = respData.dataPoints.map(dataPoint => dataPoint.temperature);
-        rendertransactionChart(transactionChartConfig);
-    }
-  */
 
     rendertransactionChart(transactionChartConfig);
 
     renderCoinChart(coinChartConfig);
 
     ws.on('new-chart-data', function(data) {
-        console.log("get chart new data");
+        //console.log("get chart new data");
         var newTempData = data;
+
+        console.log("current block num:%d", newTempData.currentBlockNumber);
+
         if(transactionChartRef.data.labels.length > 15){
         transactionChartRef.data.labels.shift();  
         transactionChartRef.data.datasets[0].data.shift();
@@ -191,10 +185,18 @@ define(function() {
         coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
         coinChartRef.data.datasets[1].data.push(getRandomInt(10, 100));
         coinChartRef.update();
+
+        if (newTempData.currentBlockNumber > currentBlockNumber) {
+          addBlock(newTempData.currentBlockNumber);
+        }
+
+        currentBlockNumber = newTempData.currentBlockNumber;
+
+        currentBlockNum.innerHTML = newTempData.currentBlockNumber;
     });
 
     ws.on('block-create', function(currentBlockNumber) {
-      console.log("get new block");
+      //console.log("get new block");
       currentBlockNum.innerHTML = currentBlockNumber;
     });
 
@@ -214,4 +216,107 @@ define(function() {
   }
 /* TEMP CODE ENDS */
 
+///////////////////////////BLOCK SCANNER CODE////////////////////////////////////
+$(document).ready(function() {
+
+  var leftSet = 1000;
+
+  $(".block-gif").each(function(index) {
+    $(this).gifplayer();
+  });
+
+  $("#add-block-button").click(function() {
+    console.log("button click");
+
+    var tween = $(".box").to({left: leftSet}, 
+      { easing: 'easingBackInOut', delay: 0, offset: 300, duration: 300}).start();
+
+    leftSet += 1000;
+  });
 });
+
+  function initBlock() {
+    console.log("currentBlockNumber:%d", currentBlockNumber);
+    var i, count = 0;
+    if (currentBlockNumber > max_block_gif) {
+      for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/></div>');
+        count++;
+      }
+    } else {
+      for (i = 0; i < currentBlockNumber; i++) {
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/></div>');
+        count++;
+      }
+    }
+  };
+
+  async function addBlock(newBlockNum) {
+    var i, j;
+    var count = newBlockNum - currentBlockNumber;
+
+    var startIndex;
+    if (currentBlockNumber >= max_block_gif) {
+      startIndex = currentBlockNumber - max_block_gif;
+    } else {
+      startIndex = 0;
+    }
+
+    j = 0;
+
+    for (i = currentBlockNumber; i < newBlockNum; i++) {
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * 200 + 'px; opacity:0"><img class="block-gif" src="img/block.gif"/></div>');
+      ++j;
+    }
+
+    $('.deleteBlock').remove();
+
+    animateBlock(count, startIndex, newBlockNum);
+  }
+
+  function animateBlock(count, startIndex, newBlockNum) {
+    var j = 0;
+    var left;
+    var tween;
+    
+    if (currentBlockNumber >= max_block_gif) {
+
+      for (i = startIndex; i < startIndex + count; i++) {
+        left = (200 * (j - count));
+
+        //console.log("i: %d, left: %d", i, left);
+      
+        KUTE.to('#block' + i, {left:left, opacity: 0}, {duration: 400}).start();
+        $('#block' + i).addClass("deleteBlock");
+        ++j;
+      }
+
+      for (i = startIndex + count; i < currentBlockNumber; i++) {
+  
+        left = (200 * (j - count));
+  
+        //console.log("i: %d, left: %d", i, left);
+  
+        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+        ++j;
+      }
+    } else {
+      for (i = startIndex; i < currentBlockNumber; i++) {
+        left = (200 * (max_block_gif - currentBlockNumber + i - count));
+        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+      }
+    }
+
+    for (i = currentBlockNumber; i < newBlockNum; i++) {
+      $("#block" + i).to({opacity:1},{duration:600}).start();
+      startIndex++;
+    }
+  }
+
+  function removeBlock(index) {
+    //console.log("remove block:%d", index);
+    $("#block" + index).remove(); 
+  }
+
+});
+

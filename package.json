@@ -30,6 +30,7 @@
     "fabric-client": "~1.1.0",
     "fs-extra": "^2.0.0",
     "jsonwebtoken": "^7.3.0",
+    "kute.js": "^1.6.5",
     "log4js": "^0.6.38",
     "pusher": "^2.0.0",
     "smoothie": "*"

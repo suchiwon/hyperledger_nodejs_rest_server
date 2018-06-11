@@ -1,15 +1,7 @@
 
-define(["pusher", "socket.io"], function(Pusher, io) {
+define(["socket.io"], function(io) {
 
     "use strict";
-
-    var pusher = new Pusher({
-        appId: '536693',
-        key: '616e101eae6f91509bcc',
-        secret: '3db8b3b17318ec21aec2',
-        cluster: 'ap1',
-        encrypted: true
-    });
 
     var txPerSecMap;
     var createdCoin;
@@ -17,6 +9,8 @@ define(["pusher", "socket.io"], function(Pusher, io) {
     var that = this;
     var time = 100;
     var ws;
+
+    var intervalInstance = false;
 
     const monitorChannelName = 'kcoinchannel';
     var username;
@@ -31,7 +25,7 @@ define(["pusher", "socket.io"], function(Pusher, io) {
 
     var exports = {
 
-        init : function(_username, _orgname, _ws) {
+        init : function(_username, _orgname) {
             txPerSecMap = new Map();
 
             txPerSecMap.set(monitorChannelName, 0);
@@ -41,8 +35,6 @@ define(["pusher", "socket.io"], function(Pusher, io) {
 
             username = _username;
             orgname = _orgname;
-
-            ws = _ws;
 
             blockNumber = 0;
 
@@ -58,6 +50,9 @@ define(["pusher", "socket.io"], function(Pusher, io) {
             }, 1000);
             */
         },
+        setWs : function(_ws) {
+            ws = _ws;
+        },
         set : function(key, val) {
             txPerSecMap.set(key, val);
         },
@@ -70,7 +65,15 @@ define(["pusher", "socket.io"], function(Pusher, io) {
         getCreatedCoin: function() {
             return createdCoin;
         },
+        getBlockNumber: function() {
+            return blockNumber;
+        },
         startChartInterval: function() {
+
+            if (intervalInstance) {
+                return;
+            }
+
             setInterval(function() {
                 var temp = txPerSecMap.get(monitorChannelName);
 
@@ -81,14 +84,9 @@ define(["pusher", "socket.io"], function(Pusher, io) {
                       tranPerSec: temp,
                       createdCoin: createdCoin,
                       consumeCoin: consumeCoin,
+                      currentBlockNumber: blockNumber,
                       time: time
                     };
-
-                    /*
-                    pusher.trigger('pusher-chart', 'new-data', {
-                      dataPoint: newDataPoint
-                    });
-                    */
 
                     ws.emit('new-chart-data', newDataPoint);
               
@@ -97,19 +95,16 @@ define(["pusher", "socket.io"], function(Pusher, io) {
                 }
                 time += 10;
             }, 1000);
+
+            intervalInstance = true;
         },
-        catchBlockCreate: function(currentBlockNumber) {
+        catchBlockCreate: async function(currentBlockNumber) {
             if (blockNumber < currentBlockNumber) {
-                console.log("block created:(block number:%d)", currentBlockNumber);
+                console.log("block created:(block number:%d)", currentBlockNumber - 1);
 
                 blockNumber = currentBlockNumber;
 
-                /*
-                pusher.trigger('block-number', 'block-create', {
-                    currentBlockNumber: blockNumber
-                });
-                */
-               ws.emit('block-create', blockNumber);
+                //ws.emit('block-create', blockNumber);
             }
         },
         startBlockScanner: function(query) {
@@ -124,6 +119,13 @@ define(["pusher", "socket.io"], function(Pusher, io) {
                     blockNumber = currentBlockCount;
                 }
             }, 1000);
+        },
+        initBlockNumber: async function(query) {
+            let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
+
+            blockNumber = message.height.low;
+
+            ws.emit('send-block-number', blockNumber); 
         }
     };
 
