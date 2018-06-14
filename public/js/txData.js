@@ -7,7 +7,7 @@ define(["socket.io"], function(io) {
     var createdCoin;
     var consumeCoin;
     var that = this;
-    var time = 100;
+    var time;
     var ws;
 
     var intervalInstance = false;
@@ -18,6 +18,8 @@ define(["socket.io"], function(io) {
     const peer = 'peer0.org1.example.com';
 
     var blockNumber = 0;
+
+    var timeLabel;
 
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -37,7 +39,6 @@ define(["socket.io"], function(io) {
             orgname = _orgname;
 
             blockNumber = 0;
-
             /*
             setInterval(function(){
                 //console.log("txPerSecMap interval");
@@ -79,13 +80,17 @@ define(["socket.io"], function(io) {
 
                 consumeCoin = getRandomInt(10, 20);
 
+                time = new Date();
+
+                timeLabel = time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+
                 if(temp != null && time && !isNaN(temp) && !isNaN(time)){
                     var newDataPoint = {
                       tranPerSec: temp,
                       createdCoin: createdCoin,
                       consumeCoin: consumeCoin,
                       currentBlockNumber: blockNumber,
-                      time: time
+                      time: timeLabel
                     };
 
                     ws.emit('new-chart-data', newDataPoint);
@@ -93,7 +98,6 @@ define(["socket.io"], function(io) {
                     ///////////////////////////transaction count 초기화
                     txPerSecMap.set(monitorChannelName, 0);
                 }
-                time += 10;
             }, 1000);
 
             intervalInstance = true;

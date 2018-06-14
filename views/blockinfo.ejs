@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>block info</title>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $.ajax ({
+                url: '/transactions/' + <%= blockNum %>,
+                method: 'GET'
+            }).done(function(data) {
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        var transaction = data[i];
+
+                        $('#powerTableBody').append("<tr>" +
+                                                    "<td>" + transaction.fcn + "</td>" +
+                                                    "<td>" + transaction.userid + "</td>" +
+                                                    "<td>" + transaction.time + "</td>" +
+                                                    "<td>" + transaction.power + "</td>" +
+                                                    "<td>" + transaction.coin + "</td>" +
+                                                    "</tr>"
+                         );
+                    }
+            });
+        });
+    </script>
+</head>
+    <body>
+        <p>BLOCK #<%= blockNum%> INFO</p>
+        <table id="powerTable" class="table table-dark">
+            <thead>
+                <tr>
+                    <th scope="col">트랜잭션 함수</th>
+                    <th scope="col">발전소 ID</th>
+                    <th scope="col">거래 시간</th>
+                    <th scope="col">거래량(kWh)</th>
+                    <th scope="col">거래액</th>
+                </tr>
+            </thead>
+            <tbody id="powerTableBody">
+
+            </tbody>
+        </table>
+    </body>
+</html>

@@ -28,12 +28,13 @@
     "express-session": "^1.15.2",
     "fabric-ca-client": "~1.1.0",
     "fabric-client": "~1.1.0",
+    "fabric-shim": "^1.1.2",
     "fs-extra": "^2.0.0",
     "jsonwebtoken": "^7.3.0",
     "kute.js": "^1.6.5",
     "log4js": "^0.6.38",
-    "pusher": "^2.0.0",
-    "smoothie": "*"
+    "nano": "^6.4.4",
+    "popper": "^1.0.1"
   },
   "devDependencies": {
     "requirejs": "^2.3.5",

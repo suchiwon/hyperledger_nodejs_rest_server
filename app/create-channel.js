@@ -55,7 +55,7 @@ var createChannel = async function(channelName, channelConfigPath, username, org
 				message: 'Channel \'' + channelName + '\' created Successfully'
 			};
 
-			txPerSecMap.set(channelName, 10);
+			txPerSecMap.set(channelName, 0);
 			return response;
 		} else {
 			logger.error('\n!!!!!!!!! Failed to create the channel \'' + channelName +

@@ -260,6 +260,8 @@ app.post('/channels/:channelName/chaincodes', async function(req, res) {
 
 // Invoke transaction on chaincode on target peers
 app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req, res) {
+
+	logger.debug("req:" + req.body);
 	logger.debug('==================== INVOKE ON CHAINCODE ==================');
 	var peers = req.body.peers;
 	var chaincodeName = req.params.chaincodeName;

@@ -152,18 +152,11 @@ app.set('layout','layout');
 app.use(expressLayouts);
 
 app.use(express.static(path.join(__dirname,'/public')));
+app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
-////////////////////////// PUSHER CONFIG //////////////////////////////////////
-var Pusher = require('pusher');
-
-var pusher = new Pusher({
-	appId: '536693',
-	key: '616e101eae6f91509bcc',
-	secret: '3db8b3b17318ec21aec2',
-	cluster: 'ap1',
-	encrypted: true
-  });
-
+////////////////////////// COUCHDB CONFIG /////////////////////////////////////
+var couchdb = requirejs('./public/js/couchdb.js');
+couchdb.init(host, 5984);
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// START SERVER /////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -367,6 +360,7 @@ app.post('/channels/:channelName/chaincodes', async function(req, res) {
 
 // Invoke transaction on chaincode on target peers
 app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req, res) {
+	//logger.debug('req.body:' + JSON.stringify(req.body));
 	logger.debug('==================== INVOKE ON CHAINCODE ==================');
 	var peers = req.body.peers;
 	var chaincodeName = req.params.chaincodeName;
@@ -394,7 +388,11 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 		return;
 	}
 
-	let message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData);
+	args = args.replace(/'/g, '"');
+	args = JSON.parse(args);
+	logger.debug(args);
+
+	let message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, couchdb);
 	res.send(message);
 });
 // Query on chaincode on target peers
@@ -525,41 +523,24 @@ app.get('/monitor', async function(req, res) {
 	res.render('monitor.ejs', {txData: txData});
 });
 
+ ///////////////////////BLOCK INFO/////////////////////////////////
+ app.get('/blockinfo/:blockNum', async function(req, res) {
+	logger.debug("=============BLOCK INFO===================");
 
-/////////////////////////////////////////////////////////////////////
-////////////////////PUSHER TEMPLETE /////////////////////////////////
-var chartTempData = {
-    city: 'kcoin',
-    unit: 'coin',
-    dataPoints: [
-    ]
-  }
+	res.render('blockinfo.ejs',{blockNum: req.params.blockNum});
+ });
 
-app.get('/getChartData', function(req,res){
-  res.send(chartTempData);
-});
+ app.get('/transactions/:blockNum', async function(req, res) {
+	logger.debug("=================GET TRANSACTIONS IN BLOCK==================");
+	logger.debug('block num: ' + req.params.blockNum);
 
-app.get('/addChartData', function(req,res){
-	//var temp = parseInt(req.query.data);
-	var temp = txData.get(monitorChannelName);
-	//console.log("addChart = %d", temp);
-	var time = parseInt(req.query.time);
-
-	if(temp != null && time && !isNaN(temp) && !isNaN(time)){
-	  var newDataPoint = {
-		tranPerSec: temp,
-		time: time
-	  };
-	  chartTempData.dataPoints.push(newDataPoint);
-	  pusher.trigger('tranPerSec-temp-chart', 'new-data', {
-		dataPoint: newDataPoint
-	  });
-
-	  ///////////////////////////transaction count 초기화
-	  txData.set(monitorChannelName, 0);
-	  
-	  res.send({success:true});
-	}else{
-	  res.send({success:false, errorMessage: 'Invalid Query Paramaters, required - data & time.'});
-	}
-  });
+	couchdb.getTransactionList(req.params.blockNum).then(
+		function(message) {
+			//logger.debug("Transaction result: " + message);
+			var docs = JSON.parse(JSON.stringify(message)).docs;
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });

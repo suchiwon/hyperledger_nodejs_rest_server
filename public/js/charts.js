@@ -59,7 +59,16 @@ define(function() {
                fontColot: '#666',
                padding: 10
              }
-           }
+           },
+           scales: {
+            xAxes: [
+              {
+                gridLines: {
+                  display: false
+                }
+              }
+            ]
+          }
         };
         transactionChartRef = new Chart(ctx, {
           type: "line",
@@ -71,7 +80,37 @@ define(function() {
      function renderCoinChart(data) {
        //hideEle("coinChartLoader");
       var ctx = document.getElementById("coinChart").getContext("2d");
-      var options = { };
+      var options = { 
+        scales: {
+          xAxes: [
+            {
+              gridLines: {
+                display: false
+              }
+            }
+          ],
+          yAxes: [
+          {
+            type: "linear",
+            position: "left",
+            id: "create-y-axis",
+            ticks: {
+              stepSize: 100
+            }
+          },
+          {
+            type: "linear",
+            position: "right",
+            id: "use-y-axis",
+            ticks: {
+              min: 0,
+              max: 1000,
+              stepSize: 100
+            }
+          }
+          ]
+        }
+      };
       coinChartRef = new Chart(ctx, {
         type: "line",
         data: data,
@@ -131,6 +170,7 @@ define(function() {
             pointHitRadius: 10,
             data: [],
             spanGaps: false,
+            yAxisID: 'create-y-axis'
          },
          {
           label: "사용량",
@@ -153,6 +193,7 @@ define(function() {
           pointHitRadius: 10,
           data: [],
           spanGaps: false,
+          yAxisID: 'use-y-axis'
        }
       ]
    };
@@ -225,13 +266,52 @@ $(document).ready(function() {
     $(this).gifplayer();
   });
 
-  $("#add-block-button").click(function() {
-    console.log("button click");
+  $('#blockDiv').on('click', '.block-gif', function(){
 
-    var tween = $(".box").to({left: leftSet}, 
-      { easing: 'easingBackInOut', delay: 0, offset: 300, duration: 300}).start();
+    var blockNum = $(this).parent().attr('id').substring(5);
 
-    leftSet += 1000;
+    var html;
+    
+    /*
+    var popup = window.open('blockinfo/' + blockNum, 'block info', 
+    'toolbar=no, menubar=no, resizable=no, width=600px, height=400px');
+
+    if (window.focus) {
+      popup.focus();
+    }
+
+    if (!popup.closed) {
+      popup.focus();
+    }
+    */
+
+    $.ajax ({
+        url: '/transactions/' + blockNum,
+        method: 'GET'
+    }).done(function(data) {
+
+            html = "<div>";
+
+            for (var i = 0; i < data.length; i++) {
+
+                var transaction = data[i];    
+
+                html += ("<div><p>" + transaction.fcn + " "
+                                    + transaction.userid + " "
+                                    + transaction.time + " "
+                                    + transaction.power + " "
+                                    + transaction.coin +
+                                            "</p></div>"
+                 );
+            }
+
+            html += "</div>";
+
+       $('#block' + blockNum).popover({
+          'html': true,
+          content: html
+        });
+    });
   });
 });
 
@@ -240,12 +320,12 @@ $(document).ready(function() {
     var i, count = 0;
     if (currentBlockNumber > max_block_gif) {
       for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
         count++;
       }
     } else {
-      for (i = 0; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/></div>');
+      for (i = currentBlockNumber - 1; i >= 0; i--) {
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * 200 + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
         count++;
       }
     }
@@ -265,7 +345,7 @@ $(document).ready(function() {
     j = 0;
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * 200 + 'px; opacity:0"><img class="block-gif" src="img/block.gif"/></div>');
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * 200 + 'px; opacity:0"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
       ++j;
     }
 
@@ -317,6 +397,8 @@ $(document).ready(function() {
     //console.log("remove block:%d", index);
     $("#block" + index).remove(); 
   }
+
+  ///////////////////////GET BLOCK INFO/////////////////////////////////////
 
 });
 

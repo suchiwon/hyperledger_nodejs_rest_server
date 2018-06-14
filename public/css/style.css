@@ -83,18 +83,20 @@ header{
 }
 
 .box {
-    width: 100px;
-    height: 100px;
+    width: 300px;
+    height: 300px;
     float: left;
-    color: #fff;
-    font-size: 40px;
-    line-height:150px;
+    font-size: 15px;
     text-align: center;
     font-family: sans-serif;
     font-weight: bold;
-    border-radius: 10px;
     float: left;
     position: absolute; top: 70px;
+}
+
+.block-num {
+    position: relative;
+    top: -50px;
 }
 
 .b1 { background-color: #9C27B0; }
