@@ -1,12 +1,14 @@
 define(["nano", "util", "log4js"], function(nano, util, log4js){
     var couchdb;
     var powerTransactionsDB;
+    var powerEnergyDB;
     var logger;
 
     var exports = {
         init: function(host, port) {
             couchdb = nano(util.format('http://%s:%d', host, port));
             powerTransactionsDB = couchdb.db.use('power_transactions');
+            powerEnergyDB = couchdb.db.use('power_energy');
 
             logger = log4js.getLogger('SampleWebApp');
         },
@@ -107,7 +109,46 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                     }
                 });
             });
-        }
+        },
+        getEnergyNames: async function() {
+            return new Promise(function (resolve, reject) {
+               powerEnergyDB.list({include_docs: true}, function(err, body){
+                   if (!err) {
+                       //console.log(JSON.stringify(body));
+
+                       resolve(JSON.parse(JSON.stringify(body)).rows);
+                   } else {
+                    logger.error("get energy name error:" + err);
+                    reject(Error(err));
+                   }
+               });
+            });
+        },getPlants: async function(energy_id) {
+            return new Promise(function (resolve, reject) {
+                couchdb.request({
+                    db: 'power_plant',
+                    method: 'POST',
+                    doc: '_find',
+                    body: {
+                        "selector": {
+                            "energy_id": {
+                                "$eq": energy_id
+                            }
+                        }
+                    }
+                },
+                function (err, body) {
+                    if (!err) {
+                        logger.debug("get plants success:" + JSON.stringify(body));
+                        resolve(body);
+                    } else {
+                        logger.error("get plants error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            });
+        },
+
     }
 
     return exports;

@@ -554,3 +554,34 @@ app.get('/monitor', async function(req, res) {
 		}
 	);
  });
+
+ app.get('/getEnergyNames', async function(req, res) {
+	logger.debug("=================GET ENERGY NAMES==================");
+
+	couchdb.getEnergyNames().then(
+		function(message) {
+			logger.debug("Transaction result: " + JSON.stringify(message));
+			var docs = JSON.parse(JSON.stringify(message));
+
+			//console.log(docs);
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });
+
+ app.get('/getPlants/:energy_id', async function(req, res) {
+	logger.debug("=================GET PLANTS==================");
+	logger.debug('energy_id: ' + req.params.energy_id);
+
+	couchdb.getPlants(req.params.energy_id).then(
+		function(message) {
+			//logger.debug("Transaction result: " + message);
+			var docs = JSON.parse(JSON.stringify(message)).docs;
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });

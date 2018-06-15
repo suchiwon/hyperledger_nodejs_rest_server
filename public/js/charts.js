@@ -1,7 +1,7 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
 define(function() {
-  
+
   const max_block_gif = 6;
   const position_offset = 100;
   var currentBlockNumber;
@@ -235,6 +235,8 @@ define(function() {
         currentBlockNumber = newTempData.currentBlockNumber;
 
         currentBlockNum.innerHTML = newTempData.currentBlockNumber;
+
+        setPlantTable($("#power_energy option:selected").val());
     });
 
     ws.on('block-create', function(currentBlockNumber) {
@@ -309,13 +311,64 @@ $(document).ready(function() {
         $('#block' + blockNum).tooltipster({
           theme: 'tooltipster-noir',
           contentAsHTML: true,
-          content: $(".tooltip-templates").html()
+          content: $(".tooltip-templates").html();
         });
       
     });
     */
   });
+
+  ////////////////////////////////CHANNEL BLOCK CONFIG/////////////////////////
+  $.ajax ({
+    url: '/getEnergyNames',
+    method: 'GET'
+  }).done(function(data) {
+
+    console.log("get energy name: " + data);
+
+    for (var i = 0; i < data.length; i++) {
+
+       var transaction = data[i]; 
+       
+       //alert(JSON.stringify(transaction));
+
+       $("#power_energy").append("<option value=" + transaction.doc.energy_id + ">" + transaction.doc.name + "</option>");
+    }
+
+    setPlantTable($("#power_energy option:selected").val());
+  });
+
+  $("#power_energy").change(function() {
+    setPlantTable($(this).val());
+  });
 });
+
+  function setPlantTable(energy_id) {
+    $.ajax ({
+      url: '/getPlants/' + energy_id,
+      method: 'GET'
+    }).done(function(data) {
+
+      $('#plantTableBody').empty();
+
+          for (var i = 0; i < data.length; i++) {
+
+              var transaction = data[i];
+              
+              $('#plantTableBody').append("<tr>" +
+                                          "<td>" + transaction.name + " " +
+                                          "<td>" + transaction.power + "kwh</td>" +
+                                          "<td>" + transaction.balance + "</td>" +
+                                          "<td>" + getRandomInt(1, 100)/100.0 + "%</td>" +
+                                          "<td>" + "정상" + "</td>" +
+                                          "</tr>"
+               );
+               
+        }
+    });
+
+  }
+///////////////////////////////////////BLOCK ANIMATION CONFIG////////////////////////////
 
   function initBlock() {
     console.log("currentBlockNumber:%d", currentBlockNumber);
