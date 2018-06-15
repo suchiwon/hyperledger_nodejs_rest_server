@@ -28,7 +28,6 @@
               </canvas>
           </div>
       </div>
-      <div id="d3ChartDiv">
           
       </div>
       <div id="blockDiv">
@@ -36,7 +35,39 @@
         <div id="blockList">
         </div>
       </div>
+
+<!--
+      <div class="tooltip-templates">
+        <span id="tooltip-content">
+        </span>
+      </div>
+    -->
+    
+    <div id="channelChartDiv">
+
+        <div id="channelChartMenu">
+            <span>발전소 현황</span> 
+            <select id="power_energy" class="selectpicker" style="display: inline;"></select>
+            <span style="float: right;">개수: <span id="plant_num"></span></span>
+        </div>
+
+            <table id="plantTable" class="table table-dark">
+                 <thead>
+                     <tr>
+                        <th scope="col">발전소</th>
+                        <th scope="col">발전량</th>
+                        <th scope="col">거래량</th>
+                        <th scope="col">CPU 점유율</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody id="powerTableBody">
+        
+                </tbody>
+            </table>
+        
+    </div>
       
-    <script type="text/javascript"data-main="js/charts.js" src="js/require.js"></script>
+    <script type="text/javascript" data-main="js/charts.js" src="js/require.js"></script>
     </body>
 </html>

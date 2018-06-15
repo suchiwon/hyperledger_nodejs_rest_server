@@ -59,6 +59,9 @@ app.use(bodyParser.urlencoded({
 	extended: false
 }));
 
+var g_username;
+var g_orgname;
+
 
 app.use(session({
 	secret: '@#SIGN#@',
@@ -72,6 +75,9 @@ app.use(function(req, res, next) {
 	if (req.session) {
 		res.locals.username = req.session.username;
 		res.locals.orgname = req.session.orgname;
+
+		g_username = req.session.username;
+		g_orgname = req.session.orgname;
 	}
 
 	next();
@@ -101,8 +107,11 @@ app.use(function(req, res, next) {
 		req.username = req.session.username;
 		req.orgname = req.session.orgname;
 
-		req.username = 'Jim';
-		req.orgname = 'Org1';
+		if (req.username == undefined) {
+			req.username = 'Jim';
+			req.orgname = 'Org1';
+		}
+
 		logger.debug(util.format('session finded: username - %s, orgname - %s', req.username, req.orgname));
 		return next();
 	} else {
@@ -184,6 +193,7 @@ var ioBlock = require('socket.io').listen(4002);
 
 io.sockets.on("connection", function(ws) {
 
+	//txData.setSess(g_username, g_orgname);
 	txData.setWs(ws);
 	txData.initBlockNumber(query);
 	txData.startChartInterval();

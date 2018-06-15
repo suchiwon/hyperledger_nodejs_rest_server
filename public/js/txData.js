@@ -51,6 +51,10 @@ define(["socket.io"], function(io) {
             }, 1000);
             */
         },
+        setSess : function(_username, _orgname) {
+            username = _username;
+            orgname = _orgname;
+        },
         setWs : function(_ws) {
             ws = _ws;
         },

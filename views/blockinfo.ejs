@@ -2,32 +2,18 @@
 <html lang="ko">
 <head>
     <title>block info</title>
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $.ajax ({
-                url: '/transactions/' + <%= blockNum %>,
-                method: 'GET'
-            }).done(function(data) {
-
-                    for (var i = 0; i < data.length; i++) {
-
-                        var transaction = data[i];
-
-                        $('#powerTableBody').append("<tr>" +
-                                                    "<td>" + transaction.fcn + "</td>" +
-                                                    "<td>" + transaction.userid + "</td>" +
-                                                    "<td>" + transaction.time + "</td>" +
-                                                    "<td>" + transaction.power + "</td>" +
-                                                    "<td>" + transaction.coin + "</td>" +
-                                                    "</tr>"
-                         );
-                    }
-            });
-        });
+    <script type="text/javascript" data-main="js/blockMgr.js" src="js/require.js">
     </script>
 </head>
     <body>
-        <p>BLOCK #<%= blockNum%> INFO</p>
+        <div class="panel panel-default">
+            <div class="panel-heading">BLOCK #<%= blockNum%> 정보</div>
+            <div class="panel-contents"></div>
+        </div>
+
+        <input id="blockNum" type="hidden" value= <%= blockNum%> > 
+
+    <!--
         <table id="powerTable" class="table table-dark">
             <thead>
                 <tr>
@@ -42,5 +28,7 @@
 
             </tbody>
         </table>
+
+    -->
     </body>
 </html>

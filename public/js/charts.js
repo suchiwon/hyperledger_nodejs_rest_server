@@ -2,7 +2,8 @@
 
 define(function() {
   
-  const max_block_gif = 8;
+  const max_block_gif = 6;
+  const position_offset = 100;
   var currentBlockNumber;
 
     var ws = io.connect("http://localhost:4001");
@@ -269,12 +270,10 @@ $(document).ready(function() {
   $('#blockDiv').on('click', '.block-gif', function(){
 
     var blockNum = $(this).parent().attr('id').substring(5);
-
-    var html;
     
-    /*
+    
     var popup = window.open('blockinfo/' + blockNum, 'block info', 
-    'toolbar=no, menubar=no, resizable=no, width=600px, height=400px');
+    'toolbar=no, menubar=no, resizable=no, scrollbars=yes, width=600px, height=400px');
 
     if (window.focus) {
       popup.focus();
@@ -283,35 +282,38 @@ $(document).ready(function() {
     if (!popup.closed) {
       popup.focus();
     }
-    */
-
+    
+    /*
     $.ajax ({
         url: '/transactions/' + blockNum,
         method: 'GET'
     }).done(function(data) {
 
-            html = "<div>";
+        $(".tooltip-templates").empty();
 
-            for (var i = 0; i < data.length; i++) {
+        for (var i = 0; i < data.length; i++) {
 
-                var transaction = data[i];    
+           var transaction = data[i]; 
+           
+           //alert(JSON.stringify(transaction));
 
-                html += ("<div><p>" + transaction.fcn + " "
-                                    + transaction.userid + " "
-                                    + transaction.time + " "
-                                    + transaction.power + " "
-                                    + transaction.coin +
-                                            "</p></div>"
-                 );
-            }
+           $(".tooltip-templates").append("<div><p>" + transaction.fcn + " "
+                               + transaction.userid + " "
+                               + transaction.time + " "
+                               + transaction.power + " "
+                               + transaction.coin +
+                    "</p></div>");
+        }
 
-            html += "</div>";
-
-       $('#block' + blockNum).popover({
-          'html': true,
-          content: html
+        
+        $('#block' + blockNum).tooltipster({
+          theme: 'tooltipster-noir',
+          contentAsHTML: true,
+          content: $(".tooltip-templates").html()
         });
+      
     });
+    */
   });
 });
 
@@ -320,12 +322,12 @@ $(document).ready(function() {
     var i, count = 0;
     if (currentBlockNumber > max_block_gif) {
       for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * 200 + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
         count++;
       }
     } else {
       for (i = currentBlockNumber - 1; i >= 0; i--) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * 200 + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
         count++;
       }
     }
@@ -345,7 +347,7 @@ $(document).ready(function() {
     j = 0;
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * 200 + 'px; opacity:0"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
       ++j;
     }
 
@@ -362,7 +364,7 @@ $(document).ready(function() {
     if (currentBlockNumber >= max_block_gif) {
 
       for (i = startIndex; i < startIndex + count; i++) {
-        left = (200 * (j - count));
+        left = (position_offset * (j - count));
 
         //console.log("i: %d, left: %d", i, left);
       
@@ -373,7 +375,7 @@ $(document).ready(function() {
 
       for (i = startIndex + count; i < currentBlockNumber; i++) {
   
-        left = (200 * (j - count));
+        left = (position_offset * (j - count));
   
         //console.log("i: %d, left: %d", i, left);
   
@@ -382,7 +384,7 @@ $(document).ready(function() {
       }
     } else {
       for (i = startIndex; i < currentBlockNumber; i++) {
-        left = (200 * (max_block_gif - currentBlockNumber + i - count));
+        left = (position_offset * (max_block_gif - currentBlockNumber + i - count));
         tween = $("#block" + i).to({left: left},{duration: 200}).start();
       }
     }

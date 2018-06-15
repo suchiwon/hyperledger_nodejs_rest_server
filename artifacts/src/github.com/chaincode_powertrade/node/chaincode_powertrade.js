@@ -39,56 +39,74 @@ var Chaincode = class {
   }
 
   async regist(stub, args) {
-    if (args.length != 1) {
+      if (args.length != 1) {
         throw new Error('Incorrect number of arguments. Expecting 1');
-    }
+      }
 
-    let name = args[0];
+      let name = args[0];
 
-    var wallet = {
-        "power": 0,
-        "balance": 0
-    }
+      var wallet = {
+          "balance": 0,
+          "power": 0
+      }
 
-    await stub.putState(name, Buffer.from(JSON.stringify(wallet)));
+      await stub.putState(name, Buffer.from(JSON.stringify(wallet)));
   }
 
-  async powertrade(stub, args) {
+  async move(stub, args) {
     if (args.length != 3) {
-        throw new Error('Incorrect number of arguments. Expecting 3');
+      throw new Error('Incorrect number of arguments. Expecting 3');
     }
 
-    let id = args[0];
-    let power = Number.paerseInt(args[1]);
-
-    if (Number.isNaN(power)) {
-        throw new Error("Incorrect power argument");
+    let A = args[0];
+    let B = args[1];
+    if (!A || !B) {
+      throw new Error('asset holding must not be empty');
     }
 
-    let balance = Number.paerseInt(args[2]);
+    // Get the state from the ledger
+    let Avalbytes = await stub.getState(A);
+    if (!Avalbytes) {
+      throw new Error('Failed to get state of asset holder A');
+    }
+    let Aval = parseInt(Avalbytes.toString());
 
-    if (Number.isNaN(balance)) {
-        throw new Error("Incorrect balance argument");
+    let Bvalbytes = await stub.getState(B);
+    if (!Bvalbytes) {
+      throw new Error('Failed to get state of asset holder B');
     }
 
-    var walletBytes = await stub.getState(id);
-
-    if (!walletBytes) {
-        throw new Error("failure to get State id");
+    let Bval = parseInt(Bvalbytes.toString());
+    // Perform the execution
+    let amount = parseInt(args[2]);
+    if (typeof amount !== 'number') {
+      throw new Error('Expecting integer value for amount to be transaferred');
     }
 
-    let wallet = JSON.parse(walletBytes.toString());
+    Aval = Aval - amount;
+    Bval = Bval + amount;
+    console.info(util.format('Aval = %d, Bval = %d\n', Aval, Bval));
 
-    let newWallet = {
-        "balance": wallet.balance + balance,
-        "power": wallet.power - power
+    // Write the states back to the ledger
+    await stub.putState(A, Buffer.from(Aval.toString()));
+    await stub.putState(B, Buffer.from(Bval.toString()));
+
+  }
+
+  // Deletes an entity from state
+  async delete(stub, args) {
+    if (args.length != 1) {
+      throw new Error('Incorrect number of arguments. Expecting 1');
     }
 
-    await stub.putState(Buffer.from(JSON.stringify(newWallet)));
+    let A = args[0];
+
+    // Delete the key from the state in ledger
+    await stub.deleteState(A);
   }
 
   // query callback representing the query of a chaincode
-  async getWallet(stub, args) {
+  async query(stub, args) {
     if (args.length != 1) {
       throw new Error('Incorrect number of arguments. Expecting name of the person to query')
     }
@@ -97,17 +115,17 @@ var Chaincode = class {
     let A = args[0];
 
     // Get the state from the ledger
-    let walletBytes = await stub.getState(A);
-    if (!walletBytes) {
+    let Avalbytes = await stub.getState(A);
+    if (!Avalbytes) {
       jsonResp.error = 'Failed to get state for ' + A;
       throw new Error(JSON.stringify(jsonResp));
     }
 
     jsonResp.name = A;
-    jsonResp.wallet = walletBytes.toString();
+    jsonResp.amount = Avalbytes.toString();
     console.info('Query Response:');
     console.info(jsonResp);
-    return walletBytes;
+    return Avalbytes;
   }
 };
 

@@ -185,7 +185,13 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 
 		couchdb.insertPowerTransaction(tx_id_string, block_num_save, fcn, args);
 
-		return tx_id_string;
+		var invoke_response = {
+			"transaction_id": tx_id_string,
+			"response": proposalResponses[0].response.payload.toString('utf8')
+		}
+
+		//return tx_id_string;
+		return JSON.stringify(invoke_response);
 	} else {
 		let message = util.format('Failed to invoke chaincode. cause:%s',error_message);
 		logger.error(message);

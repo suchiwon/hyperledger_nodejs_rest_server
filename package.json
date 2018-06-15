@@ -34,7 +34,8 @@
     "kute.js": "^1.6.5",
     "log4js": "^0.6.38",
     "nano": "^6.4.4",
-    "popper": "^1.0.1"
+    "popper": "^1.0.1",
+    "tooltipster": "^4.2.6"
   },
   "devDependencies": {
     "requirejs": "^2.3.5",
