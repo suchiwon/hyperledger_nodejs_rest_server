@@ -28,8 +28,9 @@ type KcoinChaincode struct {
 }
 
 type Wallet struct {
-	name string `json:"name"`
-	balance int `json:"balance"`
+	name string
+	balance int
+	power int
 }
 
 func (cc *KcoinChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
@@ -53,6 +54,8 @@ func (cc *KcoinChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response
 		result, err = cc.regist(stub, args)
 	} else if fn == "getWallet" {
 		result, err = cc.getWallet(stub, args)
+	} else if fn == "getBalance" {
+		result, err = cc.getBalance(stub, args)
 	} else {
 		return shim.Error("no function")
 	}
@@ -70,7 +73,10 @@ func (cc *KcoinChaincode) regist(stub shim.ChaincodeStubInterface, args []string
 
 	var id string
 
-	wallet := Wallet{name:_name, balance:100}
+	wallet := &Wallet{}
+	wallet.name = _name
+	wallet.balance = 100
+	wallet.power = 100
 
 	walletJSON, _ := json.Marshal(wallet)
 
@@ -170,25 +176,6 @@ func (cc *KcoinChaincode) supply(stub shim.ChaincodeStubInterface, args []string
 	return []byte(strconv.Itoa(wallet.balance)), nil
 }
 
-func (cc *KcoinChaincode) Query(stub shim.ChaincodeStubInterface) peer.Response {
-	var result []byte
-	var err error
-
-	fn, args := stub.GetFunctionAndParameters()
-
-	if fn == "getWallet" {
-		result, err = cc.getWallet(stub, args)
-	} else {
-		return shim.Error("no function")
-	}
-
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	return shim.Success(result)
-}
-
 func (cc *KcoinChaincode) getWallet(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	_id := args[0]
@@ -200,6 +187,23 @@ func (cc *KcoinChaincode) getWallet(stub shim.ChaincodeStubInterface, args []str
 	}
 
 	return walletByte, nil
+}
+
+func (cc *KcoinChaincode) getBalance(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	_id := args[0]
+
+	walletByte, err := stub.GetState(_id)
+
+	var wallet Wallet
+
+	json.Unmarshal(walletByte, &wallet)
+
+	if err != nil {
+		return nil, errors.New("error while read wallet")
+	}
+
+	return []byte(strconv.Itoa(wallet.balance)), nil
 }
 
 func main() {

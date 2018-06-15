@@ -58,9 +58,9 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 
 		let results;
 		if (!isUpgrade)
-			results = await channel.sendInstantiateProposal(request, 60000); //instantiate takes much longer
+			results = await channel.sendInstantiateProposal(request, 300000); //instantiate takes much longer
 		else
-			results = await channel.sendUpgradeProposal(request, 60000);
+			results = await channel.sendUpgradeProposal(request, 300000);
 		// the returned object has both the endorsement results
 		// and the actual proposal, the proposal will be needed
 		// later when we send a transaction to the orderer

@@ -1,8 +1,8 @@
 package main
+
 import (
-	"encoding/json"
+	_ "encoding/json"
 	"fmt"
-	"errors"
 	"strconv"
 	"math/rand"
 	"time"
@@ -23,75 +23,59 @@ func randSeq(n int) string {
 }
 
 type PowerTradeChaincode struct {
-
-}
-
-type Wallet struct {
-	name string `json:"name"`
-	balance int `json:"balance"`
-	power int `json:"power"`
+	idCount int
+	walletMap map[string]int
 }
 
 func (cc *PowerTradeChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+	
 	rand.Seed(time.Now().UnixNano())
+
+	cc.idCount = 0
+
+	cc.walletMap = make(map[string]int)
+
 	return shim.Success(nil);
 }
 
 func (cc *PowerTradeChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	var result []byte
-	var err error
 
 	fn, args := stub.GetFunctionAndParameters()
 
 	if fn == "transfer" {
-		result, err = cc.transfer(stub, args)
+		return cc.transfer(stub, args)
 	} else if fn == "pay" {
-		result, err = cc.pay(stub, args)
+		return cc.pay(stub, args)
 	} else if fn == "supply" {
-		result, err = cc.supply(stub, args)
+		return cc.supply(stub, args)
 	} else if fn == "regist" {
-		result, err = cc.regist(stub, args)
+		return cc.regist(stub, args)
 	} else if fn == "getWallet" {
-		result, err = cc.getWallet(stub, args)
+		return cc.getWallet(stub, args)
 	} else if fn == "powerTrade" {
-		result, err = cc.powerTrade(stub, args)
+		return cc.powerTrade(stub, args)
 	} else {
 		return shim.Error("no function")
 	}
-
-	if err != nil {
-		return shim.Error(err.Error());
-	}
-
-	return shim.Success(result)
 }
 
-func (cc *PowerTradeChaincode) regist(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (cc *PowerTradeChaincode) regist(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	_name := args[0]
 
 	var id string
 
-	wallet := Wallet{name:_name, balance:100, power:100}
+	cc.idCount++
 
-	walletJSON, _ := json.Marshal(wallet)
+	cc.walletMap[_name] = 0
 
-	//id = randSeq(20)
-	id = _name
-
-	err := stub.PutState(id, walletJSON)
-
-	if err != nil {
-		return nil, errors.New("error while regist")
-	}
-
-	return []byte(id), nil
+	return shim.Success(nil)
 }
 
-func (cc *PowerTradeChaincode) transfer(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (cc *PowerTradeChaincode) transfer(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 	
 	if len(args) != 3 {
-		return nil, errors.New("Incorrect number of argument. expecting 3")
+		return shim.Error("Incorrect number of argument. expecting 3")
 	}
 	
 	_from := args[0]
@@ -99,153 +83,124 @@ func (cc *PowerTradeChaincode) transfer(stub shim.ChaincodeStubInterface, args [
 	_amount := args[2]
 
 	var err error
-	var fromWallet Wallet
-	var toWallet Wallet
 	var amount int
 
 	amount, err = strconv.Atoi(_amount)
 
 	if err != nil {
-		return nil, errors.New("Incorrect argument for amount")
+		return shim.Error("Incorrect argument for amount")
 	}
 
-	fromWalletJson, err := stub.GetState(_from)
-	toWalletJson, err := stub.GetState(_to)
+	/*
+	var fromWallet Wallet
+	var toWallet Wallet
 
-	json.Unmarshal(fromWalletJson, &fromWallet)
-	json.Unmarshal(toWalletJson, &toWallet)
+	fromWallet, _ = cc.walletMap[_from]
+	toWallet, _ = cc.walletMap[_to]
 
 	fromWallet.balance -= amount
 	toWallet.balance += amount
 
-	fromWalletJson, err = json.Marshal(fromWallet)
-	toWalletJson, err = json.Marshal(toWallet)
+	cc.walletMap[_from] = fromWallet
+	cc.walletMap[_to] = toWallet
+	*/
 
-	err = stub.PutState(_from, fromWalletJson)
-	
-	if err != nil {
-		return nil, errors.New("error while transfer: put from wallet")
-	}
+	cc.walletMap[_from] -= amount
+	cc.walletMap[_to] += amount
 
-	err = stub.PutState(_to, toWalletJson)
-
-	if err != nil {
-		return nil, errors.New("error while transfer: put to wallet")
-	}
-
-	return nil, nil
+	return shim.Success(nil)
 }
 
-func (cc *PowerTradeChaincode) pay(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	return nil, nil
+func (cc *PowerTradeChaincode) pay(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+	return shim.Success(nil)
 }
 
-func (cc *PowerTradeChaincode) supply(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (cc *PowerTradeChaincode) supply(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	_id := args[0]
 	_amount := args[1]
 
 	var err error
-	var wallet Wallet
 	var amount int
 
 	amount, err = strconv.Atoi(_amount)
 
 	if err != nil {
-		return nil, errors.New("Incorrect argument for amount")
+		return shim.Error("Incorrect argument for amount")
 	}
-
+/*
 	walletJson, err := stub.GetState(_id)
 
 	json.Unmarshal(walletJson, &wallet)
 
-	wallet.balance += amount
+	balance, err = strconv.Atoi(wallet.balance)
+
+	wallet.balance = strconv.Itoa(balance + amount)
 
 	walletJson, err = json.Marshal(wallet)
 
 	err = stub.PutState(_id, walletJson)
 	
 	if err != nil {
-		return nil, errors.New("error while supply: put from wallet")
+		return shim.Error("error while supply: put from wallet")
 	}
+*/
+	cc.walletMap[_id] += amount
 
-	return []byte(strconv.Itoa(wallet.balance)), nil
+	return shim.Success([]byte(strconv.Itoa(cc.walletMap[_id])))
 }
 
-func (cc *PowerTradeChaincode) powerTrade(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (cc *PowerTradeChaincode) powerTrade(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 	_id := args[0]
 	_power := args[1]
 	_coin := args[2]
 
 	var err error
-	var wallet Wallet
 	var power int
 	var coin int
 
 	power, err = strconv.Atoi(_power)
 
 	if err != nil {
-		return nil, errors.New("Incorrect argument for amount")
+		return shim.Error("Incorrect argument for amount")
 	}
 
 	coin, err = strconv.Atoi(_coin)
 
 	if err != nil {
-		return nil, errors.New("Incorrect argument for coin")
+		return shim.Error("Incorrect argument for coin")
 	}
 
-	walletJson, err := stub.GetState(_id)
+	cc.walletMap[_id] -= power
 
-	json.Unmarshal(walletJson, &wallet)
-
-	wallet.balance += coin
-	wallet.power -= power
-
-	walletJson, err = json.Marshal(wallet)
-
-	err = stub.PutState(_id, walletJson)
-	
-	if err != nil {
-		return nil, errors.New("error while supply: put from wallet")
-	}
-
-	return []byte(strconv.Itoa(wallet.balance)), nil
+	return shim.Success([]byte(strconv.Itoa(cc.walletMap[_id])))
 }
 
-func (cc *PowerTradeChaincode) Query(stub shim.ChaincodeStubInterface) peer.Response {
-	var result []byte
-	var err error
-
-	fn, args := stub.GetFunctionAndParameters()
-
-	if fn == "getWallet" {
-		result, err = cc.getWallet(stub, args)
-	} else {
-		return shim.Error("no function")
-	}
-
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	return shim.Success(result)
-}
-
-func (cc *PowerTradeChaincode) getWallet(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (cc *PowerTradeChaincode) getWallet(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	_id := args[0]
 
-	walletByte, err := stub.GetState(_id)
+	/*
+	var wallet Wallet
 
-	wallet Wallet
+	wallet = Wallet{}
 
-	json.unmarshal(walletByte, &wallet)
+	json.Unmarshal(walletByte, &wallet)
 
 	if err != nil {
-		return nil, errors.New("error while read wallet")
+		return shim.Error("error while read wallet")
 	}
 
-	return json.Marshal(wallet), nil
+	var ret []byte
+
+	ret, err = json.Marshal(wallet)
+
+	if err != nil {
+		return shim.Error("error while json marshal")
+	}
+	*/
+
+	return shim.Success([]byte(strconv.Itoa(cc.walletMap[_id]))
 }
 
 func main() {

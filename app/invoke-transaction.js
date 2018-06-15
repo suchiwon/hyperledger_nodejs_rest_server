@@ -21,11 +21,13 @@ var hfc = require('fabric-client');
 var helper = require('./helper.js');
 var logger = helper.getLogger('invoke-chaincode');
 
-var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name, txData) {
+var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name, txData, couchdb) {
 	logger.debug(util.format('\n============ invoke transaction on channel %s ============\n', channelName));
 	var error_message = null;
 	var tx_id_string = null;
 	var block_num_save = null;
+
+	console.log(args);
 
 	try {
 		// first setup the client for this org
@@ -181,7 +183,15 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		//get current block number
 		txData.catchBlockCreate(parseInt(block_num_save) + 1);
 
-		return tx_id_string;
+		couchdb.insertPowerTransaction(tx_id_string, block_num_save, fcn, args);
+
+		var invoke_response = {
+			"transaction_id": tx_id_string,
+			"response": proposalResponses[0].response.payload.toString('utf8')
+		}
+
+		//return tx_id_string;
+		return JSON.stringify(invoke_response);
 	} else {
 		let message = util.format('Failed to invoke chaincode. cause:%s',error_message);
 		logger.error(message);

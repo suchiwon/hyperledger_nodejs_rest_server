@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>block info</title>
+    <script type="text/javascript" data-main="js/blockMgr.js" src="js/require.js">
+    </script>
+</head>
+    <body>
+        <div class="panel panel-default">
+            <div class="panel-heading">BLOCK #<%= blockNum%> 정보</div>
+            <div class="panel-contents"></div>
+        </div>
+
+        <input id="blockNum" type="hidden" value= <%= blockNum%> > 
+
+    <!--
+        <table id="powerTable" class="table table-dark">
+            <thead>
+                <tr>
+                    <th scope="col">트랜잭션 함수</th>
+                    <th scope="col">발전소 ID</th>
+                    <th scope="col">거래 시간</th>
+                    <th scope="col">거래량(kWh)</th>
+                    <th scope="col">거래액</th>
+                </tr>
+            </thead>
+            <tbody id="powerTableBody">
+
+            </tbody>
+        </table>
+
+    -->
+    </body>
+</html>
