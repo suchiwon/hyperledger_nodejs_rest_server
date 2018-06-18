@@ -196,7 +196,7 @@ io.sockets.on("connection", function(ws) {
 });
 
 const monitorChannelName = 'kcoinchannel';
-const monitorChaincodeName = 'power3';
+const monitorChaincodeName = 'powertrade';
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////// REST ENDPOINTS START HERE ///////////////////////////
@@ -585,11 +585,11 @@ app.get('/monitor', async function(req, res) {
 	);
  });
 
- app.get('/getPlants/:energy_id', async function(req, res) {
+ app.get('/getPlants/:area_id', async function(req, res) {
 	//logger.debug("=================GET PLANTS==================");
 	//logger.debug('energy_id: ' + req.params.energy_id);
 
-	couchdb.getPlants(req.params.energy_id).then(
+	couchdb.getPlants(req.params.area_id).then(
 		function(message) {
 			//logger.debug("Transaction result: " + message);
 			var docs = JSON.parse(JSON.stringify(message)).docs;

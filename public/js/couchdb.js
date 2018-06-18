@@ -9,7 +9,7 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
         init: function(host, port) {
             couchdb = nano(util.format('http://%s:%d', host, port));
             powerTransactionsDB = couchdb.db.use('power_transactions');
-            powerEnergyDB = couchdb.db.use('power_energy');
+            powerEnergyDB = couchdb.db.use('power_area');
             powerPlantDB = couchdb.db.use('power_plant');
 
             logger = log4js.getLogger('SampleWebApp');
@@ -29,7 +29,7 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
 
                         var userid = args[0];
                         var name = args[1];
-                        var energy_id = args[2];
+                        var area_id = args[2];
         
                         object = {
                                 blockNum: blockNum,
@@ -37,7 +37,7 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                                 fcn: fcnKor,
                                 userid: userid,
                                 name: name,
-                                energy_id: energy_id
+                                area_id: area_id
                             }
         
                     } else if (fcn == 'supply') {
@@ -51,6 +51,19 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                                 fcn: fcnKor,
                                 userid: userid,
                                 power: power
+                            }
+        
+                    } else if (fcn == 'addCoin') {
+        
+                        var userid = args[0];
+                        var balance = args[1];
+        
+                        object = {
+                                blockNum: blockNum,
+                                time: new Date(),
+                                fcn: fcnKor,
+                                userid: userid,
+                                coin: balance
                             }
         
                     } else if (fcn == 'powertrade') {
@@ -154,7 +167,7 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                    }
                });
             });
-        },getPlants: async function(energy_id) {
+        },getPlants: async function(area_id) {
             return new Promise(function (resolve, reject) {
                 couchdb.request({
                     db: 'power_plant',
@@ -162,8 +175,8 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                     doc: '_find',
                     body: {
                         "selector": {
-                            "energy_id": {
-                                "$eq": energy_id
+                            "area_id": {
+                                "$eq": area_id
                             }
                         }
                     }
@@ -188,13 +201,15 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
             
             var id = args[0];
             var name = args[1];
-            var energy_id = args[2];
+            var area_id = args[2];
 
             powerPlantDB.insert(
                 {
-                    energy_id: energy_id,
+                    area_id: area_id,
                     name: name,
                     power: 0,
+                    supply: 0,
+                    trade: 0,
                     balance: 0
                 },
                 id,
@@ -251,13 +266,15 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                 */
             });
         }, 
-        updatePlant: function(id, power, balance) {
+        updatePlant: async function(id, power, supply, trade, balance) {
             powerPlantDB.get(id, function(error, existing){
                 if (!error) {
                     logger.debug("get plant:" + JSON.stringify(existing));
 
                     existing.power += power;
                     existing.balance += balance;
+                    existing.supply += supply;
+                    existing.trade += trade;
                     
                     powerPlantDB.insert(existing, id, function(err, body) {
                         if (!err) {

@@ -14,10 +14,12 @@ define(function(){
 
                     if (transaction.fcn == "등록") {
                         $('.panel-contents').append(makeRegistInfo(transaction));
-                    } else if (transaction.fcn == "전기 거래") {
+                    } else if (transaction.fcn == "전력 거래") {
                         $('.panel-contents').append(makePowerTradeInfo(transaction));
-                    } else if (transaction.fcn == "전기 발전") {
+                    } else if (transaction.fcn == "전력 발전") {
                         $('.panel-contents').append(makeSupplyInfo(transaction));
+                    } else if (transaction.fcn == "코인 발급") {
+                        $('.panel-contents').append(makeAddCoinInfo(transaction));
                     }
 
                     /*
@@ -41,7 +43,7 @@ define(function(){
                 "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
                 "<p class='card-text'> ID:" + transaction.userid + "</p>" +
                 "<p class='card-text'> name:" + transaction.name + "</p>" +
-                "<p class='card-text'> 에너지:" + transaction.energy_id + "</p>" +
+                "<p class='card-text'> 지역 ID:" + transaction.area_id + "</p>" +
         "</div></div>";
 
         return div;
@@ -54,6 +56,18 @@ define(function(){
                 "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
                 "<p class='card-text'> ID:" + transaction.userid + "</p>" +
                 "<p class='card-text'> 발전량:" + transaction.power + "</p>" +
+        "</div></div>";
+
+        return div;
+    }
+
+    function makeAddCoinInfo(transaction) {
+        var div = "<div class='card text-white bg-warning mb-3'>" +
+                    "<div class='card-header'>" + transaction.time + "</div>" + 
+                "<div class='card-body'>" + 
+                "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
+                "<p class='card-text'> ID:" + transaction.userid + "</p>" +
+                "<p class='card-text'> 생산 토큰량:" + transaction.coin + "</p>" +
         "</div></div>";
 
         return div;

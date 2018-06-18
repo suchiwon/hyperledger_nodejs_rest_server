@@ -237,7 +237,7 @@ define(function() {
 
         currentBlockNum.innerHTML = newTempData.currentBlockNumber;
 
-        setPlantTable($("#power_energy option:selected").val());
+        setPlantTable($("#power_area option:selected").val());
     });
 
     ws.on('block-create', function(currentBlockNumber) {
@@ -333,20 +333,20 @@ $(document).ready(function() {
        
        //alert(JSON.stringify(transaction));
 
-       $("#power_energy").append("<option value=" + transaction.doc.energy_id + ">" + transaction.doc.name + "</option>");
+       $("#power_area").append("<option value=" + transaction.doc.area_id + ">" + transaction.doc.name + "</option>");
     }
 
-    setPlantTable($("#power_energy option:selected").val());
+    setPlantTable($("#power_area option:selected").val());
   });
 
-  $("#power_energy").change(function() {
+  $("#power_area").change(function() {
     setPlantTable($(this).val());
   });
 });
 
-  function setPlantTable(energy_id) {
+  function setPlantTable(area_id) {
     $.ajax ({
-      url: '/getPlants/' + energy_id,
+      url: '/getPlants/' + area_id,
       method: 'GET'
     }).done(function(data) {
 
@@ -359,8 +359,9 @@ $(document).ready(function() {
               $('#plantTableBody').append("<tr>" +
                                           "<td>" + transaction.name + " " +
                                           "<td>" + transaction.power + "kwh</td>" +
-                                          "<td>" + transaction.balance + "</td>" +
-                                          "<td>" + getRandomInt(1, 100)/100.0 + "%</td>" +
+                                          "<td>" + transaction.supply + "kwh</td>" +
+                                          "<td>" + transaction.trade + "kwh</td>" +
+                                          "<td>" + transaction.balance + "ETN</td>" +
                                           "<td>" + "정상" + "</td>" +
                                           "</tr>"
                );

@@ -14,7 +14,7 @@ define(["socket.io"], function(io) {
     var intervalInstance = false;
 
     const monitorChannelName = 'kcoinchannel';
-    const monitorChaincodeName = 'power3';
+    const monitorChaincodeName = 'powertrade';
     var username;
     var orgname;
     const peer = 'peer0.org1.example.com';
@@ -107,6 +107,7 @@ define(["socket.io"], function(io) {
               
                     ///////////////////////////transaction count 초기화
                     txPerSecMap.set(monitorChannelName, 0);
+                    this.consumeCoin = 0;
                 }
             }, 1000);
 
@@ -153,12 +154,25 @@ define(["socket.io"], function(io) {
                     }
 
                     var id = args[0];
-                    var power = args[1];
+                    var power = parseInt(args[1]);
 
-                    await couchdb.updatePlant(id, parseInt(power), 0);
+                    await couchdb.updatePlant(id, power, power, 0, 0);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
 			        this.addSupplyPower(parseInt(power));
+                } else if (fcn == 'addCoin') {
+
+                    if (args.length != 2) {
+                        logger.error("addCoin argument error");
+                    }
+
+                    var id = args[0];
+                    var balance = parseInt(args[1]);
+
+                    await couchdb.updatePlant(id, 0, 0, 0, balance);
+
+                    //console.log("add coin:%s %d", power, parseInt(args[1]));
+			        this.createdCoin += balance;
                 } else if (fcn == 'powertrade') {
 
                     if (args.length != 4) {
@@ -167,13 +181,13 @@ define(["socket.io"], function(io) {
 
                         var from = args[0];
                         var to = args[1];
-                        var power = args[2];
-                        var balance = args[3];
+                        var power = parseInt(args[2]);
+                        var balance = parseInt(args[3]);
 
-                        await couchdb.updatePlant(from, -1 * parseInt(power), parseInt(balance));
-                        await couchdb.updatePlant(to, parseInt(power), -1 * parseInt(balance));
+                        await couchdb.updatePlant(from, -1 * power, 0, power, balance);
+                        await couchdb.updatePlant(to, power, 0, power, -1 * balance);
 
-                        this.addCreatedCoin(parseInt(balance));
+                        this.consumeCoin = balance;
                 }
             }
         }
