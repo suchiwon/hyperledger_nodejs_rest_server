@@ -59,10 +59,6 @@ app.use(bodyParser.urlencoded({
 	extended: false
 }));
 
-var g_username;
-var g_orgname;
-
-
 app.use(session({
 	secret: '@#SIGN#@',
 	resave: false,
@@ -75,9 +71,6 @@ app.use(function(req, res, next) {
 	if (req.session) {
 		res.locals.username = req.session.username;
 		res.locals.orgname = req.session.orgname;
-
-		g_username = req.session.username;
-		g_orgname = req.session.orgname;
 	}
 
 	next();
@@ -107,7 +100,7 @@ app.use(function(req, res, next) {
 		req.username = req.session.username;
 		req.orgname = req.session.orgname;
 
-		if (req.username == undefined) {
+		if (req.username === undefined) {
 			req.username = 'Jim';
 			req.orgname = 'Org1';
 		}
@@ -189,11 +182,8 @@ var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
 
 var io = require('socket.io').listen(4001);
-var ioBlock = require('socket.io').listen(4002);
 
 io.sockets.on("connection", function(ws) {
-
-	//txData.setSess(g_username, g_orgname);
 	txData.setWs(ws);
 	txData.initBlockNumber(query);
 	txData.startChartInterval();
@@ -205,7 +195,8 @@ io.sockets.on("connection", function(ws) {
 	});
 });
 
-var monitorChannelName = 'kcoinchannel';
+const monitorChannelName = 'kcoinchannel';
+const monitorChaincodeName = 'power3';
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////// REST ENDPOINTS START HERE ///////////////////////////
@@ -239,6 +230,8 @@ app.post('/users', async function(req, res) {
 
 		sess.username = username;
 		sess.orgname = orgName;
+
+		txData.init(username, orgName);
 
 		res.json(response);
 	} else {
@@ -322,8 +315,9 @@ app.post('/chaincodes', async function(req, res) {
 		res.json(getErrorMessage('\'chaincodeType\''));
 		return;
 	}
-	let message = await install.installChaincode(peers, chaincodeName, chaincodePath, chaincodeVersion, chaincodeType, req.username, req.orgname)
-	res.send(message);});
+	let message = await install.installChaincode(peers, chaincodeName, chaincodePath, chaincodeVersion, chaincodeType, req.username, req.orgname);
+	res.send(message);
+});
 // Instantiate chaincode on target peers
 app.post('/channels/:channelName/chaincodes', async function(req, res) {
 	logger.debug('==================== INSTANTIATE CHAINCODE ==================');
@@ -402,7 +396,27 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 	args = JSON.parse(args);
 	logger.debug(args);
 
-	let message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, couchdb);
+	let message;
+
+	//check invoke regist duplicate id
+	if (chaincodeName == monitorChaincodeName && fcn == 'regist') {
+
+		couchdb.getPlant(args[0]).then(
+			async function(message) {
+				logger.debug("Transaction result: " + message);
+				if (message) {
+					logger.debug("this id registed before");
+					return;
+				} else {
+				}
+			}, async function(error) {
+				message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, couchdb);
+				//logger.error("Transaction error: " + error);
+			}
+		);
+	} else {
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, couchdb);
+	}
 	res.send(message);
 });
 // Query on chaincode on target peers
@@ -572,8 +586,8 @@ app.get('/monitor', async function(req, res) {
  });
 
  app.get('/getPlants/:energy_id', async function(req, res) {
-	logger.debug("=================GET PLANTS==================");
-	logger.debug('energy_id: ' + req.params.energy_id);
+	//logger.debug("=================GET PLANTS==================");
+	//logger.debug('energy_id: ' + req.params.energy_id);
 
 	couchdb.getPlants(req.params.energy_id).then(
 		function(message) {

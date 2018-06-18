@@ -229,6 +229,7 @@ define(function() {
         coinChartRef.update();
 
         if (newTempData.currentBlockNumber > currentBlockNumber) {
+          console.log("add block");
           addBlock(newTempData.currentBlockNumber);
         }
 

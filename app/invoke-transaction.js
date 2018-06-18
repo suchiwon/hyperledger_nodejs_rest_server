@@ -175,10 +175,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		//transaction count increase for txPerSec monitor
 		txData.set(channelName, txData.get(channelName) + 1);
 
-		if (chaincodeName == 'kcoin' && fcn == 'supply') {
-			console.log("add coin:%s %d", args[1], parseInt(args[1]));
-			txData.addCreatedCoin(parseInt(args[1]));
-		}
+		txData.executeInvokeTransaction(chaincodeName, fcn, couchdb, args);
 
 		//get current block number
 		txData.catchBlockCreate(parseInt(block_num_save) + 1);

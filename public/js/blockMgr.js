@@ -14,9 +14,9 @@ define(function(){
 
                     if (transaction.fcn == "등록") {
                         $('.panel-contents').append(makeRegistInfo(transaction));
-                    } else if (transaction.fcn == "거래") {
+                    } else if (transaction.fcn == "전기 거래") {
                         $('.panel-contents').append(makePowerTradeInfo(transaction));
-                    } else if (transaction.fcn == "발전") {
+                    } else if (transaction.fcn == "전기 발전") {
                         $('.panel-contents').append(makeSupplyInfo(transaction));
                     }
 
@@ -40,6 +40,8 @@ define(function(){
                 "<div class='card-body'>" + 
                 "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
                 "<p class='card-text'> ID:" + transaction.userid + "</p>" +
+                "<p class='card-text'> name:" + transaction.name + "</p>" +
+                "<p class='card-text'> 에너지:" + transaction.energy_id + "</p>" +
         "</div></div>";
 
         return div;

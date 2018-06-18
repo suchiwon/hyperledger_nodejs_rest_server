@@ -50,6 +50,8 @@ func (cc *KcoinChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response
 		result, err = cc.pay(stub, args)
 	} else if fn == "supply" {
 		result, err = cc.supply(stub, args)
+	} else if fn == "powertrade" {
+		result, err = cc.powertrade(stub, args)
 	} else if fn == "regist" {
 		result, err = cc.regist(stub, args)
 	} else if fn == "getWallet" {
@@ -75,8 +77,8 @@ func (cc *KcoinChaincode) regist(stub shim.ChaincodeStubInterface, args []string
 
 	wallet := &Wallet{}
 	wallet.name = _name
-	wallet.balance = 100
-	wallet.power = 100
+	wallet.balance = 0
+	wallet.power = 0
 
 	walletJSON, _ := json.Marshal(wallet)
 
@@ -163,7 +165,7 @@ func (cc *KcoinChaincode) supply(stub shim.ChaincodeStubInterface, args []string
 
 	json.Unmarshal(walletJson, &wallet)
 
-	wallet.balance += amount
+	wallet.power += amount
 
 	walletJson, err = json.Marshal(wallet)
 
@@ -174,6 +176,65 @@ func (cc *KcoinChaincode) supply(stub shim.ChaincodeStubInterface, args []string
 	}
 
 	return []byte(strconv.Itoa(wallet.balance)), nil
+}
+
+func (cc *KcoinChaincode) powertrade(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	
+	if len(args) != 4 {
+		return nil, errors.New("Incorrect number of argument. expecting 4")
+	}
+	
+	_from := args[0]
+	_to := args[1]
+	_power := args[2]
+	_balance := args[3]
+
+	var err error
+	var fromWallet Wallet
+	var toWallet Wallet
+	var power int
+	var balance int
+
+	power, err = strconv.Atoi(_power)
+
+	if err != nil {
+		return nil, errors.New("Incorrect argument for power")
+	}
+
+	balance, err = strconv.Atoi(_balance)
+
+	if err != nil {
+		return nil, errors.New("Incorrect argument for balance")
+	}
+
+	fromWalletJson, err := stub.GetState(_from)
+	toWalletJson, err := stub.GetState(_to)
+
+	json.Unmarshal(fromWalletJson, &fromWallet)
+	json.Unmarshal(toWalletJson, &toWallet)
+
+	fromWallet.balance -= balance
+	toWallet.balance += balance
+
+	fromWallet.power += power
+	toWallet.power -= power
+
+	fromWalletJson, err = json.Marshal(fromWallet)
+	toWalletJson, err = json.Marshal(toWallet)
+
+	err = stub.PutState(_from, fromWalletJson)
+	
+	if err != nil {
+		return nil, errors.New("error while transfer: put from wallet")
+	}
+
+	err = stub.PutState(_to, toWalletJson)
+
+	if err != nil {
+		return nil, errors.New("error while transfer: put to wallet")
+	}
+
+	return nil, nil
 }
 
 func (cc *KcoinChaincode) getWallet(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {

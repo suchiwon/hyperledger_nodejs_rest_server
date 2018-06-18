@@ -6,6 +6,7 @@ define(["socket.io"], function(io) {
     var txPerSecMap;
     var createdCoin;
     var consumeCoin;
+    var supplyPower;
     var that = this;
     var time;
     var ws;
@@ -13,6 +14,7 @@ define(["socket.io"], function(io) {
     var intervalInstance = false;
 
     const monitorChannelName = 'kcoinchannel';
+    const monitorChaincodeName = 'power3';
     var username;
     var orgname;
     const peer = 'peer0.org1.example.com';
@@ -34,6 +36,7 @@ define(["socket.io"], function(io) {
 
             createdCoin = 0;
             consumeCoin = 0;
+            supplyPower = 0;
 
             username = _username;
             orgname = _orgname;
@@ -66,6 +69,9 @@ define(["socket.io"], function(io) {
         },
         addCreatedCoin: function(amount) {
             createdCoin += amount;
+        },
+        addSupplyPower: function(amount) {
+            supplyPower += amount;
         },
         getCreatedCoin: function() {
             return createdCoin;
@@ -134,6 +140,42 @@ define(["socket.io"], function(io) {
             blockNumber = message.height.low;
 
             ws.emit('send-block-number', blockNumber); 
+        },
+        executeInvokeTransaction: async function(channelName, fcn, couchdb, args) {
+
+            if (channelName == monitorChaincodeName) {
+                if (fcn == 'regist') {
+                    couchdb.insertPlant(args);
+                } else if (fcn == 'supply') {
+
+                    if (args.length != 2) {
+                        logger.error("supply argument error");
+                    }
+
+                    var id = args[0];
+                    var power = args[1];
+
+                    await couchdb.updatePlant(id, parseInt(power), 0);
+
+                    //console.log("add coin:%s %d", power, parseInt(args[1]));
+			        this.addSupplyPower(parseInt(power));
+                } else if (fcn == 'powertrade') {
+
+                    if (args.length != 4) {
+                        logger.error("powertrade augument error");
+                    }
+
+                        var from = args[0];
+                        var to = args[1];
+                        var power = args[2];
+                        var balance = args[3];
+
+                        await couchdb.updatePlant(from, -1 * parseInt(power), parseInt(balance));
+                        await couchdb.updatePlant(to, parseInt(power), -1 * parseInt(balance));
+
+                        this.addCreatedCoin(parseInt(balance));
+                }
+            }
         }
     };
 

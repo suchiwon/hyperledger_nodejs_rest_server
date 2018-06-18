@@ -2,6 +2,7 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
     var couchdb;
     var powerTransactionsDB;
     var powerEnergyDB;
+    var powerPlantDB;
     var logger;
 
     var exports = {
@@ -9,39 +10,69 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
             couchdb = nano(util.format('http://%s:%d', host, port));
             powerTransactionsDB = couchdb.db.use('power_transactions');
             powerEnergyDB = couchdb.db.use('power_energy');
+            powerPlantDB = couchdb.db.use('power_plant');
 
             logger = log4js.getLogger('SampleWebApp');
         },
-        insertPowerTransaction: function(transactionId, blockNum, fcn, args) {
+        insertPowerTransaction: function(transactionId, blockNum, fcn, args) {           
 
-            
-            if (args.length != 3) {
-                logger.error("power transaction has invalid argument");
-                return;
-            }
-            
-
-            var userid = args[0];
-            var power = args[1];
-            var coin = args[2];
-
+            var object;
             var fcnKor;
 
             this.getFcnName(fcn).then(
                 function(message) {
 
-                    console.log(message);
+                    //console.log(message);
                     fcnKor = message.kor;
 
+                    if (fcn == 'regist') {
+
+                        var userid = args[0];
+                        var name = args[1];
+                        var energy_id = args[2];
+        
+                        object = {
+                                blockNum: blockNum,
+                                time: new Date(),
+                                fcn: fcnKor,
+                                userid: userid,
+                                name: name,
+                                energy_id: energy_id
+                            }
+        
+                    } else if (fcn == 'supply') {
+        
+                        var userid = args[0];
+                        var power = args[1];
+        
+                        object = {
+                                blockNum: blockNum,
+                                time: new Date(),
+                                fcn: fcnKor,
+                                userid: userid,
+                                power: power
+                            }
+        
+                    } else if (fcn == 'powertrade') {
+        
+                        var from = args[0];
+                        var to = args[1];
+                        var power = args[2];
+                        var balance = args[3];
+        
+                        object = {
+                                blockNum: blockNum,
+                                time: new Date(),
+                                fcn: fcnKor,
+                                userid: from,
+                                buyer: to,
+                                power: power,
+                                coin: balance
+                            }
+                    }
+
                     powerTransactionsDB.insert(
-                        {
-                            blockNum: blockNum,
-                            time: new Date(),
-                            fcn: fcnKor,
-                            userid: userid,
-                            power: power,
-                            coin: coin
-                        },
+                        object,
                         transactionId,
                         function(err, body) {
                             if (!err) {
@@ -139,7 +170,7 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                 },
                 function (err, body) {
                     if (!err) {
-                        logger.debug("get plants success:" + JSON.stringify(body));
+                        //logger.debug("get plants success:" + JSON.stringify(body));
                         resolve(body);
                     } else {
                         logger.error("get plants error:" + err);
@@ -148,7 +179,99 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                 });
             });
         },
+        insertPlant: function(args) {
+            
+            if (args.length != 3) {
+                logger.error("power plant has invalid argument");
+                return;
+            }
+            
+            var id = args[0];
+            var name = args[1];
+            var energy_id = args[2];
 
+            powerPlantDB.insert(
+                {
+                    energy_id: energy_id,
+                    name: name,
+                    power: 0,
+                    balance: 0
+                },
+                id,
+                function(err, body) {
+                    if (!err) {
+                        logger.debug("couchdb insert success:" + body);
+                    } else {
+                        logger.error("couchdb insert error:" + err);
+                    }
+                }
+            );
+        },
+        getPlant: async function(id) {
+            return new Promise(function (resolve, reject) {
+
+                powerPlantDB.get(id, function(error, existing){
+                    if (!error) {
+                        logger.debug("get plant:" + JSON.stringify(existing));
+                        resolve(existing);
+                    } else {
+                        logger.debug("error get plant:" + Error(error));
+                        reject(Error(error));
+                    }
+                });
+
+                /*
+                couchdb.request({
+                    db: 'power_plant',
+                    method: 'POST',
+                    doc: '_find',
+                    body: {
+                        "selector": {
+                            "id": {
+                                "$eq": id
+                            }
+                        }
+                    }
+                },
+                function (err, body) {
+                    if (!err) {
+                        logger.debug("get plant success:" + JSON.stringify(body));
+                        logger.debug("docs length: %d", JSON.parse(JSON.stringify(body)).docs.length);
+
+                        if (JSON.parse(JSON.stringify(body)).docs.length > 0) {
+                            resolve(JSON.parse(JSON.stringify(body)).docs[0]);
+                        } else {
+                            resolve(null);
+                        }
+                    } else {
+                        logger.error("get plant error:" + err);
+                        reject(Error(err));
+                    }
+                });
+                */
+            });
+        }, 
+        updatePlant: function(id, power, balance) {
+            powerPlantDB.get(id, function(error, existing){
+                if (!error) {
+                    logger.debug("get plant:" + JSON.stringify(existing));
+
+                    existing.power += power;
+                    existing.balance += balance;
+                    
+                    powerPlantDB.insert(existing, id, function(err, body) {
+                        if (!err) {
+                            logger.debug("update success:" + body);
+                        } else {
+                            logger.error("update error:" + err);
+                        }
+                    });
+                } else {
+                    logger.debug("error get plant:" + Error(error));
+                    return Error(error);
+                }
+            });
+        }
     }
 
     return exports;

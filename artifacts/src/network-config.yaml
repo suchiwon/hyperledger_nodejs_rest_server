@@ -145,7 +145,7 @@ channels:
     # this list with the query results of getInstalledChaincodes() and getInstantiatedChaincodes()
     chaincodes:
       # the format follows the "cannonical name" of chaincodes by fabric code
-      - kcoin:v0
+      - powertrade:v0
 
 #
 # list of participating organizations in this network
