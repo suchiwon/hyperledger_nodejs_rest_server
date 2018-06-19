@@ -142,11 +142,11 @@ define(["socket.io"], function(io) {
 
             ws.emit('send-block-number', blockNumber); 
         },
-        executeInvokeTransaction: async function(channelName, fcn, couchdb, args) {
+        executeInvokeTransaction: async function(channelName, fcn, mongodb, args) {
 
             if (channelName == monitorChaincodeName) {
                 if (fcn == 'regist') {
-                    couchdb.insertPlant(args);
+                    mongodb.insertPlant(args);
                 } else if (fcn == 'supply') {
 
                     if (args.length != 2) {
@@ -156,7 +156,7 @@ define(["socket.io"], function(io) {
                     var id = args[0];
                     var power = parseInt(args[1]);
 
-                    await couchdb.updatePlant(id, power, power, 0, 0);
+                    await mongodb.updatePlant(id, power, power, 0, 0);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
 			        this.addSupplyPower(parseInt(power));
@@ -169,7 +169,7 @@ define(["socket.io"], function(io) {
                     var id = args[0];
                     var balance = parseInt(args[1]);
 
-                    await couchdb.updatePlant(id, 0, 0, 0, balance);
+                    await mongodb.updatePlant(id, 0, 0, 0, balance);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
 			        this.createdCoin += balance;
@@ -184,8 +184,8 @@ define(["socket.io"], function(io) {
                         var power = parseInt(args[2]);
                         var balance = parseInt(args[3]);
 
-                        await couchdb.updatePlant(from, -1 * power, 0, power, balance);
-                        await couchdb.updatePlant(to, power, 0, power, -1 * balance);
+                        await mongodb.updatePlant(from, -1 * power, 0, power, balance);
+                        await mongodb.updatePlant(to, power, 0, power, -1 * balance);
 
                         this.consumeCoin = balance;
                 }

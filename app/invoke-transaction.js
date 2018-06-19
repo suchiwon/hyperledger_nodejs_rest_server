@@ -21,7 +21,7 @@ var hfc = require('fabric-client');
 var helper = require('./helper.js');
 var logger = helper.getLogger('invoke-chaincode');
 
-var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name, txData, couchdb) {
+var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name, txData, mongodb) {
 	logger.debug(util.format('\n============ invoke transaction on channel %s ============\n', channelName));
 	var error_message = null;
 	var tx_id_string = null;
@@ -175,12 +175,12 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		//transaction count increase for txPerSec monitor
 		txData.set(channelName, txData.get(channelName) + 1);
 
-		txData.executeInvokeTransaction(chaincodeName, fcn, couchdb, args);
+		txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args);
 
 		//get current block number
 		txData.catchBlockCreate(parseInt(block_num_save) + 1);
 
-		couchdb.insertPowerTransaction(tx_id_string, block_num_save, fcn, args);
+		mongodb.insertPowerTransaction(tx_id_string, block_num_save, fcn, args);
 
 		var invoke_response = {
 			"transaction_id": tx_id_string,

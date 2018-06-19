@@ -65,7 +65,8 @@ app.use(session({
 	saveUninitialized: true
 }));
 
-
+var g_username;
+var g_orgname;
 
 app.use(function(req, res, next) {
 	if (req.session) {
@@ -99,6 +100,11 @@ app.use(function(req, res, next) {
 	if (req.session) {
 		req.username = req.session.username;
 		req.orgname = req.session.orgname;
+
+		if (req.username === undefined) {
+			req.username = g_username;
+			req.orgname = g_orgname;
+		}
 
 		if (req.username === undefined) {
 			req.username = 'Jim';
@@ -157,8 +163,11 @@ app.use(express.static(path.join(__dirname,'/public')));
 app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// COUCHDB CONFIG /////////////////////////////////////
-var couchdb = requirejs('./public/js/couchdb.js');
-couchdb.init(host, 5984);
+//var couchdb = requirejs('./public/js/couchdb.js');
+//couchdb.init(host, 5984);
+
+var mongodb = requirejs('./public/js/mongodb.js');
+mongodb.init(host, 27017);
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// START SERVER /////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,6 +239,9 @@ app.post('/users', async function(req, res) {
 
 		sess.username = username;
 		sess.orgname = orgName;
+
+		g_username = username;
+		g_orgname = orgName;
 
 		txData.init(username, orgName);
 
@@ -401,21 +413,21 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 	//check invoke regist duplicate id
 	if (chaincodeName == monitorChaincodeName && fcn == 'regist') {
 
-		couchdb.getPlant(args[0]).then(
+		mongodb.getPlant(args[0]).then(
 			async function(message) {
 				logger.debug("Transaction result: " + message);
 				if (message) {
 					logger.debug("this id registed before");
 					return;
 				} else {
+					message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
 				}
 			}, async function(error) {
-				message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, couchdb);
-				//logger.error("Transaction error: " + error);
+				logger.error("Transaction error: " + error);
 			}
 		);
 	} else {
-		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, couchdb);
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
 	}
 	res.send(message);
 });
@@ -558,10 +570,10 @@ app.get('/monitor', async function(req, res) {
 	logger.debug("=================GET TRANSACTIONS IN BLOCK==================");
 	logger.debug('block num: ' + req.params.blockNum);
 
-	couchdb.getTransactionList(req.params.blockNum).then(
+	mongodb.getTransactionList(req.params.blockNum).then(
 		function(message) {
 			//logger.debug("Transaction result: " + message);
-			var docs = JSON.parse(JSON.stringify(message)).docs;
+			var docs = JSON.parse(JSON.stringify(message));
 			res.send(docs);
 		}, function(error) {
 			logger.error("Transaction error: " + error);
@@ -569,10 +581,10 @@ app.get('/monitor', async function(req, res) {
 	);
  });
 
- app.get('/getEnergyNames', async function(req, res) {
+ app.get('/getAreaNames', async function(req, res) {
 	logger.debug("=================GET ENERGY NAMES==================");
 
-	couchdb.getEnergyNames().then(
+	mongodb.getAreaNames().then(
 		function(message) {
 			logger.debug("Transaction result: " + JSON.stringify(message));
 			var docs = JSON.parse(JSON.stringify(message));
@@ -589,10 +601,10 @@ app.get('/monitor', async function(req, res) {
 	//logger.debug("=================GET PLANTS==================");
 	//logger.debug('energy_id: ' + req.params.energy_id);
 
-	couchdb.getPlants(req.params.area_id).then(
+	mongodb.getPlants(req.params.area_id).then(
 		function(message) {
 			//logger.debug("Transaction result: " + message);
-			var docs = JSON.parse(JSON.stringify(message)).docs;
+			var docs = JSON.parse(JSON.stringify(message));
 			res.send(docs);
 		}, function(error) {
 			logger.error("Transaction error: " + error);

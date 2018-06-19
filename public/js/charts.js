@@ -321,7 +321,7 @@ $(document).ready(function() {
 
   ////////////////////////////////CHANNEL BLOCK CONFIG/////////////////////////
   $.ajax ({
-    url: '/getEnergyNames',
+    url: '/getAreaNames',
     method: 'GET'
   }).done(function(data) {
 
@@ -333,7 +333,7 @@ $(document).ready(function() {
        
        //alert(JSON.stringify(transaction));
 
-       $("#power_area").append("<option value=" + transaction.doc.area_id + ">" + transaction.doc.name + "</option>");
+       $("#power_area").append("<option value=" + transaction.id + ">" + transaction.name + "</option>");
     }
 
     setPlantTable($("#power_area option:selected").val());
@@ -342,6 +342,11 @@ $(document).ready(function() {
   $("#power_area").change(function() {
     setPlantTable($(this).val());
   });
+
+  $(".plant-control").on('contextmenu', function(){
+    alert("context menu");
+  });
+
 });
 
   function setPlantTable(area_id) {
@@ -362,7 +367,7 @@ $(document).ready(function() {
                                           "<td>" + transaction.supply + "kwh</td>" +
                                           "<td>" + transaction.trade + "kwh</td>" +
                                           "<td>" + transaction.balance + "ETN</td>" +
-                                          "<td>" + "정상" + "</td>" +
+                                          "<td class='plant-control'>" + "정상" + "</td>" +
                                           "</tr>"
                );
                

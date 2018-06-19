@@ -1,9 +1,11 @@
-define(["nano", "util", "log4js"], function(nano, util, log4js){
+define(["nano", "util", "log4js", "async-lock"], function(nano, util, log4js, asyncLock){
     var couchdb;
     var powerTransactionsDB;
     var powerEnergyDB;
     var powerPlantDB;
     var logger;
+
+    var lock;
 
     var exports = {
         init: function(host, port) {
@@ -13,6 +15,8 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
             powerPlantDB = couchdb.db.use('power_plant');
 
             logger = log4js.getLogger('SampleWebApp');
+
+            lock = new asyncLock();
         },
         insertPowerTransaction: function(transactionId, blockNum, fcn, args) {           
 
@@ -154,7 +158,7 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
                 });
             });
         },
-        getEnergyNames: async function() {
+        getAreaNames: async function() {
             return new Promise(function (resolve, reject) {
                powerEnergyDB.list({include_docs: true}, function(err, body){
                    if (!err) {
@@ -267,26 +271,36 @@ define(["nano", "util", "log4js"], function(nano, util, log4js){
             });
         }, 
         updatePlant: async function(id, power, supply, trade, balance) {
-            powerPlantDB.get(id, function(error, existing){
-                if (!error) {
-                    logger.debug("get plant:" + JSON.stringify(existing));
 
-                    existing.power += power;
-                    existing.balance += balance;
-                    existing.supply += supply;
-                    existing.trade += trade;
-                    
-                    powerPlantDB.insert(existing, id, function(err, body) {
-                        if (!err) {
-                            logger.debug("update success:" + body);
-                        } else {
-                            logger.error("update error:" + err);
-                        }
-                    });
-                } else {
-                    logger.debug("error get plant:" + Error(error));
-                    return Error(error);
-                }
+            lock.acquire('key', function(){
+                powerPlantDB.get(id, function(error, existing){
+                    if (!error) {
+                        logger.debug("get plant:" + JSON.stringify(existing));
+
+                        var doc = existing;
+    
+                        doc.power += power;
+                        doc.balance += balance;
+                        doc.supply += supply;
+                        doc.trade += trade;
+
+                        doc._rev = existing._rev;
+                        
+                        powerPlantDB.insert(doc, id, function(err, body) {
+                            if (!err) {
+                                logger.debug("update success:" + body);
+                            } else {
+                                logger.error("update error:" + err);
+
+                                updatePlant(id, power, supply, trade, balance);
+                            }
+                        });
+                    } else {
+                        logger.debug("error get plant:" + Error(error));
+                    }
+                });
+            }).then(function(){
+
             });
         }
     }
