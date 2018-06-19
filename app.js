@@ -586,7 +586,7 @@ app.get('/monitor', async function(req, res) {
 
 	mongodb.getAreaNames().then(
 		function(message) {
-			logger.debug("Transaction result: " + JSON.stringify(message));
+			//logger.debug("Transaction result: " + JSON.stringify(message));
 			var docs = JSON.parse(JSON.stringify(message));
 
 			//console.log(docs);

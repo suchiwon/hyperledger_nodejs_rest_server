@@ -161,7 +161,7 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     if (!err) {
                         logger.debug("get transaction success");
     
-                        console.log(docs);
+                        //console.log(docs);
                         resolve(docs);
                     } else {
                         logger.error("get transaction error:" + err);
@@ -178,7 +178,7 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     if (!err) {
                         logger.debug("get fcn name success");
     
-                        console.log(doc);
+                        //console.log(doc);
                         resolve(doc);
                     } else {
                         logger.error("get fcn name error:" + err);
@@ -194,7 +194,7 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     if (!err) {
                         logger.debug("get area names success");
     
-                        console.log(JSON.stringify(docs));
+                        //console.log(JSON.stringify(docs));
                         resolve(docs);
                     } else {
                         logger.error("get area names error:" + err);
@@ -208,9 +208,9 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     area_id: area_id
                 }, function(err, docs){
                     if (!err) {
-                        logger.debug("get plants success");
+                        //logger.debug("get plants success");
     
-                        console.log(docs);
+                        //console.log(docs);
                         resolve(docs);
                     } else {
                         logger.error("get plants error:" + err);

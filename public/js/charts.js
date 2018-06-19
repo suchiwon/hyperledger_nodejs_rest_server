@@ -225,10 +225,10 @@ define(function() {
 
         coinChartRef.data.labels.push(newTempData.time);
         coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
-        coinChartRef.data.datasets[1].data.push(getRandomInt(10, 100));
+        coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
         coinChartRef.update();
 
-        if (newTempData.currentBlockNumber > currentBlockNumber) {
+        if (newTempData.currentBlockNumber > currentBlockNumber && currentBlockNumber > 0) {
           console.log("add block");
           addBlock(newTempData.currentBlockNumber);
         }
@@ -273,7 +273,6 @@ $(document).ready(function() {
   $('#blockDiv').on('click', '.block-gif', function(){
 
     var blockNum = $(this).parent().attr('id').substring(5);
-    
     
     var popup = window.open('blockinfo/' + blockNum, 'block info', 
     'toolbar=no, menubar=no, resizable=no, scrollbars=yes, width=600px, height=400px');
@@ -393,6 +392,12 @@ $(document).ready(function() {
     }
   };
 
+  var animateCompleteCallback = function(i) {
+    setTimeout(function() {
+      $("#block" + i).html('<img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p>');
+    }, 1000);
+  }
+
   async function addBlock(newBlockNum) {
     var i, j;
     var count = newBlockNum - currentBlockNumber;
@@ -407,7 +412,7 @@ $(document).ready(function() {
     j = 0;
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/Boom.gif"/><p class="block-num">#'+ i + '</p></div>');
       ++j;
     }
 
@@ -450,7 +455,7 @@ $(document).ready(function() {
     }
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#block" + i).to({opacity:1},{duration:600}).start();
+      KUTE.fromTo("#block" + i,{opacity: 0},{opacity:1},{duration:2000}, {complete: animateCompleteCallback(i)}).start();
       startIndex++;
     }
   }
