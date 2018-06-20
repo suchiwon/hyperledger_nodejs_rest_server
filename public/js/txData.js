@@ -18,10 +18,13 @@ define(["socket.io"], function(io) {
     var username;
     var orgname;
     const peer = 'peer0.org1.example.com';
+    const showId = 'show';
 
     var blockNumber = 0;
 
     var timeLabel;
+
+    var showTransactionBlock;
 
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -51,6 +54,14 @@ define(["socket.io"], function(io) {
         consumeCoin = 0;
     }
 
+    function setShowTransactionBlock(blockNum) {
+        showTransactionBlock = blockNum;
+    }
+
+    function resetShowTransactionBlock() {
+        showTransactionBlock = 0;
+    }
+
     var exports = {
 
         init : function(_username, _orgname) {
@@ -66,6 +77,8 @@ define(["socket.io"], function(io) {
             orgname = _orgname;
 
             blockNumber = 0;
+
+            showTransactionBlock = 0;
         },
         setSess : function(_username, _orgname) {
             username = _username;
@@ -102,8 +115,13 @@ define(["socket.io"], function(io) {
                       createdCoin: createdCoin,
                       consumeCoin: consumeCoin,
                       currentBlockNumber: blockNumber,
-                      time: timeLabel
+                      time: timeLabel,
+                      showTransactionBlock: showTransactionBlock
                     };
+
+                    if (showTransactionBlock > 0) {
+                        resetShowTransactionBlock();
+                    }
 
                     ws.emit('new-chart-data', newDataPoint);
               
@@ -144,9 +162,14 @@ define(["socket.io"], function(io) {
 
             ws.emit('send-block-number', blockNumber); 
         },
-        executeInvokeTransaction: async function(channelName, fcn, mongodb, args) {
+        executeInvokeTransaction: async function(channelName, fcn, mongodb, args, blockNum) {
+
+            if (args[0] == showId || args[1] == showId) {
+                setShowTransactionBlock(blockNum);
+            }
 
             if (channelName == monitorChaincodeName) {
+
                 if (fcn == 'regist') {
                     mongodb.insertPlant(args);
                 } else if (fcn == 'supply') {

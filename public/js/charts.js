@@ -246,7 +246,11 @@ define(function() {
 
         if (newTempData.currentBlockNumber > currentBlockNumber && currentBlockNumber > 0) {
           console.log("add block");
-          addBlock(newTempData.currentBlockNumber);
+
+          if (newTempData.showTransactionBlock > 0) {
+            console.log("it's show block");
+          }
+          addBlock(newTempData.currentBlockNumber, newTempData.showTransactionBlock);
         }
 
         currentBlockNumber = newTempData.currentBlockNumber;
@@ -438,11 +442,16 @@ $(document).ready(function() {
 
   var animateCompleteCallback = function(i) {
     setTimeout(function() {
-      $("#block" + i).html('<img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p>');
+
+      if ($("#block" + i).hasClass("showBlock")) {
+        $("#block" + i).html('<img class="block-gif" src="img/show_block.gif"/><p class="block-num">#'+ i + '</p>');
+      } else {
+        $("#block" + i).html('<img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p>');
+      }
     }, 1000);
   }
 
-  async function addBlock(newBlockNum) {
+  async function addBlock(newBlockNum, showTransactionBlock) {
     var i, j;
     var count = newBlockNum - currentBlockNumber;
 
@@ -458,6 +467,10 @@ $(document).ready(function() {
     for (i = currentBlockNumber; i < newBlockNum; i++) {
       $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/Boom.gif"/><p class="block-num">#'+ i + '</p></div>');
       ++j;
+
+      if (i == showTransactionBlock) {
+        $("#block" + i).addClass("showBlock");
+      }
     }
 
     $('.deleteBlock').remove();

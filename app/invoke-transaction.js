@@ -175,7 +175,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		//transaction count increase for txPerSec monitor
 		txData.set(channelName, txData.get(channelName) + 1);
 
-		txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args);
+		txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args, block_num_save);
 
 		//get current block number
 		txData.catchBlockCreate(parseInt(block_num_save) + 1);

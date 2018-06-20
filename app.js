@@ -622,7 +622,8 @@ app.get('/monitor', async function(req, res) {
 		function(message) {
 			//logger.debug("Transaction result: " + message);
 			var docs = JSON.parse(JSON.stringify(message));
-			res.send(docs);
+			//res.send(docs);
+			res.send(JSON.stringify(message));
 		}, function(error) {
 			logger.error("Transaction error: " + error);
 		}
