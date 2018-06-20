@@ -27,6 +27,30 @@ define(["socket.io"], function(io) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function addCreatedCoin(amount) {
+        createdCoin += amount;
+
+        console.log("createdCoin:%d", createdCoin);
+    }
+
+    function addSupplyPower(amount) {
+        supplyPower += amount;
+    }
+
+    function getCreatdCoin() {
+        return createdCoin;
+    }
+
+    function addConsumeCoin(amount) {
+        consumeCoin += amount;
+
+        console.log("consumeCoin:%d", consumeCoin);
+    }
+    
+    function resetConsumeCoin() {
+        consumeCoin = 0;
+    }
+
     var exports = {
 
         init : function(_username, _orgname) {
@@ -42,17 +66,6 @@ define(["socket.io"], function(io) {
             orgname = _orgname;
 
             blockNumber = 0;
-            /*
-            setInterval(function(){
-                //console.log("txPerSecMap interval");
-                txPerSecMap.forEach(function(value, key, mapObj){
-                    //console.log("txPerSecMap search: key = %s, value = %d", key, value);
-                    if (value > 0) {
-                        txPerSecMap.set(key, 0);
-                    }
-                });
-            }, 1000);
-            */
         },
         setSess : function(_username, _orgname) {
             username = _username;
@@ -67,15 +80,6 @@ define(["socket.io"], function(io) {
         get : function(key) {
             return txPerSecMap.get(key);
         },
-        addCreatedCoin: function(amount) {
-            createdCoin += amount;
-        },
-        addSupplyPower: function(amount) {
-            supplyPower += amount;
-        },
-        getCreatedCoin: function() {
-            return createdCoin;
-        },
         getBlockNumber: function() {
             return blockNumber;
         },
@@ -87,8 +91,6 @@ define(["socket.io"], function(io) {
 
             setInterval(function() {
                 var temp = txPerSecMap.get(monitorChannelName);
-
-                consumeCoin = getRandomInt(10, 20);
 
                 time = new Date();
 
@@ -107,7 +109,7 @@ define(["socket.io"], function(io) {
               
                     ///////////////////////////transaction count 초기화
                     txPerSecMap.set(monitorChannelName, 0);
-                    this.consumeCoin = 0;
+                    resetConsumeCoin();
                 }
             }, 1000);
 
@@ -159,7 +161,7 @@ define(["socket.io"], function(io) {
                     await mongodb.updatePlant(id, power, power, 0, 0);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
-			        this.addSupplyPower(parseInt(power));
+			        addSupplyPower(power);
                 } else if (fcn == 'addCoin') {
 
                     if (args.length != 2) {
@@ -169,25 +171,29 @@ define(["socket.io"], function(io) {
                     var id = args[0];
                     var balance = parseInt(args[1]);
 
+                    //console.log("addCoin argu:%s %d", id, balance);
+
                     await mongodb.updatePlant(id, 0, 0, 0, balance);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
-			        this.createdCoin += balance;
+			        addCreatedCoin(balance);
                 } else if (fcn == 'powertrade') {
 
                     if (args.length != 4) {
                         logger.error("powertrade augument error");
                     }
 
-                        var from = args[0];
-                        var to = args[1];
-                        var power = parseInt(args[2]);
-                        var balance = parseInt(args[3]);
+                    var from = args[0];
+                    var to = args[1];
+                    var power = parseInt(args[2]);
+                     var balance = parseInt(args[3]);
 
-                        await mongodb.updatePlant(from, -1 * power, 0, power, balance);
-                        await mongodb.updatePlant(to, power, 0, power, -1 * balance);
+                    await mongodb.insertShowTrade(args);
 
-                        this.consumeCoin = balance;
+                    await mongodb.updatePlant(from, -1 * power, 0, power, balance);
+                    await mongodb.updatePlant(to, power, 0, power, -1 * balance);
+
+                    addConsumeCoin(balance);
                 }
             }
         }

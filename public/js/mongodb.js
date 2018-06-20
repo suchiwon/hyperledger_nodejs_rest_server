@@ -1,4 +1,4 @@
-define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
+define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js, atomic){
     var mongodb;
     var transactionSchema, transactionModel;
 
@@ -6,9 +6,13 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
     var powerPlantSchema, powerPlantModel;
     var fcnNameSchema, fcnNameModel;
 
+    var loadShowPowerTradeSchema, loadShowPowerTradeModel;
+
     var logger;
 
     var mongodb;
+
+    var lock = new atomic();
 
     var exports = {
         init: function(host, port) {
@@ -60,10 +64,20 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                 power: {type: Number},
                 supply: {type: Number},
                 trade: {type: Number},
-                balance: {type: Number}
+                balance: {type: Number},
+                state: {type: String}
             }, {collection: 'power_plant'});
 
             powerPlantModel = mongoose.model('power_plant', powerPlantSchema, 'power_plant');
+
+            loadShowPowerTradeSchema = mongoose.Schema({
+                time: {type: Date, default: Date.now},
+                to: {type: String},
+                power: {type: Number},
+                coin: {type: Number}
+            }, {collection: 'loadshow_powertrade'});
+
+            loadShowPowerTradeModel = mongoose.model('loadshow_powertrade', loadShowPowerTradeSchema, 'loadshow_powertrade');
         },
         insertPowerTransaction: function(transactionId, blockNum, fcn, args) {           
 
@@ -161,7 +175,7 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     if (!err) {
                         logger.debug("get transaction success");
     
-                        console.log(docs);
+                        //console.log(docs);
                         resolve(docs);
                     } else {
                         logger.error("get transaction error:" + err);
@@ -178,7 +192,7 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     if (!err) {
                         logger.debug("get fcn name success");
     
-                        console.log(doc);
+                        //console.log(doc);
                         resolve(doc);
                     } else {
                         logger.error("get fcn name error:" + err);
@@ -194,7 +208,7 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     if (!err) {
                         logger.debug("get area names success");
     
-                        console.log(JSON.stringify(docs));
+                        //console.log(JSON.stringify(docs));
                         resolve(docs);
                     } else {
                         logger.error("get area names error:" + err);
@@ -208,9 +222,9 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     area_id: area_id
                 }, function(err, docs){
                     if (!err) {
-                        logger.debug("get plants success");
+                        //logger.debug("get plants success");
     
-                        console.log(docs);
+                        //console.log(docs);
                         resolve(docs);
                     } else {
                         logger.error("get plants error:" + err);
@@ -237,7 +251,8 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                 power: 0,
                 supply: 0,
                 trade: 0,
-                balance: 0
+                balance: 0,
+                state: "정상"
             });
 
             plant.save(function(err, data){
@@ -256,7 +271,7 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
                     if (!err) {
                         logger.debug("get plant success");
     
-                        console.log(doc);
+                        //console.log(doc);
                         resolve(doc);
                     } else {
                         logger.error("get plant error:" + err);
@@ -267,17 +282,79 @@ define(["mongoose", "util", "log4js"], function(mongoose, util, log4js){
         }, 
         updatePlant: async function(id, power, supply, trade, balance) {
 
-            powerPlantModel.findOne({
-                userid: id
-            }, function(err, doc) {
-                doc.power += power;
-                doc.supply += supply;
-                doc.trade += trade;
-                doc.balance += balance;
+            console.log("update plant");
 
-                doc.save();
+            lock('foo', function(done, key){
+
+                console.log("inside lock");
+                powerPlantModel.findOne({
+                    userid: id
+                }, function(err, doc) {
+                    doc.power += power;
+                    doc.supply += supply;
+                    doc.trade += trade;
+                    doc.balance += balance;
+    
+                    doc.save();
+                });
+
+                done();
             });
-        }
+        },
+        getTrades: async function() {
+            return new Promise(function (resolve, reject) {
+                loadShowPowerTradeModel.find({
+                }, function(err, docs){
+                    if (!err) {
+                        resolve(docs);
+                    } else {
+                        logger.error("get show's trades error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            }); 
+        },
+        insertShowTrade: function(args) {
+            
+            if (args.length != 4) {
+                logger.error("insert Show Trade has invalid argument");
+                return;
+            }
+            
+            var from = args[0];
+            var to = args[1];
+            var power = parseInt(args[2]);
+            var coin = parseInt(args[3]);
+
+            var obj;
+
+            if (from == 'show') {
+                obj = new loadShowPowerTradeModel({
+                    time: new Date(),
+                    to: to,
+                    power: power,
+                    coin: -1 * coin
+                });
+            } else if (to == 'show') {
+                obj = new loadShowPowerTradeModel({
+                    time: new Date(),
+                    to: from,
+                    power: -1 * power,
+                    coin: coin
+                })
+            } else {
+                logger.error("it is not show's trade");
+                return;
+            }
+
+            obj.save(function(err, data){
+                if (err) {
+                    logger.error("insert show's trade error:" + err);
+                } else {
+                    logger.debug("insert insert show's trade success:" + data);
+                }
+            });
+        },
     }
 
     return exports;
