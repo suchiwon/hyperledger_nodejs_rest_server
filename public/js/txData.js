@@ -171,6 +171,8 @@ define(["socket.io"], function(io) {
                     var id = args[0];
                     var balance = parseInt(args[1]);
 
+                    //console.log("addCoin argu:%s %d", id, balance);
+
                     await mongodb.updatePlant(id, 0, 0, 0, balance);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
@@ -185,6 +187,8 @@ define(["socket.io"], function(io) {
                     var to = args[1];
                     var power = parseInt(args[2]);
                      var balance = parseInt(args[3]);
+
+                    await mongodb.insertShowTrade(args);
 
                     await mongodb.updatePlant(from, -1 * power, 0, power, balance);
                     await mongodb.updatePlant(to, power, 0, power, -1 * balance);

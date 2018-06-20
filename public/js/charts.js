@@ -342,10 +342,11 @@ $(document).ready(function() {
     setPlantTable($(this).val());
   });
 
-  $(".plant-control").on('contextmenu', function(){
-    alert("context menu");
-  });
+  $("#plantTableBody").on('contextmenu', 'tr', function(){
+    var index = $('tr').index(this);
 
+    var userid = $(this).find("td").eq(6).text();
+  });
 });
 
   function setPlantTable(area_id) {
@@ -366,7 +367,8 @@ $(document).ready(function() {
                                           "<td>" + transaction.supply + "kwh</td>" +
                                           "<td>" + transaction.trade + "kwh</td>" +
                                           "<td>" + transaction.balance + "ETN</td>" +
-                                          "<td class='plant-control'>" + "정상" + "</td>" +
+                                          "<td class='plant-control'>" + transaction.state + "</td>" +
+                                          "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
                                           "</tr>"
                );
                

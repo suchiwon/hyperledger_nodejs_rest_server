@@ -162,12 +162,17 @@ app.use(expressLayouts);
 app.use(express.static(path.join(__dirname,'/public')));
 app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
-////////////////////////// COUCHDB CONFIG /////////////////////////////////////
+////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
 //couchdb.init(host, 5984);
 
 var mongodb = requirejs('./public/js/mongodb.js');
 mongodb.init(host, 27017);
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// SCENARIO CONFIG ////////////////////////////////////
+var scenario = requirejs('./public/js/scenario.js');
+scenario.init();
+
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// START SERVER /////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -611,3 +616,35 @@ app.get('/monitor', async function(req, res) {
 		}
 	);
  });
+ 
+ app.get('/getPlant/:userid', async function(req, res) {
+	mongodb.getPlant(req.params.userid).then(
+		function(message) {
+			//logger.debug("Transaction result: " + message);
+			var docs = JSON.parse(JSON.stringify(message));
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });
+
+ app.get('/startScript', function(req, res) {
+	scenario.startScript();
+ });
+
+ app.get('/stopScript', function(req, res) {
+	scenario.stopScript();
+ });
+
+ app.get('/getTrades', function(req, res) {
+	mongodb.getTrades().then(
+		function(message) {
+			var docs = JSON.parse(JSON.stringify(message));
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	)
+ });
+ 
