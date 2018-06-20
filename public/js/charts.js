@@ -6,7 +6,13 @@ define(function() {
   const position_offset = 100;
   var currentBlockNumber;
 
-    var ws = io.connect("http://localhost:4001");
+  var host_ip;
+
+  host_ip = location.host.split(":")[0];
+
+  console.log("server ip: " + host_ip);
+
+    var ws = io.connect("http://" + host_ip + ":4001");
 
     ws.on('news', function(data) {
       console.log(data);
@@ -24,6 +30,12 @@ define(function() {
     var serverUrl = "/",
         members = [],
         transactionChartRef, coinChartRef;
+
+    function getServerIp() {
+      var result;
+       
+      return result;
+    }
 
     function showEle(elementId){
       document.getElementById(elementId).style.display = 'flex';
@@ -95,8 +107,12 @@ define(function() {
             type: "linear",
             position: "left",
             id: "create-y-axis",
+            gridLines: {
+              display: false
+            },
+            stacked: true,
             ticks: {
-              stepSize: 100
+              
             }
           },
           {
@@ -342,10 +358,32 @@ $(document).ready(function() {
     setPlantTable($(this).val());
   });
 
-  $("#plantTableBody").on('contextmenu', 'tr', function(){
-    var index = $('tr').index(this);
+  $.contextMenu({
+    selector: 'tr',
+    callback: function(key, options) {
 
-    var userid = $(this).find("td").eq(6).text();
+      var index = $('tr').index(this);
+
+      var userid = $(this).find("td").eq(6).text();
+
+      var state;
+
+      if (key == "stop") {
+        state = "정지";
+      } else if (key == "resume") {
+        state = "정상";
+      }
+      
+      $.ajax({
+          url: '/changeState/' + userid + '/' + state,
+          method: 'GET'
+        }).done(function(data) {
+        });
+    },
+    items: {
+                "stop": {name: "정지", icon: "edit"},
+                "resume": {name: "시작", icon: "cut"}
+    }
   });
 });
 
@@ -366,11 +404,15 @@ $(document).ready(function() {
                                           "<td>" + transaction.power + "kwh</td>" +
                                           "<td>" + transaction.supply + "kwh</td>" +
                                           "<td>" + transaction.trade + "kwh</td>" +
-                                          "<td>" + transaction.balance + "ETN</td>" +
-                                          "<td class='plant-control'>" + transaction.state + "</td>" +
+                                          "<td>" + transaction.balance + "ETN</td>" + 
+                                          "<td class='plant-control'><font class='plant-state'>" + transaction.state + "</font></td>" +
                                           "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
                                           "</tr>"
                );
+
+               if (transaction.state == '정지') {
+                 $('.plant-state').eq(i).css({'color': 'red', 'font-weight': 'bold'});
+               }
                
         }
     });

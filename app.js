@@ -647,4 +647,9 @@ app.get('/monitor', async function(req, res) {
 		}
 	)
  });
+
+ app.get('/changeState/:userid/:state', async function(req, res) {
+	mongodb.changeState(req.params.userid, req.params.state);
+	res.send(null);
+ });
  

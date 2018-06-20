@@ -75,9 +75,9 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                 to: {type: String},
                 power: {type: Number},
                 coin: {type: Number}
-            }, {collection: 'loadshow_powertrade'});
+            }, {collection: 'roadshow_powertrade'});
 
-            loadShowPowerTradeModel = mongoose.model('loadshow_powertrade', loadShowPowerTradeSchema, 'loadshow_powertrade');
+            loadShowPowerTradeModel = mongoose.model('roadshow_powertrade', loadShowPowerTradeSchema, 'roadshow_powertrade');
         },
         insertPowerTransaction: function(transactionId, blockNum, fcn, args) {           
 
@@ -299,6 +299,16 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                 });
 
                 done();
+            });
+        },
+        changeState: async function(id, state) {
+            powerPlantModel.findOne({
+                userid: id
+            }, function(err, doc) {
+
+                doc.state = state;
+
+                doc.save();
             });
         },
         getTrades: async function() {
