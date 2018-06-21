@@ -2,7 +2,7 @@
 
 define(function() {
 
-  const max_block_gif = 6;
+  const max_block_gif = 10;
   const position_offset = 100;
   var currentBlockNumber;
 
