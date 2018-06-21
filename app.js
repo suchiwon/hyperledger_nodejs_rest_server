@@ -25,8 +25,6 @@ var util = require('util');
 var path = require('path');
 var app = express();
 var expressJWT = require('express-jwt');
-var jwt = require('jsonwebtoken');
-var bearerToken = require('express-bearer-token');
 var cors = require('cors');
 var expressLayouts = require('express-ejs-layouts');
 var requirejs = require('requirejs');
@@ -75,19 +73,10 @@ app.use(function(req, res, next) {
 	}
 
 	next();
-})
+});
 
 // set secret variable
 app.set('secret', 'thisismysecret');
-
-/*
-app.use(expressJWT({
-	secret: 'thisismysecret'
-}).unless({
-	path: ['/users','/monitor']
-}));
-app.use(bearerToken());
-*/
 
 app.use(function(req, res, next) {
 	logger.debug(' ------>>>>>> new request for %s',req.originalUrl);
@@ -121,33 +110,7 @@ app.use(function(req, res, next) {
 				' as a Bearer token'
 		});
 		return;
-	}
-	
-	
-	/*
-	var token = req.token;
-
-	jwt.verify(token, app.get('secret'), function(err, decoded) {
-		if (err) {
-			res.send({
-				success: false,
-				message: 'Failed to authenticate token. Make sure to include the ' +
-					'token returned from /users call in the authorization header ' +
-					' as a Bearer token'
-			});
-			return;
-		} else {
-			// add the decoded user name and org name to the request object
-			// for the downstream code to use
-			req.username = decoded.username;
-			req.orgname = decoded.orgName;
-			logger.debug(util.format('Decoded from JWT token: username - %s, orgname - %s', decoded.username, decoded.orgName));
-			return next();
-		}
-	});
-	*/
-	
-	
+	}	
 });
 
 
@@ -231,16 +194,11 @@ app.post('/users', async function(req, res) {
 		res.json(getErrorMessage('\'orgName\''));
 		return;
 	}
-	var token = jwt.sign({
-		exp: Math.floor(Date.now() / 1000) + parseInt(hfc.getConfigSetting('jwt_expiretime')),
-		username: username,
-		orgName: orgName
-	}, app.get('secret'));
+
 	let response = await helper.getRegisteredUser(username, orgName, true);
 	logger.debug('-- returned from registering the username %s for organization %s',username,orgName);
 	if (response && typeof response !== 'string') {
 		logger.debug('Successfully registered the username %s for organization %s',username,orgName);
-		response.token = token;
 
 		sess.username = username;
 		sess.orgname = orgName;
@@ -564,6 +522,12 @@ app.get('/monitor', async function(req, res) {
 	res.render('monitor.ejs', {txData: txData});
 });
 
+app.get('/main', async function(req, res) {
+	logger.debug('================== MONITOR BLOCKCHAIN =====================');
+	
+	res.render('main.ejs');
+});
+
  ///////////////////////BLOCK INFO/////////////////////////////////
  app.get('/blockinfo/:blockNum', async function(req, res) {
 	logger.debug("=============BLOCK INFO===================");
@@ -652,5 +616,9 @@ app.get('/monitor', async function(req, res) {
  app.get('/changeState/:userid/:state', async function(req, res) {
 	mongodb.changeState(req.params.userid, req.params.state);
 	res.send(null);
+ });
+
+ app.get('/d3test', function(req, res) {
+	res.render('d3test.ejs');
  });
  

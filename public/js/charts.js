@@ -2,8 +2,8 @@
 
 define(function() {
 
-  const max_block_gif = 10;
-  const position_offset = 100;
+  const max_block_gif = 5;
+  const position_offset = 168;
   var currentBlockNumber;
 
   var host_ip;
@@ -255,14 +255,13 @@ define(function() {
 
         currentBlockNumber = newTempData.currentBlockNumber;
 
-        currentBlockNum.innerHTML = newTempData.currentBlockNumber;
+        currentBlockNum.innerHTML = "길이: " + currentBlockNumber;
 
         setPlantTable($("#power_area option:selected").val());
     });
 
     ws.on('block-create', function(currentBlockNumber) {
       //console.log("get new block");
-      currentBlockNum.innerHTML = currentBlockNumber;
     });
 
 
@@ -290,7 +289,7 @@ $(document).ready(function() {
     $(this).gifplayer();
   });
 
-  $('#blockDiv').on('click', '.block-gif', function(){
+  $('#blockList').on('click', '.block-gif', function(){
 
     var blockNum = $(this).parent().attr('id').substring(5);
     

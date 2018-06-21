@@ -1,125 +1,120 @@
-html {
-    overflow-x: scroll;
-    height: 100%;
-}
+@charset "utf-8";
+@import url(http://fonts.googleapis.com/css?family=Roboto);
+@import url(http://fonts.googleapis.com/earlyaccess/notosanskr.css);
 
-body{
-    margin:0;
-    padding:0;
-    height: 100%;
-    font-family: Raleway;
-}
+/*
+HTML/CSS Author		: IM CHUMHEE (ich@theloca.co.kr)
+*/
 
-header{
-    background: #2b303b;
-    height: 3%;
-    width:100%;
-    display: flex;
-    color:#fff;
-}
+/*TagReset*/
+* {margin:0; padding:0; border:0; color:#ffffff; font:normal 13px 'Roboto', "Noto Sans KR", "Dotum", sans-serif; line-height:1;}
+a {vertical-align:baseline; text-decoration:none;}
+table {width:100%; table-layout:fixed;}
+table, tr, td, th, thead, tbody, tfooter, caption {border-collapse:collapse; border-spacing:0;}
+table, tr {border-collapse:inherit;}
+ul, li {list-style: none;}
+html, body {width:100%; height:100%;}
 
-.logo img{
-  height: 45px;
-}
+.wrap {overflow: hidden; max-height: 1350px; background: url(../img/bg.gif) #1e202d no-repeat center center;}
 
-.subheader{
-    display: flex;
-    align-items: center;
-    margin: 0px;
-}
+/*Header*/
+.header_area {overflow: hidden; height: 99px; background-color: #3b4159; box-shadow: 0 5px 20px 5px rgba(0,0,0,0.12);}
+.header_area .header_box .lnb_area,.header_area .header_box .lnb_area h1,.header_area .header_box .lnb_area ul,.header_area .header_box .user_area,.header_area .header_box .user_area ul,.header_area .header_box .user_area ul li,.header_area .header_box .user_area .user_photo {overflow: hidden; float: left;}
+.header_area .header_box .lnb_area h1,.header_area .header_box .lnb_area ul li a,.header_area .header_box .user_area ul li a,.header_area .header_box .user_area .user_photo {height: 52px; margin-top: 23px; line-height: 52px;}
+.header_area .header_box {overflow: hidden; padding: 0 45px;}
+.header_area .header_box .lnb_area h1 {float: left; margin-right: 40px; color: #ffffff; font-size: 30px; font-weight: bold; opacity: 0.9;}
+.header_area .header_box .lnb_area ul {}
+.header_area .header_box .lnb_area ul li {float: left;}
+.header_area .header_box .lnb_area ul li a {display: block; width: 170px; padding:21px 0; margin-top: 0; border-top: 4px solid transparent; color: #9697a8; font-size: 20px; text-align: center;}
+.header_area .header_box .lnb_area ul li.on a {background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.02); box-shadow: 0 0 1px 1px rgba(0,0,0,0.1); border-top: 4px solid #fd0d68; color: #ffffff;}
+.header_area .header_box .user_area {overflow: hidden; float: right;}
+.header_area .header_box .user_area ul {}
+.header_area .header_box .user_area ul li {position: relative; margin-left: 18px;}
+.header_area .header_box .user_area ul li:before {position: absolute; content: ''; width: 1px; height: 15px; top:50%; left:0; margin-top: 2px; background-color: #61687b; z-index: 5;}
+.header_area .header_box .user_area ul li a {position: relative; display: block; padding-left: 16px;  color: #ffffff; font-size: 20px; z-index: 10; opacity: 0.6;}
+.header_area .header_box .user_area ul li:first-child {margin-left: 0;}
+.header_area .header_box .user_area ul li:first-child::before {display: none;}
+.header_area .header_box .user_area ul li:first-child a {padding-left: 0;}
+.header_area .header_box .user_area .user_photo {overflow: hidden; float: left; width: 52px; height: 52px; margin-left: 30px; background-color: #ffffff; border-radius: 50px;}
+.header_area .header_box .user_area .user_photo > img {width: 100%; height: 100%;}
 
-.logout{
-    flex:1;
-    justify-content: flex-end;
-    padding:15px;
-    display: none;
-}
+/*Container*/
+.container {}
+/*ContentHead*/
+.content_header {margin: 50px 170px 0 170px; background-color: #333649; box-shadow: inset 0 -3px 15px rgba(0,0,0,0.09); border-radius: 4px;}
+.content_header ul {font-size: 0; text-align: center;}
+.content_header ul li {display: inline-block; padding: 20px 25px; margin: 0 3%;}
+.content_header ul li:first-child {margin-left: 0;}
+.content_header ul li p {font-size: 20px; line-height: 30px;}
+.content_header ul li p.tit {color: #9293a5;}
+.content_header ul li p.txt {color: #b9bbca;}
+.content_header ul li p.tit.red,.content_header ul li p.txt.red {color: #fd5088;}
+.content_header ul li p.tit.blue,.content_header ul li p.txt.blue {color: #6e97ff;}
+/*Dashbox*/
+.dashbox_area {overflow: hidden; margin: 20px 150px 96px 150px; opacity: 0.85;}
+.dashbox_area .dashbox_cont {float: left; width: calc(50% - 140px); padding: 0 50px 50px 50px; margin: 20px; background-color: #333649; box-shadow: inset 0 -3px 15px rgba(0,0,0,0.09),0 5px 20px 5px rgba(0,0,0,0.12); border-radius: 4px;}
+.dashbox_area .dashbox_cont .dashbox_tit {margin-top: 35px;}
+.dashbox_area .dashbox_cont .dashbox_tit .box_tit {display: inline-block; color: #d2d1e1;  font-size: 40px; font-weight: bold; line-height: 44px;}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select {position: relative; display: inline-block;}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select > a {position: relative; display: block; min-width: 93px; height: 40px; padding:0 47px 0 20px; background: url(../img/ico_arr_down.png) #2c2f42 no-repeat right 20px center;  border: 1px solid #56596c; border-radius: 50px; color: #9ea3b4; font-size: 18px; line-height: 40px; z-index: 10;}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select > div {position: absolute; display: none; padding:0 47px 0 20px; top:35px; z-index: 10;}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select > div > ul {}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select > div > ul > li {line-height: 22px;}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select > div > ul > li > a {color: #9ea3b4; font-size: 18px;}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select.open > a {background: url(../img/ico_arr_up.png) #2c2f42 no-repeat right 20px center;}
+.dashbox_area .dashbox_cont .dashbox_tit .tit_select.open > div {display: block;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info {float: right;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul {overflow: hidden;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li {float: left; margin-left: 28px; color: #b5b6c7; font-size: 20px; line-height: 44px;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li:first-child {padding-left: 0; margin-left: 0;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li span {vertical-align: text-bottom; display: inline-block; width: 16px; height: 16px; margin-right: 9px;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li span.red {background-color: #fc4e89;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li span.blue {background-color: #6e97ff;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul.line {position: relative;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul.line li:before {position: absolute; content: ''; width: 1px; height: 18px; top:50%; left:0; margin-top: -9px; background-color: #414c68; z-index: 5;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul.line li {position: relative; padding-left: 19px; margin-left: 18px; z-index: 10;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul.line li:first-child {margin-left: 0;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul.line li:first-child:before {display: none;}
 
-.logout a{
-    color:#fff;
-    text-decoration: none;
-}
+.dashbox_area .dashbox_cont .dash_cont {clear: both; min-height: 300px; margin-top: 20px;}
+.dashbox_area .dashbox_cont .dash_cont > img {max-width:100%;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box {position: relative; width: 990px;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box > img {position: relative; max-width: 100%; z-index: 5;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box ul {position: absolute; width: 800px; top:84px; left: 106px; z-index: 5;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li {display: inline-block; width: 127px; height: 127px; margin-left: 38px;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li > a {display:block; width: 100%; height: 100%;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li:first-child {margin-left: 0;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li.default {background: url(../img/img_box_def.png) no-repeat 0 0;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li.focus {background: url(../img/img_box_foc.png) no-repeat 0 0;}
+.dashbox_area .dashbox_cont .dash_cont table {}
+.dashbox_area .dashbox_cont .dash_cont table tr {}
+.dashbox_area .dashbox_cont .dash_cont table th,
+.dashbox_area .dashbox_cont .dash_cont table td {border: 1px solid #424c67; color: #9294a5; font-size: 20px; text-align: center;}
+.dashbox_area .dashbox_cont .dash_cont table th {height: 48px; background-color: #3b4159; color: #9295a6; line-height: 24px;}
+.dashbox_area .dashbox_cont .dash_cont table td {height: 48px; color: #d1d1e1;}
+.dashbox_area .dashbox_cont .dash_cont table td.red {color: #f96a7b;}
 
-#chartDiv {
-    position: relative;
-    left: 0px;
-    top: 100px;
-    width: 100%;
-    height: 50%;
-}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box #blockList {position: absolute; width: 800px; height: 129px; top:84px; left: 106px; z-index: 5;}
 
-#blockDiv {
-    position: relative;
-    float: left;
-    top: 10%;
-    left: 100px;
-    width: 50%;
-    height: 30%;
-}
-
-#blockList {
-}
-
-#transactionChart {
-}
-
-#coinChart {
-}
-
-#transactionChartDiv {
-    float: left;
-    width: 50%;
-    height: 100%;
-    padding: 10px;
-}
-
-#coinChartDiv {
-    float: left;
-    width: 50%;
-    height: 100%;
-    padding: 10px;
-}
-
-#container {
-    position: relative;
-    display: block;
-}
-
-#channelChartDiv {
-    position: relative;
-    float: left;
-    top: 10%;
-    width: 50%;
-    height: 30%;
-    padding: 10px;
-}
-
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box .block {display: inline-block; width: 127px; height: 127px;}
 .box {
-    width: 150px;
-    height: 150px;
+    width: 127px;
+    height: 127px;
     float: left;
     font-size: 15px;
     text-align: center;
     font-family: sans-serif;
     font-weight: bold;
     float: left;
-    position: absolute; top: 70px;
+    position: absolute;
 }
 
 .block-gif {
-    width: 100px;
-    height: 100px;
+    width: 127px;
+    height: 127px;
 }
 
 .block-num {
     position: relative;
     top: -50px;
-}
-
-#channelChartMenu {
-    float: left;
-    width: 80%;
-}
-
-#plantTable {
 }

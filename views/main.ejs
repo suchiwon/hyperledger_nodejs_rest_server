@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+	<title>Project</title>
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
+	<link rel="stylesheet" href="css/gifplayer.css">
+        <link rel="stylesheet" href="css/jquery.contextMenu.min.css">
+        <script src="js/socket.io.js"></script>
+        <script type="text/javascript" src="js/Chart.bundle.min.js"></script>
+        <script type="text/javascript" src="js/jquery.gifplayer.js"></script>
+        <script type="text/javascript" src="js/kute.js-master/kute.js"></script>
+        <script type="text/javascript" src="js/kute.js-master/kute-jquery.js"></script>
+        <script type="text/javascript" src="js/contextMenu/jquery.contextMenu.min.js"></script>
+        <script type="text/javascript">
+        </script>
+</head>
+
+<body>
+	<div class="wrap">
+
+		<div class="header_area">
+			<div class="header_box">
+				<div class="lnb_area">
+					<h1>kt Energy Chain</h1>
+					<ul>
+						<li class="on"><a href="#">asdf</a></li>
+						<li><a href="#">asdf</a></li>
+						<li><a href="#">asdf</a></li>
+					</ul>
+				</div>
+				<div class="user_area">
+					<ul>
+						<li><a href="#">2018. 07. 02 Mon</a></li>
+						<li><a href="#">03:25:48</a></li>
+					</ul>
+					<div class="user_photo"><img src="img/img_profile.png" alt=""></div>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<!--ContentHead-->
+			<div class="content_header">
+				<ul>
+					<li>
+						<p class="tit">Transactions</p>
+						<p class="txt red">1,200</p>
+					</li>
+					<li>
+						<p class="tit">Issued</p>
+						<p class="txt">100,000</p>
+					</li>
+					<li>
+						<p class="tit">Trading</p>
+						<p class="txt blue">200,000</p>
+					</li>
+					<li>
+						<p class="tit">Blocks</p>
+						<p class="txt">9</p>
+					</li>
+					<li>
+						<p class="tit">Regions</p>
+						<p class="txt">4</p>
+					</li>
+					<li>
+						<p class="tit">Nodes</p>
+						<p class="txt">20</p>
+					</li>
+					<li>
+						<p class="tit red">Errors</p>
+						<p class="txt red">1</p>
+					</li>
+				</ul>
+			</div>
+			<!--//ContentHead-->
+			<!--Dashbox-->
+			<div class="dashbox_area">
+				<div class="dashbox_cont">
+					<div class="dashbox_tit">
+						<div class="box_tit">Transaction</div>
+						<div class="dash_info">
+							<ul class="line">
+								<li>평균 1,500 TPS</li>
+								<li>최고 4,500 TPS</li>
+							</ul>
+						</div>
+					</div>
+					<div class="dash_cont">
+						<canvas id="transactionChart" style="height: 300px;"> 
+						</canvas>
+					</div>
+				</div>
+				<div class="dashbox_cont">
+					<div class="dashbox_tit">
+						<div class="box_tit">Transaction</div>
+						<div class="dash_info">
+							<ul>
+								<li><span class="red"></span> 발행량</li>
+								<li><span class="blue"></span> 거래량</li>
+							</ul>
+						</div>
+					</div>
+					<div class="dash_cont">
+						<canvas id="coinChart" style="height: 300px;">
+						</canvas>
+					</div>
+				</div>
+				<div class="dashbox_cont">
+					<div class="dashbox_tit">
+						<div class="box_tit">Blockchain</div>
+						<div class="dash_info">
+							<ul class="line">
+								<li id="currentBlockNumber">Loading..</li>
+							</ul>
+						</div>
+					</div>
+					<div class="dash_cont">
+						<div class="blockchain_box">
+							<img src="img/bg_blockchain.png" alt="" />
+							<div id="blockList">
+							</div>
+						<!--
+							<ul>
+								<li class="default">
+									<a href="#"></a>
+									<div class="tooltip">
+										
+									</div>
+								</li>
+								<li class="default">
+									<a href="#"></a>
+									<div class="tooltip">
+										
+									</div>
+								</li>
+								<li class="default">
+									<a href="#"></a>
+									<div class="tooltip">
+										
+									</div>
+								</li>
+								<li class="focus">
+									<a href="#"></a>
+									<div class="tooltip">
+										
+									</div>
+								</li>
+								<li class="default">
+									<a href="#"></a>
+									<div class="tooltip">
+										
+									</div>
+								</li>
+							</ul>
+						-->
+						</div>
+					</div>
+				</div>
+				<div class="dashbox_cont">
+					<div class="dashbox_tit">
+						<div class="box_tit">
+							Region
+							<!--tit_select에 open 클레스 붙을 경우 열림-->
+							<div class="tit_select" style="margin-left: 30px;">
+								<select id="power_area" class="selectpicker" style="display: inline;"></select>
+								<!--
+								<a href="">수도권</a>
+								<div>
+									<ul>
+										<li><a href="#">충청</a></li>
+										<li><a href="#">강원</a></li>
+										<li><a href="#">전라</a></li>
+										<li><a href="#">경상</a></li>
+									</ul>
+								</div>
+							-->
+							</div>
+						</div>
+						<div class="dash_info">
+							<ul class="line">
+								<li>계수 4</li>
+								<li>오류 0</li>
+							</ul>
+						</div>
+					</div>
+					<div class="dash_cont">
+						<table id="plantTable">
+							<colgroup>
+								<col style="width: auto;" />
+								<col style="width: auto;" />
+								<col style="width: auto;" />
+								<col style="width: auto;" />
+								<col style="width: auto;" />
+								<col style="width: auto;" />
+							</colgroup>
+							<thead>
+								<tr>
+									<th scope="col">발전소</th>
+									<th scope="col">보유량</th>
+									<th scope="col">발전량</th>
+									<th scope="col">거래량</th>
+									<th scope="col">보유 토큰</th>
+									<th scope="col">상태</th>
+								</tr>
+							</thead>
+							<tbody id="plantTableBody">
+								<tr>
+									<td>A</td>
+									<td>안양</td>
+									<td>100,000 kw</td>
+									<td>258</td>
+									<td>40 %</td>
+									<td>정상</td>
+								</tr>
+								<tr>
+									<td>A</td>
+									<td>안양</td>
+									<td>100,000 kw</td>
+									<td>258</td>
+									<td>40 %</td>
+									<td>정상</td>
+								</tr>
+								<tr>
+									<td>A</td>
+									<td>안양</td>
+									<td>100,000 kw</td>
+									<td>258</td>
+									<td>40 %</td>
+									<td>정상</td>
+								</tr>
+								<tr>
+									<td>A</td>
+									<td>안양</td>
+									<td>100,000 kw</td>
+									<td>258</td>
+									<td>40 %</td>
+									<td class="red">꺼짐</td>
+								</tr>
+								<tr>
+									<td>A</td>
+									<td>안양</td>
+									<td>100,000 kw</td>
+									<td>258</td>
+									<td>40 %</td>
+									<td>정상</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<!--//Dashbox-->
+		</div>
+
+	</div>
+
+	<script type="text/javascript" data-main="js/charts.js" src="js/require.js"></script>
+
+</body>
+</html>
