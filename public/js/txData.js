@@ -4,8 +4,11 @@ define(["socket.io"], function(io) {
     "use strict";
 
     var txPerSecMap;
+    var maxTxPerSecMap;
+
     var createdCoin;
     var consumeCoin;
+
     var supplyPower;
     var that = this;
     var time;
@@ -67,7 +70,10 @@ define(["socket.io"], function(io) {
         init : function(_username, _orgname) {
             txPerSecMap = new Map();
 
+            maxTxPerSecMap = new Map();
+
             txPerSecMap.set(monitorChannelName, 0);
+            maxTxPerSecMap.set(monitorChannelName, 0);
 
             createdCoin = 0;
             consumeCoin = 0;
@@ -105,17 +111,27 @@ define(["socket.io"], function(io) {
             setInterval(function() {
                 var temp = txPerSecMap.get(monitorChannelName);
 
+                var maxTran = maxTxPerSecMap.get(monitorChannelName);
+
+                if (temp > maxTran) {
+                    maxTran = temp;
+                    maxTxPerSecMap.set(monitorChannelName, temp);
+                }
+
+                /*
                 time = new Date();
 
                 timeLabel = time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+                */
 
-                if(temp != null && time && !isNaN(temp) && !isNaN(time)){
+                if(temp != null && !isNaN(temp)){
                     var newDataPoint = {
                       tranPerSec: temp,
+                      maxTranPerSec: maxTran,
                       createdCoin: createdCoin,
                       consumeCoin: consumeCoin,
                       currentBlockNumber: blockNumber,
-                      time: timeLabel,
+                      //time: timeLabel,
                       showTransactionBlock: showTransactionBlock
                     };
 
@@ -182,6 +198,7 @@ define(["socket.io"], function(io) {
                     var power = parseInt(args[1]);
 
                     await mongodb.updatePlant(id, power, power, 0, 0);
+                    await mongodb.updateElementInfo(monitorChaincodeName, 0, 0, power);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
 			        addSupplyPower(power);
@@ -197,6 +214,7 @@ define(["socket.io"], function(io) {
                     //console.log("addCoin argu:%s %d", id, balance);
 
                     await mongodb.updatePlant(id, 0, 0, 0, balance);
+                    await mongodb.updateElementInfo(monitorChaincodeName, balance, 0, 0);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
 			        addCreatedCoin(balance);
@@ -215,6 +233,8 @@ define(["socket.io"], function(io) {
 
                     await mongodb.updatePlant(from, -1 * power, 0, power, balance);
                     await mongodb.updatePlant(to, power, 0, power, -1 * balance);
+
+                    await mongodb.updateElementInfo(monitorChaincodeName, 0, balance, 0);
 
                     addConsumeCoin(balance);
                 }

@@ -550,6 +550,17 @@ app.get('/main', async function(req, res) {
 	);
  });
 
+ app.get('/getTransactionCount', function(req, res) {
+	mongodb.getTransactionCount().then(
+		function(message) {
+			logger.debug("transaction count: " + message);
+			res.send(message.toString());
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });
+
  app.get('/getAreaNames', async function(req, res) {
 	logger.debug("=================GET ENERGY NAMES==================");
 
@@ -594,6 +605,19 @@ app.get('/main', async function(req, res) {
 	);
  });
 
+ app.get('/getAllPlants', async function(req, res) {
+	mongodb.getAllPlants().then(
+		function(message) {
+			//logger.debug("Transaction result: " + message);
+			var docs = JSON.parse(JSON.stringify(message));
+
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });
+
  app.get('/startScript', function(req, res) {
 	scenario.startScript();
  });
@@ -616,6 +640,19 @@ app.get('/main', async function(req, res) {
  app.get('/changeState/:userid/:state', async function(req, res) {
 	mongodb.changeState(req.params.userid, req.params.state);
 	res.send(null);
+ });
+
+ app.get('/getElementInfo', async function(req, res) {
+	mongodb.getElementInfo(monitorChaincodeName).then(
+		function(message) {
+			//logger.debug("Transaction result: " + message);
+			var docs = JSON.parse(JSON.stringify(message));
+			//res.send(docs);
+			res.send(JSON.stringify(message));
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
  });
 
  app.get('/d3test', function(req, res) {

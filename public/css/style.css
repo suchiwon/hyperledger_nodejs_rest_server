@@ -15,7 +15,7 @@ table, tr {border-collapse:inherit;}
 ul, li {list-style: none;}
 html, body {width:100%; height:100%;}
 
-.wrap {overflow: hidden; max-height: 1350px; background: url(../img/bg.gif) #1e202d no-repeat center center;}
+.wrap {overflow: hidden; max-height: 1350px; background: url(../img/bg.gif) #1e202d no-repeat center center; background-position-y: 60%}
 
 /*Header*/
 .header_area {overflow: hidden; height: 99px; background-color: #3b4159; box-shadow: 0 5px 20px 5px rgba(0,0,0,0.12);}
@@ -66,6 +66,7 @@ html, body {width:100%; height:100%;}
 .dashbox_area .dashbox_cont .dashbox_tit .dash_info {float: right;}
 .dashbox_area .dashbox_cont .dashbox_tit .dash_info ul {overflow: hidden;}
 .dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li {float: left; margin-left: 28px; color: #b5b6c7; font-size: 20px; line-height: 44px;}
+.dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li a {margin-left: 28px; color: #b5b6c7; font-size: 20px; line-height: 44px;}
 .dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li:first-child {padding-left: 0; margin-left: 0;}
 .dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li span {vertical-align: text-bottom; display: inline-block; width: 16px; height: 16px; margin-right: 9px;}
 .dashbox_area .dashbox_cont .dashbox_tit .dash_info ul li span.red {background-color: #fc4e89;}
