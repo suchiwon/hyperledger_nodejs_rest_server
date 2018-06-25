@@ -1,7 +1,10 @@
+
+<!--
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <title>block info</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <script type="text/javascript" data-main="js/blockMgr.js" src="js/require.js">
     </script>
 </head>
@@ -13,7 +16,7 @@
 
         <input id="blockNum" type="hidden" value= <%= blockNum%> > 
 
-    <!--
+    
         <table id="powerTable" class="table table-dark">
             <thead>
                 <tr>
@@ -29,6 +32,81 @@
             </tbody>
         </table>
 
-    -->
+    
     </body>
 </html>
+-->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>block info</title>
+    <link rel="stylesheet" type="text/css" href="css/tooltip.css">
+    </script>
+</head>
+<body>
+<div class="tooltip">
+    <div class="tooltip_in">
+        <a href="#"><img src="img/bg_tooltip.png" /></a>
+        <ul>
+            <li>
+                <p class="tag blue">등록</p>
+                <p class="txt">
+                    <span class="txt_l">일시 : </span>
+                    <span class="txt_r">2018.07.05</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">등록명 : </span>
+                    <span class="txt_r">안양발전소</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">설비용량 : </span>
+                    <span class="txt_r">25,000 kwh</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">유형 : </span>
+                    <span class="txt_r">태양광</span>
+                </p>
+            </li>
+            <li>
+                <p class="tag gray">발전</p>
+                <p class="txt">
+                    <span class="txt_l">일시 : </span>
+                    <span class="txt_r">2018.07.05</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">등록명 : </span>
+                    <span class="txt_r">안양발전소</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">설비용량 : </span>
+                    <span class="txt_r">25,000 kwh</span>
+                </p>
+            </li>
+            <li>
+                <p class="tag red">거래</p>
+                <p class="txt">
+                    <span class="txt_l">일시 : </span>
+                    <span class="txt_r">2018.07.05</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">판매자 : </span>
+                    <span class="txt_r">안양발전소</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">구매자 : </span>
+                    <span class="txt_r">C 공장</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">거래량 : </span>
+                    <span class="txt_r">500 kwh</span>
+                </p>
+                <p class="txt">
+                    <span class="txt_l">거래액 : </span>
+                    <span class="txt_r">90 ETN</span>
+                </p>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>

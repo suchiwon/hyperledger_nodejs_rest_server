@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "encoding/json"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"math/rand"
@@ -22,12 +22,35 @@ func randSeq(n int) string {
 	return string(b)
 }
 
+type Trade struct {
+	fromPower int
+	toPower int
+	fromCoin int
+	toCoin int
+}
+
+type ElementInfo struct {
+	createdCoin int
+	usedCoin int
+	supplyPower int
+}
+
 type PowerTradeChaincode struct {
+	createdCoin int
+	usedCoin int
+	supplyPower int
 }
 
 func (cc *PowerTradeChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
 	
 	rand.Seed(time.Now().UnixNano())
+
+	cc.createdCoin = 0
+	cc.usedCoin = 0
+	cc.supplyPower = 0
+
+	//stub.putState("createdCoin", []byte(strconv.Itoa(amount)))
+	//stub.putState("usedCoin", []byte(strconv.Itoa(amount)))
 
 	return shim.Success(nil);
 }
@@ -42,6 +65,10 @@ func (cc *PowerTradeChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Res
 		return cc.regist(stub, args)
 	} else if fn == "getWallet" {
 		return cc.getWallet(stub, args)
+	} else if fn == "getPower" {
+		return cc.getPower(stub, args)
+	} else if fn == "getElementInfo" {
+		return cc.getElementInfo(stub, args)
 	} else if fn == "powertrade" {
 		return cc.powerTrade(stub, args)
 	} else if fn == "addCoin" {
@@ -82,23 +109,23 @@ func (cc *PowerTradeChaincode) addCoin(stub shim.ChaincodeStubInterface, args []
 	var err error
 	var amount int
 	var balance = 0
-	//var _power []byte
+	var _balance []byte
 
 	amount, err = strconv.Atoi(_amount)
 
 	if err != nil {
 		return shim.Error("Incorrect argument for amount")
 	}
+	
+	_balance, err = stub.GetState(_id + "_k")
 
-	/*
-	_power, err = stub.GetState(_id + "_p")
-
-	power, _ = strconv.Atoi(string(_power))
-	*/
+	balance, _ = strconv.Atoi(string(_balance))
+	
 
 	balance += amount
+	cc.createdCoin += amount
 
-	err = stub.PutState(_id + "_p", []byte(strconv.Itoa(balance)))
+	err = stub.PutState(_id + "_k", []byte(strconv.Itoa(balance)))
 
 	return shim.Success([]byte(strconv.Itoa(balance)))
 }
@@ -111,7 +138,7 @@ func (cc *PowerTradeChaincode) supply(stub shim.ChaincodeStubInterface, args []s
 	var err error
 	var amount int
 	var power = 0
-	//var _power []byte
+	var _power []byte
 
 	amount, err = strconv.Atoi(_amount)
 
@@ -119,13 +146,15 @@ func (cc *PowerTradeChaincode) supply(stub shim.ChaincodeStubInterface, args []s
 		return shim.Error("Incorrect argument for amount")
 	}
 
-	/*
+	
 	_power, err = stub.GetState(_id + "_p")
 
 	power, _ = strconv.Atoi(string(_power))
-	*/
+	
 
 	power += amount
+
+	cc.supplyPower += amount
 
 	err = stub.PutState(_id + "_p", []byte(strconv.Itoa(power)))
 
@@ -158,7 +187,7 @@ func (cc *PowerTradeChaincode) powerTrade(stub shim.ChaincodeStubInterface, args
 	if err != nil {
 		return shim.Error("Incorrect argument for coin")
 	}
-/*
+
 	_fromPower, err := stub.GetState(_from + "_p")
 	_fromCoin, err := stub.GetState(_from + "_k")
 
@@ -169,39 +198,34 @@ func (cc *PowerTradeChaincode) powerTrade(stub shim.ChaincodeStubInterface, args
 	fromCoin, _ = strconv.Atoi(string(_fromCoin))
 	toPower, _ = strconv.Atoi(string(_toPower))
 	toCoin, _ = strconv.Atoi(string(_toCoin))
-*/
 
-	err = stub.PutState(_from + "_p", []byte(strconv.Itoa(fromPower - power)))
-	err = stub.PutState(_from + "_k", []byte(strconv.Itoa(fromCoin + coin)))
-	err = stub.PutState(_to + "_p", []byte(strconv.Itoa(toPower + power)))
-	err = stub.PutState(_to + "_k", []byte(strconv.Itoa(toCoin - coin)))
+	fromPower -= power
+	fromCoin += coin
+	toPower += power
+	toCoin -= coin
 
-	return shim.Success(nil)
+	cc.usedCoin += coin
+
+	err = stub.PutState(_from + "_p", []byte(strconv.Itoa(fromPower)))
+	err = stub.PutState(_from + "_k", []byte(strconv.Itoa(fromCoin)))
+	err = stub.PutState(_to + "_p", []byte(strconv.Itoa(toPower)))
+	err = stub.PutState(_to + "_k", []byte(strconv.Itoa(toCoin)))
+
+	trade := &Trade{}
+
+	trade.fromPower = fromPower
+	trade.toPower = toPower
+	trade.fromCoin = fromCoin
+	trade.toCoin = toCoin
+
+	tradeJSON, err := json.Marshal(trade)
+
+	return shim.Success(tradeJSON)
 }
 
 func (cc *PowerTradeChaincode) getWallet(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	_id := args[0]
-
-	/*
-	var wallet Wallet
-
-	wallet = Wallet{}
-
-	json.Unmarshal(walletByte, &wallet)
-
-	if err != nil {
-		return shim.Error("error while read wallet")
-	}
-
-	var ret []byte
-
-	ret, err = json.Marshal(wallet)
-
-	if err != nil {
-		return shim.Error("error while json marshal")
-	}
-	*/
 
 	_coin, err := stub.GetState(_id + "_k")
 
@@ -210,6 +234,35 @@ func (cc *PowerTradeChaincode) getWallet(stub shim.ChaincodeStubInterface, args 
 	}
 
 	return shim.Success(_coin)
+}
+
+func (cc *PowerTradeChaincode) getPower(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+	
+	_id := args[0]
+
+	_power, err := stub.GetState(_id + "_p")
+
+	if err != nil {
+		return shim.Error("fail to get power")
+	}
+
+	return shim.Success(_power)
+}
+
+func (cc *PowerTradeChaincode) getElementInfo(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+
+	/*
+	info := &ElementInfo{createdCoin: cc.createdCoin, usedCoin: cc.usedCoin, supplyPower: cc.supplyPower}
+
+	
+	infoJSON, err := json.Marshal(info)
+
+	if err != nil {
+		return shim.Error("fail to get element info")
+	}
+	*/
+
+	return shim.Success([]byte(strconv.Itoa(cc.createdCoin)))
 }
 
 func main() {

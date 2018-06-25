@@ -1,0 +1,54 @@
+﻿@charset "utf-8";
+/*
+HTML/CSS Author		: IM CHUMHEE (ich@theloca.co.kr)
+*/
+
+
+/*UltraLight*/
+@font-face {
+    font-family: 'NanumBarun';
+    src: url('../font/nanumbarungothicultralight.eot');
+    src: url('../font/nanumbarungothicultralight.eot?#iefix') format('embedded-opentype'),
+         url('../font/nanumbarungothicultralight.woff2') format('woff2'),
+         url('../font/nanumbarungothicultralight.woff') format('woff'),
+         url('../font/nanumbarungothicultralight.svg#nanum-barun-gothic-ultralight') format('svg');
+    font-weight: 100;
+    font-style: normal;
+}
+
+/*Light*/
+@font-face {
+    font-family: 'NanumBarun';
+    src: url('../font/nanumbarungothiclight.eot');
+    src: url('../font/nanumbarungothiclight.eot?#iefix') format('embedded-opentype'),
+         url('../font/nanumbarungothiclight.woff2') format('woff2'),
+         url('../font/nanumbarungothiclight.woff') format('woff'),
+         url('../font/nanumbarungothiclight.svg#nanum-barun-gothic-light') format('svg');
+    font-weight: 200;
+    font-style: normal;
+}
+
+/*Regular*/
+@font-face {
+    font-family: 'NanumBarun';
+    src: url('../font/nanumbarungothicregular.eot');
+    src: url('../font/nanumbarungothicregular.eot?#iefix') format('embedded-opentype'),
+         url('../font/nanumbarungothicregular.woff2') format('woff2'),
+         url('../font/nanumbarungothicregular.woff') format('woff'),
+         url('../font/nanumbarungothicregular.svg#nanum-barun-gothic-regular') format('svg');
+    font-weight: 400;
+    font-style: normal;
+}
+
+/*Bold*/
+@font-face {
+    font-family: 'NanumBarun';
+    src: url('../font/nanumbarungothicbold.eot');
+    src: url('../font/nanumbarungothicbold.eot?#iefix') format('embedded-opentype'),
+         url('../font/nanumbarungothicbold.woff2') format('woff2'),
+         url('../font/nanumbarungothicbold.woff') format('woff'),
+         url('../font/nanumbarungothicbold.svg#nanum-barun-gothic-bold') format('svg');
+    font-weight: 600;
+    font-style: normal;
+}
+

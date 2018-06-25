@@ -1,14 +1,24 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
-define(function() {
+define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
 
-  const max_block_gif = 10;
-  const position_offset = 100;
+  const max_block_gif = 5;
+  const position_offset = 168;
   var currentBlockNumber;
+
+  var transactionCount = 0;
 
   var host_ip;
 
   host_ip = location.host.split(":")[0];
+
+  const STOP_KOR = '정지';
+  const NORMAL_KOR = '정상';
+
+  const FCN_NAME_REGIST = '등록';
+  const FCN_NAME_SUPPLY = '전력 발전';
+  const FCN_NAME_ADDCOIN = '코인 발급';
+  const FCN_NAME_POWERTRADE = '전력 거래';
 
   console.log("server ip: " + host_ip);
 
@@ -45,20 +55,12 @@ define(function() {
       document.getElementById(elementId).style.display = 'none';
     }
 
-    function ajax(url, method, payload, successCallback){
-      var xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState != 4 || xhr.status != 200) return;
-        successCallback(xhr.responseText);
-      };
-      xhr.send(JSON.stringify(payload));
-    }
-
     function rendertransactionChart(transactionData) {
       //hideEle("transactionChartLoader");
         var ctx = document.getElementById("transactionChart").getContext("2d");
+
+        ctx.height = 300;
+
         var options = { 
            hover: 'index',
            animation: {
@@ -66,10 +68,10 @@ define(function() {
              duration: 500
            },
            legend: {
-             display: true,
+             display: false,
              labels: {
                fontSize: 20,
-               fontColot: '#666',
+               fontColor: '#666',
                padding: 10
              }
            },
@@ -78,10 +80,31 @@ define(function() {
               {
                 gridLines: {
                   display: false
+                },
+                ticks: {
+                  fontColor: "white"
+                }
+              }
+            ],
+            yAxes: [
+              {
+                type: "linear",
+                position: "left",
+                id: "y-axis",
+                gridLines: {
+                  display: true
+                },
+                stacked: true,
+                ticks: {
+                  min: 0,
+                  max: 10,
+                  stepSize: 2,
+                  fontColor: "white"
                 }
               }
             ]
-          }
+          },
+          maintainAspectRatio: false
         };
         transactionChartRef = new Chart(ctx, {
           type: "line",
@@ -93,12 +116,21 @@ define(function() {
      function renderCoinChart(data) {
        //hideEle("coinChartLoader");
       var ctx = document.getElementById("coinChart").getContext("2d");
-      var options = { 
+
+      ctx.height = 300;
+
+      var options = {
+        legend: {
+          display: false
+        },
         scales: {
           xAxes: [
             {
               gridLines: {
                 display: false
+              },
+              ticks: {
+                fontColor: "white"
               }
             }
           ],
@@ -112,7 +144,7 @@ define(function() {
             },
             stacked: true,
             ticks: {
-              
+              fontColor: "white"
             }
           },
           {
@@ -122,11 +154,13 @@ define(function() {
             ticks: {
               min: 0,
               max: 1000,
-              stepSize: 100
+              stepSize: 100,
+              fontColor: "white"
             }
           }
           ]
-        }
+        },
+        maintainAspectRatio: false
       };
       coinChartRef = new Chart(ctx, {
         type: "line",
@@ -139,7 +173,7 @@ define(function() {
         labels: [],
         datasets: [
            {
-              label: "Transaction Per Sec",
+              label: "초당 트랜잭션 수",
               fill: true,
               lineTension: 0.5,
               backgroundColor: "rgba(75,192,192,0.4)",
@@ -159,6 +193,7 @@ define(function() {
               pointHitRadius: 10,
               data: [],
               spanGaps: false,
+              yAxisID: 'y-axis'
            }
         ]
      };
@@ -220,8 +255,12 @@ define(function() {
     renderCoinChart(coinChartConfig);
 
     ws.on('new-chart-data', function(data) {
-        //console.log("get chart new data");
+        console.log("get chart new data");
         var newTempData = data;
+
+        var mean = 0;
+
+        var currentTime = util.getCurrentTime();
 
         console.log("current block num:%d", newTempData.currentBlockNumber);
 
@@ -229,7 +268,7 @@ define(function() {
         transactionChartRef.data.labels.shift();  
         transactionChartRef.data.datasets[0].data.shift();
         }
-        transactionChartRef.data.labels.push(newTempData.time);
+        transactionChartRef.data.labels.push(currentTime);
         transactionChartRef.data.datasets[0].data.push(newTempData.tranPerSec);
         transactionChartRef.update();
 
@@ -239,7 +278,7 @@ define(function() {
           coinChartRef.data.datasets[1].data.shift();
         }
 
-        coinChartRef.data.labels.push(newTempData.time);
+        coinChartRef.data.labels.push(currentTime);
         coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
         coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
         coinChartRef.update();
@@ -255,30 +294,22 @@ define(function() {
 
         currentBlockNumber = newTempData.currentBlockNumber;
 
-        currentBlockNum.innerHTML = newTempData.currentBlockNumber;
+        currentBlockNum.innerHTML = currentBlockNumber;
+
+        transactionCount += newTempData.tranPerSec;
+
+        $('#transactionCount').text(util.makeCommaNumber(transactionCount));
+        $('#maxTransaction').text(newTempData.maxTranPerSec);
+        $('#clockTime').text(currentTime);
+        $('#clockDate').text(util.getCurrentDate());
 
         setPlantTable($("#power_area option:selected").val());
+        setElementInfo();
     });
 
     ws.on('block-create', function(currentBlockNumber) {
       //console.log("get new block");
-      currentBlockNum.innerHTML = currentBlockNumber;
     });
-
-
-    /* TEMP CODE FOR TESTING */
-  /*
-  var dummyTime = 1500;
-
-  setInterval(function(){
-    dummyTime = dummyTime + 10;
-    ajax("/addChartData?data="+ getRandomInt(10,20) +"&time="+dummyTime,"GET",{},() => {});
-  }, 1000);
-  */
-
-  function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
 /* TEMP CODE ENDS */
 
 ///////////////////////////BLOCK SCANNER CODE////////////////////////////////////
@@ -286,15 +317,49 @@ $(document).ready(function() {
 
   var leftSet = 1000;
 
+  $('#currentDate').text(util.getCurrentDate());
+
   $(".block-gif").each(function(index) {
     $(this).gifplayer();
   });
 
-  $('#blockDiv').on('click', '.block-gif', function(){
+  $('#blockList').on('click', '.block-gif', function(){
 
     var blockNum = $(this).parent().attr('id').substring(5);
+
+  /*
+    $.ajax({
+      url: "blockTooltip/" + blockNum,
+      method: 'GET',
+      async: false
+    }).done(function(data) {
+      $('#dialog').html(data);
+      $('#dialog').dialog({
+        autoOpen: false,
+        resizable: true,
+        modal: true
+      }).dialog('open');
+    });
+  */
     
-    var popup = window.open('blockinfo/' + blockNum, 'block info', 
+
+/*
+    $('#dialog').dialog({
+      autoOpen: false,
+      resizable: true,
+      modal: true,
+      open: function() {
+        $(this).load('blockTooltip/' + blockNum);
+      },
+      close: function() {
+        $(this).empty();
+        $(this).dialog('destroy');
+      }
+    }).dialog('open');
+*/
+    
+    /*
+    var popup = window.open('blockTooltip/' + blockNum, 'block info', 
     'toolbar=no, menubar=no, resizable=no, scrollbars=yes, width=600px, height=400px');
 
     if (window.focus) {
@@ -304,38 +369,45 @@ $(document).ready(function() {
     if (!popup.closed) {
       popup.focus();
     }
+    */
     
-    /*
+    
     $.ajax ({
         url: '/transactions/' + blockNum,
         method: 'GET'
     }).done(function(data) {
 
-        $(".tooltip-templates").empty();
+      /*
+      if ($('#tooltip' + blockNum).dialog('isOpen')) {
+        return;
+      }
+      */
+
+      $('#tooltip' + blockNum).empty();
+
+      $('#tooltip' + blockNum).append(blockMgr.makeDialogTemplate(blockNum));
+
+        //$("#infoList").empty();
 
         for (var i = 0; i < data.length; i++) {
 
            var transaction = data[i]; 
-           
-           //alert(JSON.stringify(transaction));
 
-           $(".tooltip-templates").append("<div><p>" + transaction.fcn + " "
-                               + transaction.userid + " "
-                               + transaction.time + " "
-                               + transaction.power + " "
-                               + transaction.coin +
-                    "</p></div>");
+           if (transaction.fcn == FCN_NAME_REGIST) {
+               $('#infoList' + blockNum).append(blockMgr.makeRegistInfo(transaction));
+           } else if (transaction.fcn == FCN_NAME_POWERTRADE) {
+               $('#infoList' + blockNum).append(blockMgr.makePowerTradeInfo(transaction));
+           } else if (transaction.fcn == FCN_NAME_SUPPLY) {
+               $('#infoList' + blockNum).append(blockMgr.makeSupplyInfo(transaction));
+           } else if (transaction.fcn == FCN_NAME_ADDCOIN) {
+               $('#infoList' + blockNum).append(blockMgr.makeAddCoinInfo(transaction));
+           }
         }
-
         
-        $('#block' + blockNum).tooltipster({
-          theme: 'tooltipster-noir',
-          contentAsHTML: true,
-          content: $(".tooltip-templates").html();
-        });
+        $('#tooltip' + blockNum).dialog('open');
       
     });
-    */
+    
   });
 
   ////////////////////////////////CHANNEL BLOCK CONFIG/////////////////////////
@@ -344,18 +416,31 @@ $(document).ready(function() {
     method: 'GET'
   }).done(function(data) {
 
-    console.log("get energy name: " + data);
+    console.log("get area names: " + data);
+
+    $('#power_area ul').empty();
 
     for (var i = 0; i < data.length; i++) {
 
        var transaction = data[i]; 
-       
-       //alert(JSON.stringify(transaction));
 
        $("#power_area").append("<option value=" + transaction.id + ">" + transaction.name + "</option>");
+       //$("#power_area ul").append("<li data-value=" + transaction.id + ">" + transaction.name + "</option>");
     }
 
     setPlantTable($("#power_area option:selected").val());
+
+    $("#regions").text(data.length);
+  });
+
+  $.ajax ({
+    url: '/getTransactionCount',
+    method: 'GET'
+  }).done(function(data) {
+
+    console.log("transaction count:" + data);
+    $("#transactionCount").text(util.makeCommaNumber(parseInt(data)));
+    transactionCount = parseInt(data);
   });
 
   $("#power_area").change(function() {
@@ -373,9 +458,9 @@ $(document).ready(function() {
       var state;
 
       if (key == "stop") {
-        state = "정지";
+        state = STOP_KOR;
       } else if (key == "resume") {
-        state = "정상";
+        state = NORMAL_KOR;
       }
       
       $.ajax({
@@ -385,7 +470,7 @@ $(document).ready(function() {
         });
     },
     items: {
-                "stop": {name: "정지", icon: "edit"},
+                "stop": {name: STOP_KOR, icon: "edit"},
                 "resume": {name: "시작", icon: "cut"}
     }
   });
@@ -393,34 +478,90 @@ $(document).ready(function() {
 
   function setPlantTable(area_id) {
     $.ajax ({
-      url: '/getPlants/' + area_id,
+      url: '/getAllPlants/',
       method: 'GET'
     }).done(function(data) {
+
+      var errorCount = 0;
+      var allErrorCount = 0;
+      var plantCount = 0;
 
       $('#plantTableBody').empty();
 
           for (var i = 0; i < data.length; i++) {
 
               var transaction = data[i];
-              
-              $('#plantTableBody').append("<tr>" +
-                                          "<td>" + transaction.name + " " +
-                                          "<td>" + transaction.power + "kwh</td>" +
-                                          "<td>" + transaction.supply + "kwh</td>" +
-                                          "<td>" + transaction.trade + "kwh</td>" +
-                                          "<td>" + transaction.balance + "ETN</td>" + 
-                                          "<td class='plant-control'><font class='plant-state'>" + transaction.state + "</font></td>" +
-                                          "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
-                                          "</tr>"
-               );
 
-               if (transaction.state == '정지') {
-                 $('.plant-state').eq(i).css({'color': 'red', 'font-weight': 'bold'});
-               }
+              if (transaction.area_id == area_id) {
+
+                  $('#plantTableBody').append("<tr>" +
+                                            "<td>" + transaction.name + " " +
+                                            "<td>" + transaction.power + "kwh</td>" +
+                                            "<td>" + transaction.supply + "kwh</td>" +
+                                            "<td>" + transaction.trade + "kwh</td>" +
+                                            "<td>" + transaction.balance + "ETN</td>" + 
+                                            "<td class='plant-control'><a class='plant-state txt'>" + transaction.state + "</a></td>" +
+                                            "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
+                                            "</tr>"
+                );
+
+                if (transaction.state == STOP_KOR) {
+                  $('.plant-state').eq(plantCount).css({'color': 'red', 'font-weight': 'bold'});
+                  $('.plant-state').eq(plantCount).addClass('red');
+                  errorCount++;
+                  allErrorCount++;
+                }
+
+                plantCount++;
+
+              } else if (transaction.state == STOP_KOR) {
+                allErrorCount++;
+              }
                
         }
-    });
 
+        $('#plantCount').text(plantCount);
+        $('#errorPlantCount').text(errorCount);
+
+        $('#allPlantCount').text(data.length);
+        $('#allErrorPlantCount').text(allErrorCount);
+    });
+  }
+
+  function setElementInfo() {
+    $.ajax({
+      url: '/getElementInfo',
+      method: 'GET'
+    }).done(function(data) {
+      
+      var dataJSON = JSON.parse(data);
+
+      $('#createdCoin').text(util.makeCommaNumber(dataJSON.createdCoin));
+      $('#usedCoin').text(util.makeCommaNumber(dataJSON.usedCoin));
+    });
+  }
+
+  function setDialog(blockNum) {
+    $('#tooltip' + blockNum).dialog({
+      autoOpen: false,
+      resizable: false,
+      modal: true,
+      width: 350,
+      height: 600,
+      draggable: true,
+      title: 'BLOCK #' + blockNum + ' INFO',
+      position: {
+        my : 'center',
+        at : 'center',
+        of : $('#block' + blockNum)
+      },
+      open: function() {
+      },
+      close: function() {
+        $(this).empty();
+        $(this).dialog('destroy');
+      }
+    });
   }
 ///////////////////////////////////////BLOCK ANIMATION CONFIG////////////////////////////
 
@@ -429,12 +570,18 @@ $(document).ready(function() {
     var i, count = 0;
     if (currentBlockNumber > max_block_gif) {
       for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+
+        setDialog(i);
+
         count++;
       }
     } else {
       for (i = currentBlockNumber - 1; i >= 0; i--) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+
+        setDialog(i);
+
         count++;
       }
     }
@@ -465,7 +612,10 @@ $(document).ready(function() {
     j = 0;
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/Boom.gif"/><p class="block-num">#'+ i + '</p></div>');
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/Boom.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+
+      setDialog(i);
+
       ++j;
 
       if (i == showTransactionBlock) {
@@ -501,13 +651,13 @@ $(document).ready(function() {
   
         //console.log("i: %d, left: %d", i, left);
   
-        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+        tween = KUTE.to('#block' + i, {left: left},{duration: 200}).start();
         ++j;
       }
     } else {
       for (i = startIndex; i < currentBlockNumber; i++) {
         left = (position_offset * (max_block_gif - currentBlockNumber + i - count));
-        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+        tween = KUTE.to('#block' + i, {left: left},{duration: 200}).start();
       }
     }
 

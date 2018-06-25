@@ -1,11 +1,14 @@
 define(function(){
+
+    /*
     $(document).ready(function() {
 
         var blockNum = $("#blockNum").val();
 
         $.ajax ({
             url: '/transactions/' + blockNum,
-            method: 'GET'
+            method: 'GET',
+            async: false
         }).done(function(data) {
 
                 for (var i = 0; i < data.length; i++) {
@@ -13,16 +16,16 @@ define(function(){
                     var transaction = data[i];
 
                     if (transaction.fcn == "등록") {
-                        $('.panel-contents').append(makeRegistInfo(transaction));
+                        $('#infoList').append(makeRegistInfo(transaction));
                     } else if (transaction.fcn == "전력 거래") {
-                        $('.panel-contents').append(makePowerTradeInfo(transaction));
+                        $('#infoList').append(makePowerTradeInfo(transaction));
                     } else if (transaction.fcn == "전력 발전") {
-                        $('.panel-contents').append(makeSupplyInfo(transaction));
+                        $('#infoList').append(makeSupplyInfo(transaction));
                     } else if (transaction.fcn == "코인 발급") {
-                        $('.panel-contents').append(makeAddCoinInfo(transaction));
+                        $('#infoList').append(makeAddCoinInfo(transaction));
                     }
 
-                    /*
+                    
                     $('#powerTableBody').append("<tr>" +
                                                 "<td>" + transaction.fcn + " " +
                                                 "<td>" + transaction.userid + "</td>" +
@@ -31,59 +34,110 @@ define(function(){
                                                 "<td>" + transaction.coin + "</td>" +
                                                 "</tr>"
                      );
-                     */
+                     
                 }
         });
     });
+    */
 
-    function makeRegistInfo(transaction) {
-        var div = "<div class='card text-white bg-primary mb-3'>" +
-                    "<div class='card-header'>" + transaction.time + "</div>" + 
-                "<div class='card-body'>" + 
-                "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
-                "<p class='card-text'> ID:" + transaction.userid + "</p>" +
-                "<p class='card-text'> name:" + transaction.name + "</p>" +
-                "<p class='card-text'> 지역 ID:" + transaction.area_id + "</p>" +
-        "</div></div>";
+    var exports = {
+        init: function() {
 
-        return div;
-    }
+        },
+        makeRegistInfo: function(transaction) {
+            var div = "<li>" +
+                '<p class="tag blue">등록</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">일시 : </span>' + 
+                    '<span class="txt_r">' + transaction.time + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">등록명 : </span>' + 
+                    '<span class="txt_r">' + transaction.name + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">유형 : </span>' + 
+                    '<span class="txt_r">' + transaction.area_id + '</span>' + 
+                '</p>' + 
+            '</li>';
 
-    function makeSupplyInfo(transaction) {
-        var div = "<div class='card text-white bg-warning mb-3'>" +
-                    "<div class='card-header'>" + transaction.time + "</div>" + 
-                "<div class='card-body'>" + 
-                "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
-                "<p class='card-text'> ID:" + transaction.userid + "</p>" +
-                "<p class='card-text'> 발전량:" + transaction.power + "</p>" +
-        "</div></div>";
+            return div;
+        },
+        makeSupplyInfo: function(transaction) {
+            var div = "<li>" +
+                '<p class="tag gray">발전</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">일시 : </span>' + 
+                    '<span class="txt_r">' + transaction.time + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">등록명 : </span>' + 
+                    '<span class="txt_r">' + transaction.userid + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">발전량 : </span>' + 
+                    '<span class="txt_r">' + transaction.power + '</span>' + 
+                '</p>' + 
+            '</li>';
 
-        return div;
-    }
+            return div;
+        },
+        makeAddCoinInfo: function(transaction) {
+            var div = "<li>" +
+                '<p class="tag gray">코인 발급</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">일시 : </span>' + 
+                    '<span class="txt_r">' + transaction.time + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">등록명 : </span>' + 
+                    '<span class="txt_r">' + transaction.userid + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">발급량 : </span>' + 
+                    '<span class="txt_r">' + transaction.coin + '</span>' + 
+                '</p>' + 
+            '</li>';
 
-    function makeAddCoinInfo(transaction) {
-        var div = "<div class='card text-white bg-warning mb-3'>" +
-                    "<div class='card-header'>" + transaction.time + "</div>" + 
-                "<div class='card-body'>" + 
-                "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
-                "<p class='card-text'> ID:" + transaction.userid + "</p>" +
-                "<p class='card-text'> 생산 토큰량:" + transaction.coin + "</p>" +
-        "</div></div>";
+            return div;
+        },
+        makePowerTradeInfo: function(transaction) {
+            var div = "<li>" +
+                '<p class="tag red">거래</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">일시 : </span>' + 
+                    '<span class="txt_r">' + transaction.time + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">판매자 : </span>' + 
+                    '<span class="txt_r">' + transaction.userid + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">구매자 : </span>' + 
+                    '<span class="txt_r">' + transaction.buyer + '</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">거래량 : </span>' + 
+                    '<span class="txt_r">' + transaction.power + 'kwh</span>' + 
+                '</p>' + 
+                '<p class="txt">' + 
+                    '<span class="txt_l">거래액 : </span>' + 
+                    '<span class="txt_r">' + transaction.coin + 'ETN</span>' + 
+                '</p>' + 
+            '</li>';
 
-        return div;
-    }
+            return div;
+        },
+        makeDialogTemplate: function(blockNum) {
+            var div = '<div class="dialog">' + 
+			'<div class="tooltip_in">' +
+				'<a href="#"><img src="img/bg_tooltip.png" /></a>' +
+				'<ul id="infoList' + blockNum + '">' +
+                '</ul></div></div>';
+                
+            return div;
+        }
+    };
 
-    function makePowerTradeInfo(transaction) {
-        var div = "<div class='card text-white bg-success mb-3'>" +
-                    "<div class='card-header'>" + transaction.time + "</div>" + 
-                "<div class='card-body'>" + 
-                "<h5 class='card-title'>" + transaction.fcn + "</h5>" + 
-                "<p class='card-text'> 판매자:" + transaction.userid + "</p>" +
-                "<p class='card-text'> 구매자:" + transaction.buyer + "</p>" +
-                "<p class='card-text'> 판매량:" + transaction.power + "</p>" +
-                "<p class='card-text'> 거래량:" + transaction.coin + "</p>" +
-        "</div></div>";
-
-        return div;
-    }
+    return exports;
 });

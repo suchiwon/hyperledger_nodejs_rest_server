@@ -6,6 +6,8 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
     var powerPlantSchema, powerPlantModel;
     var fcnNameSchema, fcnNameModel;
 
+    var elementInfoSchema, elementInfoModel;
+
     var loadShowPowerTradeSchema, loadShowPowerTradeModel;
 
     var logger;
@@ -78,6 +80,15 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
             }, {collection: 'roadshow_powertrade'});
 
             loadShowPowerTradeModel = mongoose.model('roadshow_powertrade', loadShowPowerTradeSchema, 'roadshow_powertrade');
+
+            elementInfoSchema = mongoose.Schema({
+                chaincode: {type: String},
+                createdCoin: {type: Number},
+                usedCoin: {type: Number},
+                supplyPower: {type: Number}
+            }, {collection: 'element_info'});
+
+            elementInfoModel = mongoose.model('element_info', elementInfoSchema, 'element_info');
         },
         insertPowerTransaction: function(transactionId, blockNum, fcn, args) {           
 
@@ -157,7 +168,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                         if (err) {
                             logger.error("insert transaction error:" + err);
                         } else {
-                            logger.debug("insert transaction success:" + data);
+                            logger.debug("insert transaction success:" + JSON.stringify(data));
                         }
                     });
                 },
@@ -179,6 +190,23 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                         resolve(docs);
                     } else {
                         logger.error("get transaction error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            });
+        },
+        getTransactionCount: function() {
+            return new Promise(function (resolve, reject) {
+                transactionModel.count({
+
+                }, function(err, docs){
+                    if (!err) {
+                        logger.debug("get transaction count success");
+    
+                        //console.log(docs);
+                        resolve(docs);
+                    } else {
+                        logger.error("get transaction count error:" + err);
                         reject(Error(err));
                     }
                 });
@@ -220,6 +248,22 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
             return new Promise(function (resolve, reject) {
                 powerPlantModel.find({
                     area_id: area_id
+                }, function(err, docs){
+                    if (!err) {
+                        //logger.debug("get plants success");
+    
+                        //console.log(docs);
+                        resolve(docs);
+                    } else {
+                        logger.error("get plants error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            });
+        },
+        getAllPlants: async function() {
+            return new Promise(function (resolve, reject) {
+                powerPlantModel.find({
                 }, function(err, docs){
                     if (!err) {
                         //logger.debug("get plants success");
@@ -286,7 +330,6 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
 
             lock('foo', function(done, key){
 
-                console.log("inside lock");
                 powerPlantModel.findOne({
                     userid: id
                 }, function(err, doc) {
@@ -299,6 +342,39 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                 });
 
                 done();
+            });
+        },
+        updateElementInfo: async function(chaincode, createdCoin, usedCoin, supplyPower) {
+            lock('foo2', function(done, key){
+
+                elementInfoModel.findOne({
+                    chaincode: chaincode
+                }, function(err, doc) {
+                    doc.createdCoin += createdCoin;
+                    doc.usedCoin += usedCoin;
+                    doc.supplyPower += supplyPower;
+    
+                    doc.save();
+                });
+
+                done();
+            });
+        },
+        getElementInfo: async function(chaincode) {
+            return new Promise(function (resolve, reject) {
+                elementInfoModel.findOne({
+                    chaincode: chaincode
+                }, function(err, doc){
+                    if (!err) {
+                        logger.debug("get element info success");
+    
+                        //console.log(doc);
+                        resolve(doc);
+                    } else {
+                        logger.error("get element info error:" + err);
+                        reject(Error(err));
+                    }
+                });
             });
         },
         changeState: async function(id, state) {
@@ -364,7 +440,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                     logger.debug("insert insert show's trade success:" + data);
                 }
             });
-        },
+        }
     }
 
     return exports;
