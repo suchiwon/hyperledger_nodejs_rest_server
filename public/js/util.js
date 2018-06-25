@@ -102,6 +102,20 @@ define([], function(){
             var date = new Date();
 
             return formatDate(date, 'yyyy.MM.dd ddd');
+        },
+        getAverage: function(array) {
+
+            var sum = 0;
+
+            for (var i = 0; i < array.length; i++) {
+                sum += array[i];
+            }
+
+            if (array.length == 0) {
+                return 0;
+            } else {
+                return sum/array.length;
+            }
         }
     };
     return exports;

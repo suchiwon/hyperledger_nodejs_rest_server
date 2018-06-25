@@ -2,6 +2,8 @@ define(['request', "./util.js"], function(request, util) {
 
     var useridSet;
     var fcnSet;
+    var nameSet;
+    var areaSet;
 
     var addCoinIntervalID;
     var supplyIntervalID;
@@ -29,7 +31,9 @@ define(['request', "./util.js"], function(request, util) {
     var exports = {
         init: function() {
             fcnSet = ['addCoin', 'supply', 'powertrade'];
-            useridSet = ['A','B','C','D','E','F'];
+            useridSet = ['A','B','C','D','E','F','G'];
+            nameSet = ['우면동','강남','고양','김포','속초','평창','천안'];
+            areaSet = ['SEOUL','SEOUL','GYO','GYO','GANG','GANG','CHUNG'];
         },
         startScript: function() {
             addCoinIntervalID = setInterval(function(){
@@ -98,6 +102,22 @@ define(['request', "./util.js"], function(request, util) {
             clearInterval(addCoinIntervalID);
             clearInterval(supplyIntervalID);
             clearInterval(powerTradeIntervalID);
+        },
+        sampleRegist: async function() {
+            
+            for (var i = 0; i < useidSet.length; i++) {
+
+                var args = "['" + useridSet[i] + "','" + nameSet[i] + "','" + areaSet[i] + "']";
+
+                var postBody = setPostBody("regist", args);
+
+                request(postBody, function(error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                    }   
+                });
+
+                await sleep(200);
+            }
         }
     }
 

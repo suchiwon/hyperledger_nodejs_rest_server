@@ -71,12 +71,12 @@ define(function(){
                     '<span class="txt_r">' + transaction.time + '</span>' + 
                 '</p>' + 
                 '<p class="txt">' + 
-                    '<span class="txt_l">등록명 : </span>' + 
+                    '<span class="txt_l">등록 ID : </span>' + 
                     '<span class="txt_r">' + transaction.userid + '</span>' + 
                 '</p>' + 
                 '<p class="txt">' + 
                     '<span class="txt_l">발전량 : </span>' + 
-                    '<span class="txt_r">' + transaction.power + '</span>' + 
+                    '<span class="txt_r">' + transaction.power + 'kwh</span>' + 
                 '</p>' + 
             '</li>';
 
@@ -90,12 +90,12 @@ define(function(){
                     '<span class="txt_r">' + transaction.time + '</span>' + 
                 '</p>' + 
                 '<p class="txt">' + 
-                    '<span class="txt_l">등록명 : </span>' + 
+                    '<span class="txt_l">등록 ID : </span>' + 
                     '<span class="txt_r">' + transaction.userid + '</span>' + 
                 '</p>' + 
                 '<p class="txt">' + 
                     '<span class="txt_l">발급량 : </span>' + 
-                    '<span class="txt_r">' + transaction.coin + '</span>' + 
+                    '<span class="txt_r">' + transaction.coin + 'ETN</span>' + 
                 '</p>' + 
             '</li>';
 

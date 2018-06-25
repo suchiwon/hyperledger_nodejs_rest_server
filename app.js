@@ -123,7 +123,7 @@ app.set('layout','layout');
 app.use(expressLayouts);
 
 app.use(express.static(path.join(__dirname,'/public')));
-app.use('/blockTooltip', express.static(path.join(__dirname, '/public')));
+app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
@@ -163,6 +163,7 @@ var io = require('socket.io').listen(4001);
 io.sockets.on("connection", function(ws) {
 	txData.setWs(ws);
 	txData.initBlockNumber(query);
+	txData.setElementInfo(mongodb);
 	txData.startChartInterval();
 
 	ws.emit('news', {hello: 'world'});
@@ -529,10 +530,10 @@ app.get('/main', async function(req, res) {
 });
 
  ///////////////////////BLOCK INFO/////////////////////////////////
- app.get('/blockTooltip/:blockNum', async function(req, res) {
+ app.get('/blockinfo/:blockNum', async function(req, res) {
 	logger.debug("=============BLOCK INFO===================");
 
-	res.render('blockTooltip.ejs',{blockNum: req.params.blockNum});
+	res.render('blockinfo.ejs',{blockNum: req.params.blockNum});
  });
 
  app.get('/transactions/:blockNum', async function(req, res) {
@@ -657,5 +658,9 @@ app.get('/main', async function(req, res) {
 
  app.get('/d3test', function(req, res) {
 	res.render('d3test.ejs');
+ });
+
+ app.get('/sampleRegist', function(req, res) {
+	scenario.sampleRegist();
  });
  

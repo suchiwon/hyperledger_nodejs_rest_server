@@ -20,6 +20,9 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
   const FCN_NAME_ADDCOIN = '코인 발급';
   const FCN_NAME_POWERTRADE = '전력 거래';
 
+  var starPoint = new Image();
+  starPoint.src = 'img/block.gif';
+
   console.log("server ip: " + host_ip);
 
     var ws = io.connect("http://" + host_ip + ":4001");
@@ -184,7 +187,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
               borderJoinStyle: 'miter',
               pointBorderColor: "rgba(75,192,192,1)",
               pointBackgroundColor: "#fff",
-              pointBorderWidth: 1,
+              pointBorderWidth: 7,
               pointHoverRadius: 5,
               pointHoverBackgroundColor: "rgba(75,192,192,1)",
               pointHoverBorderColor: "rgba(220,220,220,1)",
@@ -192,6 +195,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
               pointRadius: 2,
               pointHitRadius: 10,
               data: [],
+              pointStyle: [],
               spanGaps: false,
               yAxisID: 'y-axis'
            }
@@ -205,15 +209,15 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
             label: "발행량",
             fill: false,
             lineTension: 0.1,
-            backgroundColor: "rgba(75,192,192,0.4)",
-            borderColor: "rgba(255,0,255,1)",
+            backgroundColor: "#F65E70",
+            borderColor: "#F65E70",
             borderCapStyle: 'butt',
             borderDash: [],
             borderDashOffset: 0.0,
             borderJoinStyle: 'miter',
-            pointBorderColor: "rgba(75,192,192,1)",
+            pointBorderColor: "#F65E70",
             pointBackgroundColor: "#fff",
-            pointBorderWidth: 1,
+            pointBorderWidth: 7,
             pointHoverRadius: 5,
             pointHoverBackgroundColor: "rgba(75,192,192,1)",
             pointHoverBorderColor: "rgba(220,220,220,1)",
@@ -228,15 +232,15 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
           label: "사용량",
           fill: false,
           lineTension: 0.1,
-          backgroundColor: "rgba(255,0,0,0.4)",
-          borderColor: "rgba(255,0,0,1)",
+          backgroundColor: "#81B2FE",
+          borderColor: "#81B2FE",
           borderCapStyle: 'butt',
           borderDash: [],
           borderDashOffset: 0.0,
           borderJoinStyle: 'miter',
-          pointBorderColor: "rgba(75,192,192,1)",
+          pointBorderColor: "#81B2FE",
           pointBackgroundColor: "#fff",
-          pointBorderWidth: 1,
+          pointBorderWidth: 7,
           pointHoverRadius: 5,
           pointHoverBackgroundColor: "rgba(75,192,192,1)",
           pointHoverBorderColor: "rgba(220,220,220,1)",
@@ -244,6 +248,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
           pointRadius: 1,
           pointHitRadius: 10,
           data: [],
+          pointStyle: [],
           spanGaps: false,
           yAxisID: 'use-y-axis'
        }
@@ -267,8 +272,19 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         if(transactionChartRef.data.labels.length > 15){
         transactionChartRef.data.labels.shift();  
         transactionChartRef.data.datasets[0].data.shift();
+        transactionChartRef.data.datasets[0].pointStyle.shift();
         }
         transactionChartRef.data.labels.push(currentTime);
+
+        if (newTempData.showTransactionBlock > 0) {
+          console.log("it's show block");
+          transactionChartRef.data.datasets[0].pointStyle.push(starPoint);
+        } else {
+          transactionChartRef.data.datasets[0].pointStyle.push('circle');
+        }
+
+        console.log(transactionChartRef.data.datasets[0]);
+
         transactionChartRef.data.datasets[0].data.push(newTempData.tranPerSec);
         transactionChartRef.update();
 
@@ -276,19 +292,24 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
           coinChartRef.data.labels.shift();  
           coinChartRef.data.datasets[0].data.shift();
           coinChartRef.data.datasets[1].data.shift();
+          coinChartRef.data.datasets[1].pointStyle.shift();
         }
 
         coinChartRef.data.labels.push(currentTime);
         coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
         coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
+
+        if (newTempData.showTransactionBlock > 0 && newTempData.consumeCoin > 0) {
+          console.log("it's show block");
+          coinChartRef.data.datasets[1].pointStyle.push(starPoint);
+        } else {
+          coinChartRef.data.datasets[1].pointStyle.push('circle');
+        }
         coinChartRef.update();
 
         if (newTempData.currentBlockNumber > currentBlockNumber && currentBlockNumber > 0) {
           console.log("add block");
 
-          if (newTempData.showTransactionBlock > 0) {
-            console.log("it's show block");
-          }
           addBlock(newTempData.currentBlockNumber, newTempData.showTransactionBlock);
         }
 
@@ -302,6 +323,9 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         $('#maxTransaction').text(newTempData.maxTranPerSec);
         $('#clockTime').text(currentTime);
         $('#clockDate').text(util.getCurrentDate());
+        $('#averageTransaction').text(util.getAverage(transactionChartRef.data.datasets[0].data));
+
+        $('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
 
         setPlantTable($("#power_area option:selected").val());
         setElementInfo();
@@ -326,51 +350,6 @@ $(document).ready(function() {
   $('#blockList').on('click', '.block-gif', function(){
 
     var blockNum = $(this).parent().attr('id').substring(5);
-
-  /*
-    $.ajax({
-      url: "blockTooltip/" + blockNum,
-      method: 'GET',
-      async: false
-    }).done(function(data) {
-      $('#dialog').html(data);
-      $('#dialog').dialog({
-        autoOpen: false,
-        resizable: true,
-        modal: true
-      }).dialog('open');
-    });
-  */
-    
-
-/*
-    $('#dialog').dialog({
-      autoOpen: false,
-      resizable: true,
-      modal: true,
-      open: function() {
-        $(this).load('blockTooltip/' + blockNum);
-      },
-      close: function() {
-        $(this).empty();
-        $(this).dialog('destroy');
-      }
-    }).dialog('open');
-*/
-    
-    /*
-    var popup = window.open('blockTooltip/' + blockNum, 'block info', 
-    'toolbar=no, menubar=no, resizable=no, scrollbars=yes, width=600px, height=400px');
-
-    if (window.focus) {
-      popup.focus();
-    }
-
-    if (!popup.closed) {
-      popup.focus();
-    }
-    */
-    
     
     $.ajax ({
         url: '/transactions/' + blockNum,
@@ -536,7 +515,7 @@ $(document).ready(function() {
       
       var dataJSON = JSON.parse(data);
 
-      $('#createdCoin').text(util.makeCommaNumber(dataJSON.createdCoin));
+      //$('#createdCoin').text(util.makeCommaNumber(dataJSON.createdCoin));
       $('#usedCoin').text(util.makeCommaNumber(dataJSON.usedCoin));
     });
   }

@@ -102,6 +102,15 @@ define(["socket.io"], function(io) {
         getBlockNumber: function() {
             return blockNumber;
         },
+        setElementInfo: function(mongodb) {
+            mongodb.getElementInfo(monitorChaincodeName).then(function(data){
+                var json = JSON.parse(JSON.stringify(data));
+
+                createdCoin = json.createdCoin;
+                consumeCoin = json.consumeCoin;
+                supplyPower = json.supplyPower;
+            });
+        },
         startChartInterval: function() {
 
             if (intervalInstance) {
