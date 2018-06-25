@@ -168,7 +168,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                         if (err) {
                             logger.error("insert transaction error:" + err);
                         } else {
-                            logger.debug("insert transaction success:" + data);
+                            logger.debug("insert transaction success:" + JSON.stringify(data));
                         }
                     });
                 },

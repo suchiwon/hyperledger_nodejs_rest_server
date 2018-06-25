@@ -123,7 +123,7 @@ app.set('layout','layout');
 app.use(expressLayouts);
 
 app.use(express.static(path.join(__dirname,'/public')));
-app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
+app.use('/blockTooltip', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
@@ -529,10 +529,10 @@ app.get('/main', async function(req, res) {
 });
 
  ///////////////////////BLOCK INFO/////////////////////////////////
- app.get('/blockinfo/:blockNum', async function(req, res) {
+ app.get('/blockTooltip/:blockNum', async function(req, res) {
 	logger.debug("=============BLOCK INFO===================");
 
-	res.render('blockinfo.ejs',{blockNum: req.params.blockNum});
+	res.render('blockTooltip.ejs',{blockNum: req.params.blockNum});
  });
 
  app.get('/transactions/:blockNum', async function(req, res) {

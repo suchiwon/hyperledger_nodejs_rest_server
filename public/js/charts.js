@@ -1,6 +1,6 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
-define(["js/util.js"], function(util) {
+define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
 
   const max_block_gif = 5;
   const position_offset = 168;
@@ -11,6 +11,14 @@ define(["js/util.js"], function(util) {
   var host_ip;
 
   host_ip = location.host.split(":")[0];
+
+  const STOP_KOR = '정지';
+  const NORMAL_KOR = '정상';
+
+  const FCN_NAME_REGIST = '등록';
+  const FCN_NAME_SUPPLY = '전력 발전';
+  const FCN_NAME_ADDCOIN = '코인 발급';
+  const FCN_NAME_POWERTRADE = '전력 거래';
 
   console.log("server ip: " + host_ip);
 
@@ -89,7 +97,7 @@ define(["js/util.js"], function(util) {
                 stacked: true,
                 ticks: {
                   min: 0,
-                  max: 20,
+                  max: 10,
                   stepSize: 2,
                   fontColor: "white"
                 }
@@ -308,12 +316,6 @@ define(["js/util.js"], function(util) {
 $(document).ready(function() {
 
   var leftSet = 1000;
-/*
-  $('#dialog').dialog({
-    autoOpen: false,
-    resizable: false,
-  });
-  */
 
   $('#currentDate').text(util.getCurrentDate());
 
@@ -323,11 +325,41 @@ $(document).ready(function() {
 
   $('#blockList').on('click', '.block-gif', function(){
 
-    //$('#dialog').dialog('open');
-
     var blockNum = $(this).parent().attr('id').substring(5);
+
+  /*
+    $.ajax({
+      url: "blockTooltip/" + blockNum,
+      method: 'GET',
+      async: false
+    }).done(function(data) {
+      $('#dialog').html(data);
+      $('#dialog').dialog({
+        autoOpen: false,
+        resizable: true,
+        modal: true
+      }).dialog('open');
+    });
+  */
     
-    var popup = window.open('blockinfo/' + blockNum, 'block info', 
+
+/*
+    $('#dialog').dialog({
+      autoOpen: false,
+      resizable: true,
+      modal: true,
+      open: function() {
+        $(this).load('blockTooltip/' + blockNum);
+      },
+      close: function() {
+        $(this).empty();
+        $(this).dialog('destroy');
+      }
+    }).dialog('open');
+*/
+    
+    /*
+    var popup = window.open('blockTooltip/' + blockNum, 'block info', 
     'toolbar=no, menubar=no, resizable=no, scrollbars=yes, width=600px, height=400px');
 
     if (window.focus) {
@@ -337,38 +369,45 @@ $(document).ready(function() {
     if (!popup.closed) {
       popup.focus();
     }
+    */
     
-    /*
+    
     $.ajax ({
         url: '/transactions/' + blockNum,
         method: 'GET'
     }).done(function(data) {
 
-        $(".tooltip-templates").empty();
+      /*
+      if ($('#tooltip' + blockNum).dialog('isOpen')) {
+        return;
+      }
+      */
+
+      $('#tooltip' + blockNum).empty();
+
+      $('#tooltip' + blockNum).append(blockMgr.makeDialogTemplate(blockNum));
+
+        //$("#infoList").empty();
 
         for (var i = 0; i < data.length; i++) {
 
            var transaction = data[i]; 
-           
-           //alert(JSON.stringify(transaction));
 
-           $(".tooltip-templates").append("<div><p>" + transaction.fcn + " "
-                               + transaction.userid + " "
-                               + transaction.time + " "
-                               + transaction.power + " "
-                               + transaction.coin +
-                    "</p></div>");
+           if (transaction.fcn == FCN_NAME_REGIST) {
+               $('#infoList' + blockNum).append(blockMgr.makeRegistInfo(transaction));
+           } else if (transaction.fcn == FCN_NAME_POWERTRADE) {
+               $('#infoList' + blockNum).append(blockMgr.makePowerTradeInfo(transaction));
+           } else if (transaction.fcn == FCN_NAME_SUPPLY) {
+               $('#infoList' + blockNum).append(blockMgr.makeSupplyInfo(transaction));
+           } else if (transaction.fcn == FCN_NAME_ADDCOIN) {
+               $('#infoList' + blockNum).append(blockMgr.makeAddCoinInfo(transaction));
+           }
         }
-
         
-        $('#block' + blockNum).tooltipster({
-          theme: 'tooltipster-noir',
-          contentAsHTML: true,
-          content: $(".tooltip-templates").html();
-        });
+        $('#tooltip' + blockNum).dialog('open');
       
     });
-    */
+    
   });
 
   ////////////////////////////////CHANNEL BLOCK CONFIG/////////////////////////
@@ -379,13 +418,14 @@ $(document).ready(function() {
 
     console.log("get area names: " + data);
 
+    $('#power_area ul').empty();
+
     for (var i = 0; i < data.length; i++) {
 
        var transaction = data[i]; 
-       
-       //alert(JSON.stringify(transaction));
 
        $("#power_area").append("<option value=" + transaction.id + ">" + transaction.name + "</option>");
+       //$("#power_area ul").append("<li data-value=" + transaction.id + ">" + transaction.name + "</option>");
     }
 
     setPlantTable($("#power_area option:selected").val());
@@ -418,9 +458,9 @@ $(document).ready(function() {
       var state;
 
       if (key == "stop") {
-        state = "정지";
+        state = STOP_KOR;
       } else if (key == "resume") {
-        state = "정상";
+        state = NORMAL_KOR;
       }
       
       $.ajax({
@@ -430,7 +470,7 @@ $(document).ready(function() {
         });
     },
     items: {
-                "stop": {name: "정지", icon: "edit"},
+                "stop": {name: STOP_KOR, icon: "edit"},
                 "resume": {name: "시작", icon: "cut"}
     }
   });
@@ -465,7 +505,7 @@ $(document).ready(function() {
                                             "</tr>"
                 );
 
-                if (transaction.state == '정지') {
+                if (transaction.state == STOP_KOR) {
                   $('.plant-state').eq(plantCount).css({'color': 'red', 'font-weight': 'bold'});
                   $('.plant-state').eq(plantCount).addClass('red');
                   errorCount++;
@@ -474,7 +514,7 @@ $(document).ready(function() {
 
                 plantCount++;
 
-              } else if (transaction.state == '정지') {
+              } else if (transaction.state == STOP_KOR) {
                 allErrorCount++;
               }
                
@@ -500,6 +540,29 @@ $(document).ready(function() {
       $('#usedCoin').text(util.makeCommaNumber(dataJSON.usedCoin));
     });
   }
+
+  function setDialog(blockNum) {
+    $('#tooltip' + blockNum).dialog({
+      autoOpen: false,
+      resizable: false,
+      modal: true,
+      width: 350,
+      height: 600,
+      draggable: true,
+      title: 'BLOCK #' + blockNum + ' INFO',
+      position: {
+        my : 'center',
+        at : 'center',
+        of : $('#block' + blockNum)
+      },
+      open: function() {
+      },
+      close: function() {
+        $(this).empty();
+        $(this).dialog('destroy');
+      }
+    });
+  }
 ///////////////////////////////////////BLOCK ANIMATION CONFIG////////////////////////////
 
   function initBlock() {
@@ -507,12 +570,18 @@ $(document).ready(function() {
     var i, count = 0;
     if (currentBlockNumber > max_block_gif) {
       for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+
+        setDialog(i);
+
         count++;
       }
     } else {
       for (i = currentBlockNumber - 1; i >= 0; i--) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+
+        setDialog(i);
+
         count++;
       }
     }
@@ -543,7 +612,10 @@ $(document).ready(function() {
     j = 0;
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/Boom.gif"/><p class="block-num">#'+ i + '</p></div>');
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/Boom.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+
+      setDialog(i);
+
       ++j;
 
       if (i == showTransactionBlock) {
@@ -579,13 +651,13 @@ $(document).ready(function() {
   
         //console.log("i: %d, left: %d", i, left);
   
-        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+        tween = KUTE.to('#block' + i, {left: left},{duration: 200}).start();
         ++j;
       }
     } else {
       for (i = startIndex; i < currentBlockNumber; i++) {
         left = (position_offset * (max_block_gif - currentBlockNumber + i - count));
-        tween = $("#block" + i).to({left: left},{duration: 200}).start();
+        tween = KUTE.to('#block' + i, {left: left},{duration: 200}).start();
       }
     }
 

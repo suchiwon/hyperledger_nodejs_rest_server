@@ -81,12 +81,26 @@ html, body {width:100%; height:100%;}
 .dashbox_area .dashbox_cont .dash_cont > img {max-width:100%;}
 .dashbox_area .dashbox_cont .dash_cont .blockchain_box {position: relative; width: 990px;}
 .dashbox_area .dashbox_cont .dash_cont .blockchain_box > img {position: relative; max-width: 100%; z-index: 5;}
-.dashbox_area .dashbox_cont .dash_cont .blockchain_box ul {position: absolute; width: 800px; top:84px; left: 106px; z-index: 5;}
-.dashbox_area .dashbox_cont .dash_cont .blockchain_box li {display: inline-block; width: 127px; height: 127px; margin-left: 38px;}
-.dashbox_area .dashbox_cont .dash_cont .blockchain_box li > a {display:block; width: 100%; height: 100%;}
-.dashbox_area .dashbox_cont .dash_cont .blockchain_box li:first-child {margin-left: 0;}
-.dashbox_area .dashbox_cont .dash_cont .blockchain_box li.default {background: url(../img/img_box_def.png) no-repeat 0 0;}
-.dashbox_area .dashbox_cont .dash_cont .blockchain_box li.focus {background: url(../img/img_box_foc.png) no-repeat 0 0;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box > ul {position: absolute; width: 800px; top:84px; left: 106px; z-index: 5;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box > ul > li {position: relative; display: inline-block; width: 127px; height: 127px; margin-left: 38px;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box > ul > li > a {display:block; width: 100%; height: 100%;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box > ul > li:first-child {margin-left: 0;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box > ul > li.default {background: url(../images/img_box_def.png) no-repeat 0 0;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box > ul > li.focus {background: url(../images/img_box_foc.png) no-repeat 0 0;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip {position: absolute; left: 100%; bottom: -35%; padding-left: 9px;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip:before {position: absolute; width:9px; height:15px; margin-left: -9px; bottom:10%; content:''; background: url(../images/ico_tooltip_close.png) no-repeat left bottom 15%; z-index: 10;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip > .tooltip_in {overflow: hidden; position: relative;background-color: #f6f7fa; border-radius: 2px; box-shadow: 0 0 70px rgba(0,0,0,0.56); z-index: 5;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip > .tooltip_in > a {position: absolute; display: block; width: 17px; height: 17px; top: 15px; right: 15px;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul {width: 320px; margin-top: 6px;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li {padding:23px 23px 20px 23px; border-bottom: 1px solid #d4d9e3;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.tag {width: 50px; height: 26px; margin-bottom: 7px; color: #ffffff; font-size: 18px; line-height: 26px; text-align: center;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.tag.red {background-color: #5384ff;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.tag.gray {background-color: #7e8398;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.tag.blue {background-color: #f2428b;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.txt {overflow: hidden;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.txt span {font-size: 18px; line-height: 28px;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.txt span.txt_l {float: left; color: #7b88a3;}
+.dashbox_area .dashbox_cont .dash_cont .blockchain_box li .tooltip ul li p.txt span.txt_r {float: right; color: #0e1a35;}
 .dashbox_area .dashbox_cont .dash_cont table {}
 .dashbox_area .dashbox_cont .dash_cont table tr {}
 .dashbox_area .dashbox_cont .dash_cont table th,
@@ -118,4 +132,20 @@ html, body {width:100%; height:100%;}
 .block-num {
     position: relative;
     top: -50px;
+}
+
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    text-indent: 1px;
+    text-overflow: '';
+    background: #2c2f42;
+}
+
+select option {
+    text-indent: 1px;
+    text-overflow: '';
+    background: #2c2f42;
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }

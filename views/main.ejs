@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 	<title>Project</title>
 	<link rel="stylesheet" type="text/css" href="css/style.css" />
+	<link rel="stylesheet" type="text/css" href="css/tooltip.css" />
 	<link rel="stylesheet" href="css/gifplayer.css">
         <link rel="stylesheet" href="css/jquery.contextMenu.min.css">
         <script src="js/socket.io.js"></script>
@@ -159,12 +160,11 @@
 						<div class="box_tit">
 							Region
 							<!--tit_select에 open 클레스 붙을 경우 열림-->
-							<div class="tit_select open" style="margin-left: 30px;">
-								<select id="power_area" class="selectpicker" style="display: inline;"></select>
-								
-								<!--
-								수도권
-								<div>
+							<div class="tit_select" style="margin-left: 30px;">
+								<a><select id="power_area" class="selectpicker" style="display: inline; width: 100px;"></select></a>
+							<!--
+								<a>select</a>
+								<div id="power_area">
 									<ul>
 										<li>충청</li>
 										<li>강원</li>
@@ -172,7 +172,8 @@
 										<li>경상</li>
 									</ul>
 								</div>
-								-->
+							-->
+							
 							</div>
 						</div>
 						<div class="dash_info">
@@ -211,10 +212,6 @@
 			<!--//Dashbox-->
 		</div>
 
-	</div>
-
-	<div id="dialog">
-		<p>이것은 기본 대화상자 입니다. 이동하거나 닫을 수 있습니다.</p>
 	</div>
 
 	<script type="text/javascript" data-main="js/charts.js" src="js/require.js"></script>

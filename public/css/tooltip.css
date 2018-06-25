@@ -1,0 +1,14 @@
+.dialog {position: absolute;}
+.dialog:before {position: absolute; width:9px; height:15px; margin-left: -9px; bottom:10%; content:''; background: url(../images/ico_tooltip_close.png) no-repeat left bottom 15%; z-index: 10;}
+.dialog > .tooltip_in {overflow: hidden; position: relative;background-color: #f6f7fa; border-radius: 2px; box-shadow: 0 0 70px rgba(0,0,0,0.56); z-index: 5;}
+.dialog > .tooltip_in > a {position: absolute; display: block; width: 17px; height: 17px; top: 15px; right: 15px;}
+.dialog ul {width: 320px; margin-top: 6px;}
+.dialog ul li {padding:23px 23px 20px 23px; border-bottom: 1px solid #d4d9e3;}
+.dialog ul li p.tag {width: 50px; height: 26px; margin-bottom: 7px; color: #ffffff; font-size: 18px; line-height: 26px; text-align: center;}
+.dialog ul li p.tag.red {background-color: #5384ff;}
+.dialog ul li p.tag.gray {background-color: #7e8398;}
+.dialog ul li p.tag.blue {background-color: #f2428b;}
+.dialog ul li p.txt {overflow: hidden;}
+.dialog ul li p.txt span {font-size: 18px; line-height: 28px;}
+.dialog ul li p.txt span.txt_l {float: left; color: #7b88a3;}
+.dialog ul li p.txt span.txt_r {float: right; color: #0e1a35;}
