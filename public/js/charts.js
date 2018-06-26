@@ -20,8 +20,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
   const FCN_NAME_ADDCOIN = '코인 발급';
   const FCN_NAME_POWERTRADE = '전력 거래';
 
-  var starPoint = new Image();
-  starPoint.src = 'img/block.gif';
+  var starPoint = new Image(10, 10);
+  starPoint.src = 'img/star.jpg';
 
   console.log("server ip: " + host_ip);
 
@@ -209,8 +209,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
             label: "발행량",
             fill: false,
             lineTension: 0.1,
-            backgroundColor: "#F65E70",
-            borderColor: "#F65E70",
+            backgroundColor: "#d1536f",
+            borderColor: "#d1536f",
             borderCapStyle: 'butt',
             borderDash: [],
             borderDashOffset: 0.0,
@@ -222,7 +222,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
             pointHoverBackgroundColor: "rgba(75,192,192,1)",
             pointHoverBorderColor: "rgba(220,220,220,1)",
             pointHoverBorderWidth: 2,
-            pointRadius: 1,
+            pointRadius: 2,
             pointHitRadius: 10,
             data: [],
             spanGaps: false,
@@ -230,9 +230,9 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
          },
          {
           label: "사용량",
-          fill: false,
-          lineTension: 0.1,
-          backgroundColor: "#81B2FE",
+          fill: true,
+          lineTension: 0.4,
+          backgroundColor: "rgb(129,178,254, 0.4)",
           borderColor: "#81B2FE",
           borderCapStyle: 'butt',
           borderDash: [],
@@ -245,7 +245,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
           pointHoverBackgroundColor: "rgba(75,192,192,1)",
           pointHoverBorderColor: "rgba(220,220,220,1)",
           pointHoverBorderWidth: 2,
-          pointRadius: 1,
+          pointRadius: 2,
           pointHitRadius: 10,
           data: [],
           pointStyle: [],

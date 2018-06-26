@@ -105,7 +105,7 @@ define(['request', "./util.js"], function(request, util) {
         },
         sampleRegist: async function() {
             
-            for (var i = 0; i < useidSet.length; i++) {
+            for (var i = 0; i < useridSet.length; i++) {
 
                 var args = "['" + useridSet[i] + "','" + nameSet[i] + "','" + areaSet[i] + "']";
 
@@ -115,8 +115,6 @@ define(['request', "./util.js"], function(request, util) {
                     if (!error && response.statusCode == 200) {
                     }   
                 });
-
-                await sleep(200);
             }
         }
     }

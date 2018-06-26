@@ -1,6 +1,6 @@
 @charset "utf-8";
-@import url(http://fonts.googleapis.com/css?family=Roboto);
-@import url(http://fonts.googleapis.com/earlyaccess/notosanskr.css);
+@import url(./Roboto.css);
+@import url(./notosanskr.css);
 
 /*
 HTML/CSS Author		: IM CHUMHEE (ich@theloca.co.kr)
@@ -108,6 +108,7 @@ html, body {width:100%; height:100%;}
 .dashbox_area .dashbox_cont .dash_cont table th {height: 48px; background-color: #3b4159; color: #9295a6; line-height: 24px;}
 .dashbox_area .dashbox_cont .dash_cont table td {height: 48px; color: #d1d1e1;}
 .dashbox_area .dashbox_cont .dash_cont table td.red {color: #f96a7b;}
+.plant-state {font-size: 20px; text-align: center;}
 
 .dashbox_area .dashbox_cont .dash_cont .blockchain_box #blockList {position: absolute; width: 800px; height: 129px; top:84px; left: 106px; z-index: 5;}
 
