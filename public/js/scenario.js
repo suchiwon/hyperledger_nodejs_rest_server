@@ -43,7 +43,7 @@ define(['request', "./util.js"], function(request, util) {
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
 
-                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(1, 10) * 100 + "']";
+                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 100 + "']";
     
                     var postBody = setPostBody("addCoin", args);
     
@@ -86,7 +86,7 @@ define(['request', "./util.js"], function(request, util) {
                         return;
                     }
     
-                    var args = "['" + useridSet[indexFrom] + "','" + useridSet[indexTo] + "','" + util.getRandomInt(100, 1000) + "','" + util.getRandomInt(20, 50) * 10 + "']";
+                    var args = "['" + useridSet[indexFrom] + "','" + useridSet[indexTo] + "','" + util.getRandomInt(1000, 10000) + "','" + util.getRandomInt(4, 20) * 100000 + "']";
     
                     var postBody = setPostBody("powertrade", args);
     

@@ -12,6 +12,8 @@ import (
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
+var logger = shim.NewLogger("powertrade")
+
 func randSeq(n int) string {
 	b := make([]rune, n)
 
@@ -63,10 +65,10 @@ func (cc *PowerTradeChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Res
 		return cc.supply(stub, args)
 	} else if fn == "regist" {
 		return cc.regist(stub, args)
-	} else if fn == "getWallet" {
-		return cc.getWallet(stub, args)
 	} else if fn == "getPower" {
 		return cc.getPower(stub, args)
+	} else if fn == "getWallet" {
+		return cc.getWallet(stub, args)
 	} else if fn == "getElementInfo" {
 		return cc.getElementInfo(stub, args)
 	} else if fn == "powertrade" {
@@ -199,6 +201,17 @@ func (cc *PowerTradeChaincode) powerTrade(stub shim.ChaincodeStubInterface, args
 	toPower, _ = strconv.Atoi(string(_toPower))
 	toCoin, _ = strconv.Atoi(string(_toCoin))
 
+	//logger.Infof("elements[from:" + fromPower + " " + fromCoin + " to:" + toPower + " " + toCoin)
+	fmt.Printf("elements[from:%d %d  to:%d %d   args:%d %d]",fromPower,fromCoin,toPower,toCoin ,power,coin)
+
+	if fromPower < power {
+		return shim.Error("from do not have enough power");
+	}
+
+	if toCoin < coin {
+		return shim.Error("to do not have enough coin");
+	}
+
 	fromPower -= power
 	fromCoin += coin
 	toPower += power
@@ -266,6 +279,9 @@ func (cc *PowerTradeChaincode) getElementInfo(stub shim.ChaincodeStubInterface, 
 }
 
 func main() {
+
+	logger.SetLevel(shim.LogInfo)
+
 	err := shim.Start(new(PowerTradeChaincode))
 
 	if err != nil {

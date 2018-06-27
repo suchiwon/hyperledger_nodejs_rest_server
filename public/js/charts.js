@@ -20,8 +20,12 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
   const FCN_NAME_ADDCOIN = '코인 발급';
   const FCN_NAME_POWERTRADE = '전력 거래';
 
-  var starPoint = new Image(10, 10);
-  starPoint.src = 'img/star.jpg';
+  const BLOCK_CREATED_ANIMATION_SRC = 'img/block_animation.gif';
+  const BLOCK_NORMAL_ANIMATION_SRC = 'img/block_blue.gif';
+  const BLOCK_ROADSHOW_ANIMATION_SRC = 'img/block_white.gif';
+
+  var starPoint = new Image(250, 250);
+  starPoint.src = 'img/show_point.png';
 
   console.log("server ip: " + host_ip);
 
@@ -156,8 +160,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
             id: "use-y-axis",
             ticks: {
               min: 0,
-              max: 1000,
-              stepSize: 100,
+              max: 4000000,
+              stepSize: 400000,
               fontColor: "white"
             }
           }
@@ -549,7 +553,7 @@ $(document).ready(function() {
     var i, count = 0;
     if (currentBlockNumber > max_block_gif) {
       for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
 
         setDialog(i);
 
@@ -557,7 +561,7 @@ $(document).ready(function() {
       }
     } else {
       for (i = currentBlockNumber - 1; i >= 0; i--) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
 
         setDialog(i);
 
@@ -570,11 +574,11 @@ $(document).ready(function() {
     setTimeout(function() {
 
       if ($("#block" + i).hasClass("showBlock")) {
-        $("#block" + i).html('<img class="block-gif" src="img/show_block.gif"/><p class="block-num">#'+ i + '</p>');
+        $("#block" + i).html('<img class="block-gif" src="' + BLOCK_ROADSHOW_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p>');
       } else {
-        $("#block" + i).html('<img class="block-gif" src="img/block.gif"/><p class="block-num">#'+ i + '</p>');
+        $("#block" + i).html('<img class="block-gif" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p>');
       }
-    }, 1000);
+    }, 1800);
   }
 
   async function addBlock(newBlockNum, showTransactionBlock) {
@@ -591,7 +595,7 @@ $(document).ready(function() {
     j = 0;
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="img/Boom.gif"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="' + BLOCK_CREATED_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
 
       setDialog(i);
 

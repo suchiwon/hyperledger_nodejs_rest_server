@@ -7,7 +7,7 @@ HTML/CSS Author		: IM CHUMHEE (ich@theloca.co.kr)
 */
 
 /*TagReset*/
-* {margin:0; padding:0; border:0; color:#ffffff; font:normal 13px 'Roboto', "Noto Sans KR", "Dotum", sans-serif; line-height:1;}
+* {margin:0; padding:0; border:0; color:#ffffff; font:normal 18px 'Roboto', "Noto Sans KR", "Dotum", sans-serif; line-height:1;}
 a {vertical-align:baseline; text-decoration:none;}
 table {width:100%; table-layout:fixed;}
 table, tr, td, th, thead, tbody, tfooter, caption {border-collapse:collapse; border-spacing:0;}
@@ -43,11 +43,11 @@ html, body {width:100%; height:100%;}
 /*ContentHead*/
 .content_header {margin: 50px 170px 0 170px; background-color: #333649; box-shadow: inset 0 -3px 15px rgba(0,0,0,0.09); border-radius: 4px;}
 .content_header ul {font-size: 0; text-align: center;}
-.content_header ul li {display: inline-block; padding: 20px 25px; margin: 0 3%;}
+.content_header ul li {display: inline-block; padding: 20px 20px; margin: 0 3%;}
 .content_header ul li:first-child {margin-left: 0;}
 .content_header ul li p {font-size: 20px; line-height: 30px;}
 .content_header ul li p.tit {color: #9293a5;}
-.content_header ul li p.txt {color: #b9bbca;}
+.content_header ul li p.txt {color: #b9bbca; font-size: 40px; padding-top: 20px;}
 .content_header ul li p.tit.red,.content_header ul li p.txt.red {color: #fd5088;}
 .content_header ul li p.tit.blue,.content_header ul li p.txt.blue {color: #6e97ff;}
 /*Dashbox*/
@@ -104,7 +104,7 @@ html, body {width:100%; height:100%;}
 .dashbox_area .dashbox_cont .dash_cont table {}
 .dashbox_area .dashbox_cont .dash_cont table tr {}
 .dashbox_area .dashbox_cont .dash_cont table th,
-.dashbox_area .dashbox_cont .dash_cont table td {border: 1px solid #424c67; color: #9294a5; font-size: 20px; text-align: center;}
+.dashbox_area .dashbox_cont .dash_cont table td {border: 1px solid #424c67; color: #9294a5; font-size: 24px; text-align: center;}
 .dashbox_area .dashbox_cont .dash_cont table th {height: 48px; background-color: #3b4159; color: #9295a6; line-height: 24px;}
 .dashbox_area .dashbox_cont .dash_cont table td {height: 48px; color: #d1d1e1;}
 .dashbox_area .dashbox_cont .dash_cont table td.red {color: #f96a7b;}
@@ -132,7 +132,7 @@ html, body {width:100%; height:100%;}
 
 .block-num {
     position: relative;
-    top: -50px;
+    font-size: 20px;
 }
 
 select {

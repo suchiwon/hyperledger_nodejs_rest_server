@@ -148,8 +148,6 @@ organizations:
   # information reserved for members of the organization, such as admin key and certificate,
   # fabric-ca registrar enroll ID and secret, etc.
 
-
-# List of orderers to send transaction and channel create/update requests to. For the time
 # being only one orderer is needed. If more than one is defined, which one get used by the
 # SDK is implementation specific. Consult each SDK's documentation for its handling of orderers.
 #
