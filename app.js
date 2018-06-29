@@ -174,7 +174,7 @@ io.sockets.on("connection", function(ws) {
 });
 
 const monitorChannelName = 'kcoinchannel';
-const monitorChaincodeName = 'powertrade';
+const monitorChaincodeName = 'energy';
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////// REST ENDPOINTS START HERE ///////////////////////////

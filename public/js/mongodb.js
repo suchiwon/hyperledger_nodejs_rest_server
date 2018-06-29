@@ -1,4 +1,4 @@
-define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js, atomic){
+define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose, util, log4js, atomic, jsUtil){
     var mongodb;
     var transactionSchema, transactionModel;
 
@@ -33,7 +33,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
             transactionSchema = mongoose.Schema({
                 tx_id: {type: String},
                 blockNum: {type: String},
-                time: {type: Date, default: Date.now},
+                time: {type: String},
                 fcn: {type: String},
                 userid: {type: String},
                 buyer: {type: String},
@@ -73,7 +73,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
             powerPlantModel = mongoose.model('power_plant', powerPlantSchema, 'power_plant');
 
             loadShowPowerTradeSchema = mongoose.Schema({
-                time: {type: Date, default: Date.now},
+                time: {type: String},
                 to: {type: String},
                 power: {type: Number},
                 coin: {type: Number}
@@ -110,7 +110,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                         object = new transactionModel({
                                 tx_id: transactionId,
                                 blockNum: blockNum,
-                                time: new Date(),
+                                time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: userid,
                                 name: name,
@@ -125,7 +125,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                         object = new transactionModel({
                                 tx_id: transactionId,
                                 blockNum: blockNum,
-                                time: new Date(),
+                                time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: userid,
                                 power: power
@@ -139,7 +139,7 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                         object = new transactionModel({
                                 tx_id: transactionId,
                                 blockNum: blockNum,
-                                time: new Date(),
+                                time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: userid,
                                 coin: balance
@@ -155,13 +155,15 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
                         object = new transactionModel({
                                 tx_id: transactionId,
                                 blockNum: blockNum,
-                                time: new Date(),
+                                time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: from,
                                 buyer: to,
                                 power: power,
                                 coin: balance
                             });
+
+                        console.log(jsUtil.getCurrentDateTime());    
                     }
 
                     object.save(function(err, data){
@@ -416,14 +418,14 @@ define(["mongoose", "util", "log4js", "atomic"], function(mongoose, util, log4js
 
             if (from == 'show') {
                 obj = new loadShowPowerTradeModel({
-                    time: new Date(),
+                    time: jsUtil.getCurrentDateTime(),
                     to: to,
                     power: power,
                     coin: -1 * coin
                 });
             } else if (to == 'show') {
                 obj = new loadShowPowerTradeModel({
-                    time: new Date(),
+                    time: jsUtil.getCurrentDateTime(),
                     to: from,
                     power: -1 * power,
                     coin: coin

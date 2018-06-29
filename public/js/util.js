@@ -103,6 +103,11 @@ define([], function(){
 
             return formatDate(date, 'yyyy.MM.dd ddd');
         },
+        getCurrentDateTime: function() {
+            var date = new Date();
+
+            return formatDate(date, 'yyyy.MM.dd HH:mm:ss');
+        },
         getAverage: function(array) {
 
             var sum = 0;

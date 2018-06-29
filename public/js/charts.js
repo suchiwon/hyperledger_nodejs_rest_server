@@ -20,12 +20,13 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
   const FCN_NAME_ADDCOIN = '코인 발급';
   const FCN_NAME_POWERTRADE = '전력 거래';
 
-  const BLOCK_CREATED_ANIMATION_SRC = 'img/block_animation.gif';
+  const BLOCK_CREATED_ANIMATION_SRC = 'img/blue_create.gif';
+  const BLOCK_ROADSHOW_CREATED_ANIMATION_SRC = 'img/yellow_create.gif';
   const BLOCK_NORMAL_ANIMATION_SRC = 'img/block_blue.gif';
-  const BLOCK_ROADSHOW_ANIMATION_SRC = 'img/block_white.gif';
+  const BLOCK_ROADSHOW_ANIMATION_SRC = 'img/block_yellow.gif';
 
-  var starPoint = new Image(250, 250);
-  starPoint.src = 'img/show_point.png';
+  var starPoint = new Image(50, 50);
+  starPoint.src = 'img/pointer_y.png';
 
   console.log("server ip: " + host_ip);
 
@@ -264,14 +265,14 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
     renderCoinChart(coinChartConfig);
 
     ws.on('new-chart-data', function(data) {
-        console.log("get chart new data");
+        //console.log("get chart new data");
         var newTempData = data;
 
         var mean = 0;
 
         var currentTime = util.getCurrentTime();
 
-        console.log("current block num:%d", newTempData.currentBlockNumber);
+        //console.log("current block num:%d", newTempData.currentBlockNumber);
 
         if(transactionChartRef.data.labels.length > 15){
         transactionChartRef.data.labels.shift();  
@@ -287,7 +288,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
           transactionChartRef.data.datasets[0].pointStyle.push('circle');
         }
 
-        console.log(transactionChartRef.data.datasets[0]);
+       //console.log(transactionChartRef.data.datasets[0]);
 
         transactionChartRef.data.datasets[0].data.push(newTempData.tranPerSec);
         transactionChartRef.update();
@@ -312,7 +313,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         coinChartRef.update();
 
         if (newTempData.currentBlockNumber > currentBlockNumber && currentBlockNumber > 0) {
-          console.log("add block");
+          //console.log("add block");
 
           addBlock(newTempData.currentBlockNumber, newTempData.showTransactionBlock);
         }
@@ -347,9 +348,11 @@ $(document).ready(function() {
 
   $('#currentDate').text(util.getCurrentDate());
 
+  
   $(".block-gif").each(function(index) {
-    $(this).gifplayer();
+    $(this).gifplayer('play');
   });
+  
 
   $('#blockList').on('click', '.block-gif', function(){
 
@@ -553,7 +556,7 @@ $(document).ready(function() {
     var i, count = 0;
     if (currentBlockNumber > max_block_gif) {
       for (i = currentBlockNumber - max_block_gif; i < currentBlockNumber; i++) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + count * position_offset + 'px;"><img class="block-gif"  data-mode="video" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
 
         setDialog(i);
 
@@ -561,7 +564,7 @@ $(document).ready(function() {
       }
     } else {
       for (i = currentBlockNumber - 1; i >= 0; i--) {
-        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count - 1) * position_offset + 'px;"><img class="block-gif" data-mode="video" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
 
         setDialog(i);
 
@@ -574,11 +577,11 @@ $(document).ready(function() {
     setTimeout(function() {
 
       if ($("#block" + i).hasClass("showBlock")) {
-        $("#block" + i).html('<img class="block-gif" src="' + BLOCK_ROADSHOW_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p>');
+        $("#block" + i).html('<img class="block-gif"  data-mode="video" src="' + BLOCK_ROADSHOW_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p>');
       } else {
-        $("#block" + i).html('<img class="block-gif" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p>');
+        $("#block" + i).html('<img class="block-gif"  data-mode="video" src="' + BLOCK_NORMAL_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p>');
       }
-    }, 1800);
+    }, 1000);
   }
 
   async function addBlock(newBlockNum, showTransactionBlock) {
@@ -595,15 +598,17 @@ $(document).ready(function() {
     j = 0;
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif" src="' + BLOCK_CREATED_ANIMATION_SRC + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+
+      if (i == showTransactionBlock) {
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif"  data-mode="video" src="' + BLOCK_ROADSHOW_CREATED_ANIMATION_SRC + "?a=" + i + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+        $("#block" + i).addClass("showBlock");
+      } else {
+        $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif"  data-mode="video" src="' + BLOCK_CREATED_ANIMATION_SRC + "?a=" + i + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
+      }
 
       setDialog(i);
 
       ++j;
-
-      if (i == showTransactionBlock) {
-        $("#block" + i).addClass("showBlock");
-      }
     }
 
     $('.deleteBlock').remove();
@@ -645,7 +650,7 @@ $(document).ready(function() {
     }
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
-      KUTE.fromTo("#block" + i,{opacity: 0},{opacity:1},{duration:2000}, {complete: animateCompleteCallback(i)}).start();
+      KUTE.fromTo("#block" + i,{opacity: 1},{opacity:1},{duration:2000}, {complete: animateCompleteCallback(i)}).start();
       startIndex++;
     }
   }

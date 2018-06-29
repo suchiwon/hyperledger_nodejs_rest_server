@@ -17,7 +17,7 @@ define(["socket.io"], function(io) {
     var intervalInstance = false;
 
     const monitorChannelName = 'kcoinchannel';
-    const monitorChaincodeName = 'powertrade';
+    const monitorChaincodeName = 'energy';
     var username;
     var orgname;
     const peer = 'peer0.org1.example.com';
@@ -226,7 +226,9 @@ define(["socket.io"], function(io) {
                     await mongodb.updateElementInfo(monitorChaincodeName, balance, 0, 0);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
-			        addCreatedCoin(balance);
+                    addCreatedCoin(balance);
+                    
+                    
                 } else if (fcn == 'powertrade') {
 
                     if (args.length != 4) {
