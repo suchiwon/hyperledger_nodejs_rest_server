@@ -15,7 +15,7 @@ table, tr {border-collapse:inherit;}
 ul, li {list-style: none;}
 html, body {width:100%; height:100%;}
 
-.wrap {overflow: hidden; max-height: 1350px; background: url(../img/bg.gif) #1e202d no-repeat center center; background-position-y: 62%}
+.wrap {overflow: hidden; max-height: 1440px; height: 100%; background: url(../img/bg.gif) #1e202d no-repeat center center; background-position-y: 56%}
 
 /*Header*/
 .header_area {overflow: hidden; height: 99px; background-color: #3b4159; box-shadow: 0 5px 20px 5px rgba(0,0,0,0.12);}
@@ -104,7 +104,7 @@ html, body {width:100%; height:100%;}
 .dashbox_area .dashbox_cont .dash_cont table {}
 .dashbox_area .dashbox_cont .dash_cont table tr {}
 .dashbox_area .dashbox_cont .dash_cont table th,
-.dashbox_area .dashbox_cont .dash_cont table td {border: 1px solid #424c67; color: #9294a5; font-size: 24px; text-align: center;}
+.dashbox_area .dashbox_cont .dash_cont table td {border: 1px solid #424c67; color: #9294a5; font-size: 22px; text-align: center;}
 .dashbox_area .dashbox_cont .dash_cont table th {height: 48px; background-color: #3b4159; color: #9295a6; line-height: 24px;}
 .dashbox_area .dashbox_cont .dash_cont table td {height: 48px; color: #d1d1e1;}
 .dashbox_area .dashbox_cont .dash_cont table td.red {color: #f96a7b;}

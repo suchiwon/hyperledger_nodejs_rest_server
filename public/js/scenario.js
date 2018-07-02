@@ -38,7 +38,7 @@ define(['request', "./util.js"], function(request, util) {
         startScript: function() {
             addCoinIntervalID = setInterval(function(){
 
-                var count = util.getRandomInt(1, 4);
+                var count = util.getRandomInt(1, 1);
 
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
@@ -53,11 +53,11 @@ define(['request', "./util.js"], function(request, util) {
                     });
                 }
 
-            }, 2500);
+            }, 3500);
 
             supplyIntervalID = setInterval(function(){
 
-                var count = util.getRandomInt(1, 4);
+                var count = util.getRandomInt(1, 1);
 
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
@@ -72,11 +72,11 @@ define(['request', "./util.js"], function(request, util) {
                     });
                 }
 
-            }, 2000);
+            }, 3000);
 
             powerTradeIntervalID = setInterval(function(){
 
-                var count = util.getRandomInt(1, 3);
+                var count = util.getRandomInt(1,2);
 
                 for (var i = 0; i < count; ++i) {
                     var indexFrom = util.getRandomInt(0, useridSet.length - 1);
@@ -96,7 +96,7 @@ define(['request', "./util.js"], function(request, util) {
                     }); 
                 }
 
-            }, 3000);
+            }, 4000);
         },
         stopScript: function() {
             clearInterval(addCoinIntervalID);

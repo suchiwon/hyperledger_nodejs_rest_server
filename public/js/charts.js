@@ -10,6 +10,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
 
   var host_ip;
 
+  var beforeShowBlock;
+
   host_ip = location.host.split(":")[0];
 
   const STOP_KOR = '정지';
@@ -25,7 +27,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
   const BLOCK_NORMAL_ANIMATION_SRC = 'img/block_blue.gif';
   const BLOCK_ROADSHOW_ANIMATION_SRC = 'img/block_yellow.gif';
 
-  var starPoint = new Image(50, 50);
+  var starPoint = new Image(35,35);
   starPoint.src = 'img/pointer_y.png';
 
   console.log("server ip: " + host_ip);
@@ -35,6 +37,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
     ws.on('news', function(data) {
       console.log(data);
       ws.emit('event', {my: 'transaction io socket read'});
+      beforeShowBlock = 0;
     });
 
     ws.on('send-block-number', function(data){
@@ -281,7 +284,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         }
         transactionChartRef.data.labels.push(currentTime);
 
-        if (newTempData.showTransactionBlock > 0) {
+        if (newTempData.showTransactionBlock > 0 && checkShowBlockInterval(newTempData.showTransactionBlock)) {
           console.log("it's show block");
           transactionChartRef.data.datasets[0].pointStyle.push(starPoint);
         } else {
@@ -304,8 +307,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
         coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
 
-        if (newTempData.showTransactionBlock > 0 && newTempData.consumeCoin > 0) {
-          console.log("it's show block");
+        if (newTempData.showTransactionBlock > 0 && newTempData.consumeCoin > 0 && checkShowBlockInterval(newTempData.showTransactionBlock)) {
+          console.log("it's show block: " + newTempData.showTransactionBlock + " " + beforeShowBlock);
           coinChartRef.data.datasets[1].pointStyle.push(starPoint);
         } else {
           coinChartRef.data.datasets[1].pointStyle.push('circle');
@@ -334,6 +337,10 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
 
         setPlantTable($("#power_area option:selected").val());
         setElementInfo();
+
+        if (newTempData.showTransactionBlock - beforeShowBlock > 5) {
+          beforeShowBlock = newTempData.showTransactionBlock;
+        }
     });
 
     ws.on('block-create', function(currentBlockNumber) {
@@ -482,10 +489,10 @@ $(document).ready(function() {
 
                   $('#plantTableBody').append("<tr>" +
                                             "<td>" + transaction.name + " " +
-                                            "<td>" + transaction.power + "kwh</td>" +
-                                            "<td>" + transaction.supply + "kwh</td>" +
-                                            "<td>" + transaction.trade + "kwh</td>" +
-                                            "<td>" + transaction.balance + "ETN</td>" + 
+                                            "<td>" + util.makeCommaNumber(transaction.power) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.supply) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.trade) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.balance) + "ETN</td>" + 
                                             "<td class='plant-control'><a class='plant-state txt'>" + transaction.state + "</a></td>" +
                                             "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
                                             "</tr>"
@@ -599,7 +606,7 @@ $(document).ready(function() {
 
     for (i = currentBlockNumber; i < newBlockNum; i++) {
 
-      if (i == showTransactionBlock) {
+      if (i == showTransactionBlock && checkShowBlockInterval(showTransactionBlock)) {
         $("#blockList").append('<div id="block' + i + '"class="box block" style="left: ' + (max_block_gif - count + j) * position_offset + 'px; opacity:0"><img class="block-gif"  data-mode="video" src="' + BLOCK_ROADSHOW_CREATED_ANIMATION_SRC + "?a=" + i + '"/><p class="block-num">#'+ i + '</p><div id="tooltip' + i + '"></div></div>');
         $("#block" + i).addClass("showBlock");
       } else {
@@ -658,6 +665,14 @@ $(document).ready(function() {
   function removeBlock(index) {
     //console.log("remove block:%d", index);
     $("#block" + index).remove(); 
+  }
+
+  function checkShowBlockInterval(showBlockNum) {
+    if (showBlockNum - beforeShowBlock > 5) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   ///////////////////////GET BLOCK INFO/////////////////////////////////////
