@@ -119,7 +119,7 @@ define([], function(){
             if (array.length == 0) {
                 return 0;
             } else {
-                return sum/array.length;
+                return parseFloat(sum/array.length).toFixed(2);
             }
         }
     };

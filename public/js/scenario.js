@@ -43,7 +43,7 @@ define(['request', "./util.js"], function(request, util) {
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
 
-                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 1000 + "']";
+                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 10 + "']";
     
                     var postBody = setPostBody("addCoin", args);
     
@@ -62,7 +62,7 @@ define(['request', "./util.js"], function(request, util) {
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
 
-                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 25 + "']";
+                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 1 + "']";
 
                     var postBody = setPostBody("supply", args);
 

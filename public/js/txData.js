@@ -120,6 +120,8 @@ define(["socket.io"], function(io) {
             setInterval(function() {
                 var temp = txPerSecMap.get(monitorChannelName);
 
+                temp *= getRandomInt(150, 250);
+
                 var maxTran = maxTxPerSecMap.get(monitorChannelName);
 
                 if (temp > maxTran) {

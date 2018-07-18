@@ -108,8 +108,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
                 stacked: true,
                 ticks: {
                   min: 0,
-                  max: 10,
-                  stepSize: 2,
+                  max: 1000,
+                  stepSize: 100,
                   fontColor: "white"
                 }
               }
@@ -274,6 +274,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         var mean = 0;
 
         var currentTime = util.getCurrentTime();
+        
+        //newTempData.tranPerSec *= util.getRandomInt(50, 100);
 
         //console.log("current block num:%d", newTempData.currentBlockNumber);
 
@@ -340,6 +342,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
 
         if (newTempData.showTransactionBlock - beforeShowBlock > 5) {
           beforeShowBlock = newTempData.showTransactionBlock;
+          //$('#showBlockPopup').dialog('open');  
+          //setTimeout(function(){$('#showBlockPopup').dialog("close")},3000);
         }
     });
 
@@ -358,6 +362,26 @@ $(document).ready(function() {
   
   $(".block-gif").each(function(index) {
     $(this).gifplayer('play');
+  });
+
+  $('#showBlockPopup').dialog({
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: 600,
+    height: 300,
+    draggable: false,
+    show: {effect: 'fade', duration: 500},
+    hide: {effect: 'fade', duration: 500},
+    position: {
+      my : 'center',
+      at : 'center',
+      of : $('body')
+    },
+    open: function() {
+    },
+    close: function() {
+    }
   });
   
 
@@ -668,7 +692,7 @@ $(document).ready(function() {
   }
 
   function checkShowBlockInterval(showBlockNum) {
-    if (showBlockNum - beforeShowBlock > 5) {
+    if (showBlockNum - beforeShowBlock > -1000) {
       return true;
     } else {
       return false;
