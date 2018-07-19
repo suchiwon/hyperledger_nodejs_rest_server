@@ -179,6 +179,95 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 }
             );
         },
+        insertPowerTransactionComposer: function(transactionId, blockNum, fcn, body) {           
+
+            var object;
+            var fcnKor;
+
+            this.getFcnName(fcn).then(
+                function(message) {
+
+                    //console.log(message);
+                    fcnKor = JSON.parse(JSON.stringify(message)).kor;
+
+                    if (fcn == 'Plant') {
+
+                        var userid = body.plantId;
+                        var name = body.name;
+                        var area_id = body.area;
+        
+                        object = new transactionModel({
+                                tx_id: transactionId,
+                                blockNum: blockNum,
+                                time: jsUtil.getCurrentDateTime(),
+                                fcn: fcnKor,
+                                userid: userid,
+                                name: name,
+                                area_id: area_id
+                            });
+        
+                    } else if (fcn == 'supply') {
+        
+                        var userid = body.plant;
+                        var power = body.power;
+        
+                        object = new transactionModel({
+                                tx_id: transactionId,
+                                blockNum: blockNum,
+                                time: jsUtil.getCurrentDateTime(),
+                                fcn: fcnKor,
+                                userid: userid,
+                                power: power
+                            });
+        
+                    } else if (fcn == 'addCoin') {
+        
+                        var userid = body.plant;
+                        var balance = body.balance;
+        
+                        object = new transactionModel({
+                                tx_id: transactionId,
+                                blockNum: blockNum,
+                                time: jsUtil.getCurrentDateTime(),
+                                fcn: fcnKor,
+                                userid: userid,
+                                coin: balance
+                            });
+        
+                    } else if (fcn == 'powertrade') {
+        
+                        var from = body.from;
+                        var to = body.to;
+                        var power = body.power;
+                        var balance = body.balance;
+        
+                        object = new transactionModel({
+                                tx_id: transactionId,
+                                blockNum: blockNum,
+                                time: jsUtil.getCurrentDateTime(),
+                                fcn: fcnKor,
+                                userid: from,
+                                buyer: to,
+                                power: power,
+                                coin: balance
+                            });
+
+                        console.log(jsUtil.getCurrentDateTime());    
+                    }
+
+                    object.save(function(err, data){
+                        if (err) {
+                            logger.error("insert transaction error:" + err);
+                        } else {
+                            logger.debug("insert transaction success:" + JSON.stringify(data));
+                        }
+                    });
+                },
+                function(error) {
+                    logger.error("Transaction error: " + error);
+                }
+            );
+        },
         getTransactionList: async function(blockNum) {
 
             return new Promise(function (resolve, reject) {

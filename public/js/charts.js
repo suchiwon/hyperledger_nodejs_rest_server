@@ -274,6 +274,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         var mean = 0;
 
         var currentTime = util.getCurrentTime();
+
+        setPlantTable($("#power_area option:selected").val());
         
         //newTempData.tranPerSec *= util.getRandomInt(50, 100);
 
@@ -306,7 +308,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         }
 
         coinChartRef.data.labels.push(currentTime);
-        coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
+        //coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
+        coinChartRef.data.datasets[0].data.push(parseInt($("#createdCoin").text().replace(",","")));
         coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
 
         if (newTempData.showTransactionBlock > 0 && newTempData.consumeCoin > 0 && checkShowBlockInterval(newTempData.showTransactionBlock)) {
@@ -318,7 +321,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         coinChartRef.update();
 
         if (newTempData.currentBlockNumber > currentBlockNumber && currentBlockNumber > 0) {
-          //console.log("add block");
+          console.log("add block");
 
           addBlock(newTempData.currentBlockNumber, newTempData.showTransactionBlock);
         }
@@ -335,10 +338,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         $('#clockDate').text(util.getCurrentDate());
         $('#averageTransaction').text(util.getAverage(transactionChartRef.data.datasets[0].data));
 
-        $('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
-
-        setPlantTable($("#power_area option:selected").val());
-        setElementInfo();
+        //$('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
+        //setElementInfo();
 
         if (newTempData.showTransactionBlock - beforeShowBlock > 5) {
           beforeShowBlock = newTempData.showTransactionBlock;
@@ -429,7 +430,8 @@ $(document).ready(function() {
 
   ////////////////////////////////CHANNEL BLOCK CONFIG/////////////////////////
   $.ajax ({
-    url: '/getAreaNames',
+    //url: '/getAreaNames',
+    url: 'http://localhost:3000/api/Area',
     method: 'GET'
   }).done(function(data) {
 
@@ -441,7 +443,7 @@ $(document).ready(function() {
 
        var transaction = data[i]; 
 
-       $("#power_area").append("<option value=" + transaction.id + ">" + transaction.name + "</option>");
+       $("#power_area").append("<option value=" + transaction.areaId + ">" + transaction.name + "</option>");
        //$("#power_area ul").append("<li data-value=" + transaction.id + ">" + transaction.name + "</option>");
     }
 
@@ -495,7 +497,7 @@ $(document).ready(function() {
 
   function setPlantTable(area_id) {
     $.ajax ({
-      url: '/getAllPlants/',
+      url: 'http://localhost:3000/api/Plant',
       method: 'GET'
     }).done(function(data) {
 
@@ -503,22 +505,27 @@ $(document).ready(function() {
       var allErrorCount = 0;
       var plantCount = 0;
 
+      var issuedToken = 0;
+      var tradingToken = 0;
+
       $('#plantTableBody').empty();
+
+      //console.log(data);
 
           for (var i = 0; i < data.length; i++) {
 
               var transaction = data[i];
 
-              if (transaction.area_id == area_id) {
+              if (transaction.area.substr(37) == area_id) {
 
                   $('#plantTableBody').append("<tr>" +
                                             "<td>" + transaction.name + " " +
                                             "<td>" + util.makeCommaNumber(transaction.power) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.supply) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.trade) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.supplyPower) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.tradeCoin) + "kwh</td>" +
                                             "<td>" + util.makeCommaNumber(transaction.balance) + "ETN</td>" + 
                                             "<td class='plant-control'><a class='plant-state txt'>" + transaction.state + "</a></td>" +
-                                            "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
+                                            "<td class='userid' style='display:none;'>" + transaction.plantId + "</td>" + 
                                             "</tr>"
                 );
 
@@ -534,6 +541,9 @@ $(document).ready(function() {
               } else if (transaction.state == STOP_KOR) {
                 allErrorCount++;
               }
+
+              issuedToken += transaction.createCoin;
+              tradingToken += transaction.tradeCoin;
                
         }
 
@@ -542,6 +552,9 @@ $(document).ready(function() {
 
         $('#allPlantCount').text(data.length);
         $('#allErrorPlantCount').text(allErrorCount);
+
+        $('#createdCoin').text(util.makeCommaNumber(issuedToken));
+        $('#usedCoin').text(util.makeCommaNumber(tradingToken));
     });
   }
 

@@ -43,6 +43,8 @@ var install = require('./app/install-chaincode.js');
 var instantiate = require('./app/instantiate-chaincode.js');
 var invoke = require('./app/invoke-transaction.js');
 var query = require('./app/query.js');
+
+var composerInvoke = require('./app/composer-invoke.js');
 var host = process.env.HOST || hfc.getConfigSetting('host');
 var port = process.env.PORT || hfc.getConfigSetting('port');
 ///////////////////////////////////////////////////////////////////////////////
@@ -663,4 +665,21 @@ app.get('/main', async function(req, res) {
  app.get('/sampleRegist', function(req, res) {
 	scenario.sampleRegist();
  });
+ 
+
+ ///////////////////////////////////COMPOSER VERSION/////////////////////////////
+ app.post('/channels/:channelName/composer/:api', async function(req, res) {
+
+	var channelName = req.params.channelName;
+	var api = req.params.api;
+
+	composerInvoke.invoke(channelName, api, req.body, txData, mongodb, query).then(
+		function(message) {
+			res.send(message);
+		}, function(error) {
+			res.send(error);
+		}
+	);
+ });
+
  

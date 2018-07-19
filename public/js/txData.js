@@ -46,12 +46,6 @@ define(["socket.io"], function(io) {
     function getCreatdCoin() {
         return createdCoin;
     }
-
-    function addConsumeCoin(amount) {
-        consumeCoin += amount;
-
-        console.log("consumeCoin:%d", consumeCoin);
-    }
     
     function resetConsumeCoin() {
         consumeCoin = 0;
@@ -102,6 +96,11 @@ define(["socket.io"], function(io) {
         getBlockNumber: function() {
             return blockNumber;
         },
+        addConsumeCoin(amount) {
+            consumeCoin += amount;
+    
+            console.log("consumeCoin:%d", consumeCoin);
+        },
         setElementInfo: function(mongodb) {
             mongodb.getElementInfo(monitorChaincodeName).then(function(data){
                 var json = JSON.parse(JSON.stringify(data));
@@ -119,8 +118,6 @@ define(["socket.io"], function(io) {
 
             setInterval(function() {
                 var temp = txPerSecMap.get(monitorChannelName);
-
-                temp *= getRandomInt(150, 250);
 
                 var maxTran = maxTxPerSecMap.get(monitorChannelName);
 
@@ -169,6 +166,19 @@ define(["socket.io"], function(io) {
                 //ws.emit('block-create', blockNumber);
             }
         },
+        catchBlockCreateComposer: async function(query, txID) {
+            let message = await query.getTransactionByID(peer, monitorChannelName, txID, username, orgname);
+
+                var currentBlockCount = parseInt(message.header.number);
+
+                if (currentBlockCount + 1 > blockNumber) {
+                    console.log("block created:(block number:%d)", currentBlockCount);
+
+                    blockNumber = currentBlockCount + 1;
+                }
+
+            return currentBlockCount;
+        },
         startBlockScanner: function(query) {
             setInterval(async function() {
                 let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
@@ -187,7 +197,9 @@ define(["socket.io"], function(io) {
 
             blockNumber = message.height.low;
 
-            ws.emit('send-block-number', blockNumber); 
+            ws.emit('send-block-number', blockNumber);
+
+            return blockNumber;
         },
         executeInvokeTransaction: async function(channelName, fcn, mongodb, args, blockNum) {
 
