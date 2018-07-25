@@ -124,6 +124,7 @@ app.use(expressLayouts);
 
 app.use(express.static(path.join(__dirname,'/public')));
 app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
+app.use('/main', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
@@ -158,6 +159,9 @@ function getErrorMessage(field) {
 var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
 
+var monitorChannelName = 'kcoinchannel';
+var monitorChaincodeName = 'energy';
+
 var io = require('socket.io').listen(4001);
 
 io.sockets.on("connection", function(ws) {
@@ -166,15 +170,12 @@ io.sockets.on("connection", function(ws) {
 	txData.setElementInfo(mongodb);
 	txData.startChartInterval();
 
-	ws.emit('news', {hello: 'world'});
+	ws.emit('news', {monitorChannelName: monitorChannelName});
 	ws.emit('send-block-number', txData.getBlockNumber);
 	ws.on("event", function(message) {
 		console.log("Received: %s", message);
 	});
 });
-
-const monitorChannelName = 'kcoinchannel';
-const monitorChaincodeName = 'energy';
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////// REST ENDPOINTS START HERE ///////////////////////////
@@ -374,25 +375,9 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 
 	let message;
 
-	//check invoke regist duplicate id
-	if (chaincodeName == monitorChaincodeName && fcn == 'regist') {
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
 
-		mongodb.getPlant(args[0]).then(
-			async function(message) {
-				logger.debug("Transaction result: " + message);
-				if (message) {
-					logger.debug("this id registed before");
-					return;
-				} else {
-					message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
-				}
-			}, async function(error) {
-				logger.error("Transaction error: " + error);
-			}
-		);
-	} else {
-		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
-	}
+	logger.debug(message);
 	res.send(message);
 });
 // Query on chaincode on target peers
@@ -523,10 +508,14 @@ app.get('/monitor', async function(req, res) {
 	res.render('monitor.ejs', {txData: txData});
 });
 
-app.get('/main', async function(req, res) {
+app.get('/main/:channelName', async function(req, res) {
+
+	txData.changeMonitorChannel(req.params.channelName);
+	monitorChannelName = req.params.channelName;
+
 	logger.debug('================== MONITOR BLOCKCHAIN =====================');
 	
-	res.render('main.ejs');
+	res.render('main.ejs', {monitorChannelName: monitorChannelName});
 });
 
  ///////////////////////BLOCK INFO/////////////////////////////////
@@ -536,11 +525,11 @@ app.get('/main', async function(req, res) {
 	res.render('blockinfo.ejs',{blockNum: req.params.blockNum});
  });
 
- app.get('/transactions/:blockNum', async function(req, res) {
+ app.get('/transactions/:channelName/:blockNum', async function(req, res) {
 	logger.debug("=================GET TRANSACTIONS IN BLOCK==================");
 	logger.debug('block num: ' + req.params.blockNum);
 
-	mongodb.getTransactionList(req.params.blockNum).then(
+	mongodb.getTransactionList(req.params.channelName, req.params.blockNum).then(
 		function(message) {
 			//logger.debug("Transaction result: " + message);
 			var docs = JSON.parse(JSON.stringify(message));
@@ -639,7 +628,15 @@ app.get('/main', async function(req, res) {
  });
 
  app.get('/changeState/:userid/:state', async function(req, res) {
-	mongodb.changeState(req.params.userid, req.params.state);
+	//mongodb.changeState(req.params.userid, req.params.state);
+	let message;
+
+	var args = "['"+ req.params.userid +"','" + req.params.state+ "']";
+	
+	args = args.replace(/'/g, '"');
+	args = JSON.parse(args);
+
+	message = await invoke.invokeChaincode("peer0.org1.example.com", monitorChannelName, monitorChaincodeName, "changeState", args, req.username, req.orgname, txData, mongodb);
 	res.send(null);
  });
 

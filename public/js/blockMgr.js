@@ -53,11 +53,7 @@ define(function(){
                 '</p>' + 
                 '<p class="txt">' + 
                     '<span class="txt_l">등록명 : </span>' + 
-                    '<span class="txt_r">' + transaction.name + '</span>' + 
-                '</p>' + 
-                '<p class="txt">' + 
-                    '<span class="txt_l">유형 : </span>' + 
-                    '<span class="txt_r">' + transaction.area_id + '</span>' + 
+                    '<span class="txt_r">' + transaction.userid + '</span>' + 
                 '</p>' + 
             '</li>';
 

@@ -72,7 +72,9 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 				one_good = true;
 				logger.info('invoke chaincode proposal was good');
 			} else {
+				logger.error('invoke error response:' + proposalResponses[i].response.message);
 				logger.error('invoke chaincode proposal was bad');
+				error_message = proposalResponses[i].response.message;
 			}
 			all_good = all_good & one_good;
 		}
@@ -158,7 +160,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 				}
 			}
 		} else {
-			error_message = util.format('Failed to send Proposal and receive all good ProposalResponse');
+			//error_message = util.format('Failed to send Proposal and receive all good ProposalResponse');
 			logger.debug(error_message);
 		}
 	} catch (error) {
@@ -178,9 +180,9 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args, block_num_save);
 
 		//get current block number
-		txData.catchBlockCreate(parseInt(block_num_save) + 1);
+		txData.catchBlockCreate(channelName, parseInt(block_num_save) + 1);
 
-		mongodb.insertPowerTransaction(tx_id_string, block_num_save, fcn, args);
+		mongodb.insertPowerTransaction(tx_id_string, channelName, block_num_save, fcn, args);
 
 		var invoke_response = {
 			"transaction_id": tx_id_string,
@@ -192,7 +194,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 	} else {
 		let message = util.format('Failed to invoke chaincode. cause:%s',error_message);
 		logger.error(message);
-		throw new Error(message);
+		return new Error(message);
 	}
 };
 

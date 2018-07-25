@@ -1,6 +1,6 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
-define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
+define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr, txData) {
 
   const max_block_gif = 5;
   const position_offset = 168;
@@ -13,6 +13,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
   var beforeShowBlock;
 
   host_ip = location.host.split(":")[0];
+  var host_port = location.host.split(":")[1];
 
   const STOP_KOR = '정지';
   const NORMAL_KOR = '정상';
@@ -35,7 +36,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
     var ws = io.connect("http://" + host_ip + ":4001");
 
     ws.on('news', function(data) {
-      console.log(data);
+
+      txData.changeMonitorChannel(data.monitorChannelName);
       ws.emit('event', {my: 'transaction io socket read'});
       beforeShowBlock = 0;
     });
@@ -274,6 +276,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         var mean = 0;
 
         var currentTime = util.getCurrentTime();
+
+        setPlantTable($("#power_area option:selected").val());
         
         //newTempData.tranPerSec *= util.getRandomInt(50, 100);
 
@@ -306,7 +310,9 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         }
 
         coinChartRef.data.labels.push(currentTime);
-        coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
+        //coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
+        //console.log(parseInt($("#createdCoin").text().replace(",","")));
+        coinChartRef.data.datasets[0].data.push(parseInt($("#createdCoin").text().replace(/\,/g,"")));
         coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
 
         if (newTempData.showTransactionBlock > 0 && newTempData.consumeCoin > 0 && checkShowBlockInterval(newTempData.showTransactionBlock)) {
@@ -318,7 +324,7 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         coinChartRef.update();
 
         if (newTempData.currentBlockNumber > currentBlockNumber && currentBlockNumber > 0) {
-          //console.log("add block");
+          console.log("add block");
 
           addBlock(newTempData.currentBlockNumber, newTempData.showTransactionBlock);
         }
@@ -335,10 +341,8 @@ define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
         $('#clockDate').text(util.getCurrentDate());
         $('#averageTransaction').text(util.getAverage(transactionChartRef.data.datasets[0].data));
 
-        $('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
-
-        setPlantTable($("#power_area option:selected").val());
-        setElementInfo();
+        //$('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
+        //setElementInfo();
 
         if (newTempData.showTransactionBlock - beforeShowBlock > 5) {
           beforeShowBlock = newTempData.showTransactionBlock;
@@ -388,9 +392,11 @@ $(document).ready(function() {
   $('#blockList').on('click', '.block-gif', function(){
 
     var blockNum = $(this).parent().attr('id').substring(5);
+
+    var monitorChannelName = $('#monitorChannelName').text();
     
     $.ajax ({
-        url: '/transactions/' + blockNum,
+        url: '/transactions/' + monitorChannelName + '/' + blockNum,
         method: 'GET'
     }).done(function(data) {
 
@@ -428,40 +434,56 @@ $(document).ready(function() {
   });
 
   ////////////////////////////////CHANNEL BLOCK CONFIG/////////////////////////
+  
   $.ajax ({
     url: '/getAreaNames',
-    method: 'GET'
+    //url: txData.makeGetAreasUrl(host_ip, host_port),
+    method: 'GET',
+    dataType: 'json'
   }).done(function(data) {
 
-    console.log("get area names: " + data);
+    var dataJSON = JSON.parse(JSON.stringify(data));
 
     $('#power_area ul').empty();
 
-    for (var i = 0; i < data.length; i++) {
+    var monitorChannelName = $('#monitorChannelName').text();
 
-       var transaction = data[i]; 
+    for (var i = 0; i < dataJSON.length; i++) {
 
-       $("#power_area").append("<option value=" + transaction.id + ">" + transaction.name + "</option>");
+       var transaction = dataJSON[i];
+       //console.log(transaction);
+
+       $("#power_area").append("<option value=" + transaction.channelName + ">" + transaction.name + "</option>");
        //$("#power_area ul").append("<li data-value=" + transaction.id + ">" + transaction.name + "</option>");
+
+       console.log(transaction.channelName + " " + monitorChannelName);
+
+       if (transaction.channelName == monitorChannelName) {
+         $("#power_area").find("option:eq(" + i + ")").prop("selected", true);
+       }
     }
 
     setPlantTable($("#power_area option:selected").val());
 
-    $("#regions").text(data.length);
+    $("#regions").text(dataJSON.length);
   });
+  
 
   $.ajax ({
     url: '/getTransactionCount',
     method: 'GET'
   }).done(function(data) {
 
-    console.log("transaction count:" + data);
+    //console.log("transaction count:" + data);
     $("#transactionCount").text(util.makeCommaNumber(parseInt(data)));
     transactionCount = parseInt(data);
   });
 
   $("#power_area").change(function() {
-    setPlantTable($(this).val());
+    txData.changeMonitorChannel($(this).val());
+    //setPlantTable($(this).val());
+
+    location.href = '/main/' + $(this).val();
   });
 
   $.contextMenu({
@@ -495,34 +517,43 @@ $(document).ready(function() {
 
   function setPlantTable(area_id) {
     $.ajax ({
-      url: '/getAllPlants/',
-      method: 'GET'
+      url: txData.makeGetPlantsUrl(host_ip, host_port),
+      method: 'GET',
+      dataType: 'json'
     }).done(function(data) {
 
       var errorCount = 0;
       var allErrorCount = 0;
       var plantCount = 0;
 
+      var issuedToken = 0;
+      var tradingToken = 0;
+
       $('#plantTableBody').empty();
 
-          for (var i = 0; i < data.length; i++) {
+      var dataJSON = JSON.parse(JSON.stringify(data));
 
-              var transaction = data[i];
+      //console.log(dataJSON);
 
-              if (transaction.area_id == area_id) {
+          for (var i = 0; i < dataJSON.length; i++) {
+
+              var transaction = dataJSON[i];
+
+              //if (transaction.Record.area == area_id) {
+                if (true) {
 
                   $('#plantTableBody').append("<tr>" +
-                                            "<td>" + transaction.name + " " +
-                                            "<td>" + util.makeCommaNumber(transaction.power) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.supply) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.trade) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.balance) + "ETN</td>" + 
-                                            "<td class='plant-control'><a class='plant-state txt'>" + transaction.state + "</a></td>" +
-                                            "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
+                                            "<td>" + transaction.Record.name + " " +
+                                            "<td>" + util.makeCommaNumber(transaction.Record.power) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.Record.supplyPower) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.Record.tradeCoin) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.Record.coin) + "ETN</td>" + 
+                                            "<td class='plant-control'><a class='plant-state txt'>" + transaction.Record.state + "</a></td>" +
+                                            "<td class='userid' style='display:none;'>" + transaction.Key + "</td>" + 
                                             "</tr>"
                 );
 
-                if (transaction.state == STOP_KOR) {
+                if (transaction.Record.state == STOP_KOR) {
                   $('.plant-state').eq(plantCount).css({'color': 'red', 'font-weight': 'bold'});
                   $('.plant-state').eq(plantCount).addClass('red');
                   errorCount++;
@@ -534,14 +565,20 @@ $(document).ready(function() {
               } else if (transaction.state == STOP_KOR) {
                 allErrorCount++;
               }
+
+              issuedToken += transaction.Record.createdCoin;
+              tradingToken += transaction.Record.tradeCoin;
                
         }
 
         $('#plantCount').text(plantCount);
         $('#errorPlantCount').text(errorCount);
 
-        $('#allPlantCount').text(data.length);
+        $('#allPlantCount').text(dataJSON.length);
         $('#allErrorPlantCount').text(allErrorCount);
+
+        $('#createdCoin').text(util.makeCommaNumber(issuedToken));
+        $('#usedCoin').text(util.makeCommaNumber(tradingToken));
     });
   }
 

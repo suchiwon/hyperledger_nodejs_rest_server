@@ -10,14 +10,13 @@ define(["socket.io"], function(io) {
     var consumeCoin;
 
     var supplyPower;
-    var that = this;
-    var time;
     var ws;
 
     var intervalInstance = false;
 
-    const monitorChannelName = 'kcoinchannel';
-    const monitorChaincodeName = 'energy';
+    var monitorChannelName = 'kcoinchannel';
+    const channelNameSet = ['energyseoulchannel','energygyochannel','energygangchannel'];
+    var monitorChaincodeName = 'energy';
     var username;
     var orgname;
     const peer = 'peer0.org1.example.com';
@@ -72,8 +71,10 @@ define(["socket.io"], function(io) {
 
             maxTxPerSecMap = new Map();
 
-            txPerSecMap.set(monitorChannelName, 0);
-            maxTxPerSecMap.set(monitorChannelName, 0);
+            for (var i = 0; i < channelNameSet.length; i++) {
+                txPerSecMap.set(channelNameSet[i], 0);
+                maxTxPerSecMap.set(channelNameSet[i], 0);
+            }
 
             createdCoin = 0;
             consumeCoin = 0;
@@ -85,6 +86,8 @@ define(["socket.io"], function(io) {
             blockNumber = 0;
 
             showTransactionBlock = 0;
+
+            monitorChannelName = channelNameSet[0];
         },
         setSess : function(_username, _orgname) {
             username = _username;
@@ -101,6 +104,10 @@ define(["socket.io"], function(io) {
         },
         getBlockNumber: function() {
             return blockNumber;
+        },
+        changeMonitorChannel: function(channelName) {
+            monitorChannelName = channelName;
+            console.log("monitorChannel:" + monitorChannelName);
         },
         setElementInfo: function(mongodb) {
             mongodb.getElementInfo(monitorChaincodeName).then(function(data){
@@ -119,8 +126,6 @@ define(["socket.io"], function(io) {
 
             setInterval(function() {
                 var temp = txPerSecMap.get(monitorChannelName);
-
-                temp *= getRandomInt(150, 250);
 
                 var maxTran = maxTxPerSecMap.get(monitorChannelName);
 
@@ -160,8 +165,8 @@ define(["socket.io"], function(io) {
 
             intervalInstance = true;
         },
-        catchBlockCreate: async function(currentBlockNumber) {
-            if (blockNumber < currentBlockNumber) {
+        catchBlockCreate: async function(channelName, currentBlockNumber) {
+            if (channelName == monitorChannelName && blockNumber < currentBlockNumber) {
                 console.log("block created:(block number:%d)", currentBlockNumber - 1);
 
                 blockNumber = currentBlockNumber;
@@ -189,16 +194,16 @@ define(["socket.io"], function(io) {
 
             ws.emit('send-block-number', blockNumber); 
         },
-        executeInvokeTransaction: async function(channelName, fcn, mongodb, args, blockNum) {
+        executeInvokeTransaction: async function(chaincodeName, fcn, mongodb, args, blockNum) {
 
             if (args[0] == showId || args[1] == showId) {
                 setShowTransactionBlock(blockNum);
             }
 
-            if (channelName == monitorChaincodeName) {
+            if (chaincodeName == monitorChaincodeName) {
 
                 if (fcn == 'regist') {
-                    mongodb.insertPlant(args);
+                    //mongodb.insertPlant(args);
                 } else if (fcn == 'supply') {
 
                     if (args.length != 2) {
@@ -208,7 +213,7 @@ define(["socket.io"], function(io) {
                     var id = args[0];
                     var power = parseInt(args[1]);
 
-                    await mongodb.updatePlant(id, power, power, 0, 0);
+                    //await mongodb.updatePlant(id, power, power, 0, 0);
                     await mongodb.updateElementInfo(monitorChaincodeName, 0, 0, power);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
@@ -224,7 +229,7 @@ define(["socket.io"], function(io) {
 
                     //console.log("addCoin argu:%s %d", id, balance);
 
-                    await mongodb.updatePlant(id, 0, 0, 0, balance);
+                    //await mongodb.updatePlant(id, 0, 0, 0, balance);
                     await mongodb.updateElementInfo(monitorChaincodeName, balance, 0, 0);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
@@ -244,14 +249,23 @@ define(["socket.io"], function(io) {
 
                     await mongodb.insertShowTrade(args);
 
-                    await mongodb.updatePlant(from, -1 * power, 0, power, balance);
-                    await mongodb.updatePlant(to, power, 0, power, -1 * balance);
+                    //await mongodb.updatePlant(from, -1 * power, 0, power, balance);
+                    //await mongodb.updatePlant(to, power, 0, power, -1 * balance);
 
                     await mongodb.updateElementInfo(monitorChaincodeName, 0, balance, 0);
 
                     addConsumeCoin(balance);
                 }
             }
+        },
+        makeGetAreasUrl: function(host_ip, host_port) {
+            return "http://" + host_ip + ":" + host_port + "/channels/" + monitorChannelName + "/chaincodes/" + monitorChaincodeName
+                + "?peer=peer0.org1.example.com&fcn=getAreas&args=[]";
+        },
+        makeGetPlantsUrl: function(host_ip, host_port) {
+            //console.log("monitorChannelName:" + monitorChannelName);
+            return "http://" + host_ip + ":" + host_port + "/channels/" + monitorChannelName + "/chaincodes/" + monitorChaincodeName
+                + "?peer=peer0.org1.example.com&fcn=getPlants&args=[]";
         }
     };
 

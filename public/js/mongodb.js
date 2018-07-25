@@ -32,6 +32,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
 
             transactionSchema = mongoose.Schema({
                 tx_id: {type: String},
+                channelName: {type: String},
                 blockNum: {type: String},
                 time: {type: String},
                 fcn: {type: String},
@@ -90,7 +91,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
 
             elementInfoModel = mongoose.model('element_info', elementInfoSchema, 'element_info');
         },
-        insertPowerTransaction: function(transactionId, blockNum, fcn, args) {           
+        insertPowerTransaction: function(transactionId, channelName, blockNum, fcn, args) {           
 
             var object;
             var fcnKor;
@@ -104,17 +105,14 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                     if (fcn == 'regist') {
 
                         var userid = args[0];
-                        var name = args[1];
-                        var area_id = args[2];
         
                         object = new transactionModel({
                                 tx_id: transactionId,
+                                channelName: channelName,
                                 blockNum: blockNum,
                                 time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
-                                userid: userid,
-                                name: name,
-                                area_id: area_id
+                                userid: userid
                             });
         
                     } else if (fcn == 'supply') {
@@ -124,6 +122,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
         
                         object = new transactionModel({
                                 tx_id: transactionId,
+                                channelName: channelName,
                                 blockNum: blockNum,
                                 time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
@@ -138,6 +137,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
         
                         object = new transactionModel({
                                 tx_id: transactionId,
+                                channelName: channelName,
                                 blockNum: blockNum,
                                 time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
@@ -154,6 +154,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
         
                         object = new transactionModel({
                                 tx_id: transactionId,
+                                channelName: channelName,
                                 blockNum: blockNum,
                                 time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
@@ -179,10 +180,11 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 }
             );
         },
-        getTransactionList: async function(blockNum) {
+        getTransactionList: async function(channelName, blockNum) {
 
             return new Promise(function (resolve, reject) {
                 transactionModel.find({
+                    channelName: channelName,
                     blockNum: blockNum
                 }, function(err, docs){
                     if (!err) {
@@ -352,6 +354,8 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 elementInfoModel.findOne({
                     chaincode: chaincode
                 }, function(err, doc) {
+
+                    console.log(doc);
                     doc.createdCoin += createdCoin;
                     doc.usedCoin += usedCoin;
                     doc.supplyPower += supplyPower;
