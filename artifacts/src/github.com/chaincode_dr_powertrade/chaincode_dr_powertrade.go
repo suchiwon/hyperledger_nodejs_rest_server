@@ -161,7 +161,7 @@ func (cc *PowerTradeChaincode) publish(stub shim.ChaincodeStubInterface, args []
 
 	} else if tradeType == TRADE_SELL_TYPE {
 
-		tradeId = "SELL_" + strconv.Itoa(cc.buyTradeCount)
+		tradeId = "SELL_" + strconv.Itoa(cc.sellTradeCount)
 		cc.sellTradeCount++
 	}
 
