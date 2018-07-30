@@ -660,4 +660,8 @@ app.get('/main/:channelName', async function(req, res) {
  app.get('/sampleRegist', function(req, res) {
 	scenario.sampleRegist();
  });
+
+ app.get('/samplePublish', function(req, res) {
+	scenario.samplePublish();
+ });
  

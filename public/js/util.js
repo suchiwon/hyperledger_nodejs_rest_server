@@ -121,6 +121,9 @@ define([], function(){
             } else {
                 return parseFloat(sum/array.length).toFixed(2);
             }
+        }, sleep: function(ms) {
+            ts1 = new Date().getTime() + ms;
+            do ts2 = new Date().getTime(); while (ts2<ts1);
         }
     };
     return exports;

@@ -15,7 +15,7 @@ define(['request', "./util.js"], function(request, util) {
 
     function setPostBody(fcn, args) {
         var option = {
-            url: 'http://localhost:4000/channels/kcoinchannel/chaincodes/energy',
+            url: 'http://localhost:4000/channels/kcoinchannel/chaincodes/power_trade',
             method: 'POST',
             header: this.header,
             form: {
@@ -113,6 +113,32 @@ define(['request', "./util.js"], function(request, util) {
 
                 request(postBody, function(error, response, body) {
                     if (!error && response.statusCode == 200) {
+                    }   
+                });
+            }
+        },
+        samplePublish: async function() {
+
+            for (var i = 0; i < 50; i++) {
+                var args = "['sample','BUY','" + i * 100 + "','400']";
+
+                var postBody = setPostBody("publish", args);
+
+                request(postBody, function(error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        util.sleep(500)
+                    }   
+                });
+            }
+
+            for (var i = 0; i < 50; i++) {
+                var args = "['sample','SELL','" + i * 100 + "','400']";
+
+                var postBody = setPostBody("publish", args);
+
+                request(postBody, function(error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        util.sleep(500)
                     }   
                 });
             }

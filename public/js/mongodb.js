@@ -99,7 +99,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
             this.getFcnName(fcn).then(
                 function(message) {
 
-                    //console.log(message);
+                    console.log(message);
                     fcnKor = JSON.parse(JSON.stringify(message)).kor;
 
                     if (fcn == 'regist') {
