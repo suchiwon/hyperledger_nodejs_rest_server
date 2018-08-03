@@ -15,7 +15,7 @@ define(['request', "./util.js"], function(request, util) {
 
     function setPostBody(fcn, args) {
         var option = {
-            url: 'http://localhost:4000/channels/kcoinchannel/chaincodes/power_trade',
+            url: 'http://localhost:4000/channels/energygyochannel/chaincodes/energy',
             method: 'POST',
             header: this.header,
             form: {
@@ -32,7 +32,7 @@ define(['request', "./util.js"], function(request, util) {
         init: function() {
             fcnSet = ['addCoin', 'supply', 'powertrade'];
             useridSet = ['A','B','C','D','E','F','G'];
-            nameSet = ['우면동','강남','고양','김포','속초','평창','천안'];
+            nameSet = ['고양','김포','안산','수원','분당','부천','파주'];
             areaSet = ['SEOUL','SEOUL','GYO','GYO','GANG','GANG','CHUNG'];
         },
         startScript: function() {
@@ -43,7 +43,7 @@ define(['request', "./util.js"], function(request, util) {
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
 
-                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 10 + "']";
+                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(100, 1000) * 10 + "']";
     
                     var postBody = setPostBody("addCoin", args);
     
@@ -53,7 +53,7 @@ define(['request', "./util.js"], function(request, util) {
                     });
                 }
 
-            }, 3500);
+            }, 500);
 
             supplyIntervalID = setInterval(function(){
 
@@ -62,7 +62,7 @@ define(['request', "./util.js"], function(request, util) {
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
 
-                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 1 + "']";
+                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(100, 1000) * 10 + "']";
 
                     var postBody = setPostBody("supply", args);
 
@@ -72,7 +72,7 @@ define(['request', "./util.js"], function(request, util) {
                     });
                 }
 
-            }, 3000);
+            }, 500);
 
             powerTradeIntervalID = setInterval(function(){
 
@@ -86,7 +86,7 @@ define(['request', "./util.js"], function(request, util) {
                         return;
                     }
     
-                    var args = "['" + useridSet[indexFrom] + "','" + useridSet[indexTo] + "','" + util.getRandomInt(100, 1000) + "','" + util.getRandomInt(4, 20) * 100000 + "']";
+                    var args = "['" + useridSet[indexFrom] + "','" + useridSet[indexTo] + "','" + util.getRandomInt(100, 1000) + "','" + util.getRandomInt(4, 20) * 1000 + "']";
     
                     var postBody = setPostBody("powertrade", args);
     
@@ -96,7 +96,7 @@ define(['request', "./util.js"], function(request, util) {
                     }); 
                 }
 
-            }, 4000);
+            }, 1000);
         },
         stopScript: function() {
             clearInterval(addCoinIntervalID);

@@ -125,6 +125,7 @@ app.use(expressLayouts);
 app.use(express.static(path.join(__dirname,'/public')));
 app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
 app.use('/main', express.static(path.join(__dirname, '/public')));
+app.use('/chainInfo', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
@@ -158,6 +159,7 @@ function getErrorMessage(field) {
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
 var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
+//txData.startBlockScanner(query, mongodb);
 
 var monitorChannelName = 'kcoinchannel';
 var monitorChaincodeName = 'energy';
@@ -525,6 +527,15 @@ app.get('/main/:channelName', async function(req, res) {
 	res.render('blockinfo.ejs',{blockNum: req.params.blockNum});
  });
 
+ app.get('/chainInfo/:channelName', async function(req, res) {
+	logger.debug("=============CHAIN INFO===================");
+
+	txData.changeMonitorChannel(req.params.channelName);
+	monitorChannelName = req.params.channelName;
+
+	res.render('chainInfo.ejs',{monitorChannelName: monitorChannelName});
+ });
+
  app.get('/transactions/:channelName/:blockNum', async function(req, res) {
 	logger.debug("=================GET TRANSACTIONS IN BLOCK==================");
 	logger.debug('block num: ' + req.params.blockNum);
@@ -625,6 +636,44 @@ app.get('/main/:channelName', async function(req, res) {
 			logger.error("Transaction error: " + error);
 		}
 	)
+ });
+
+ app.get('/getBlockInfoList/:channelName', function(req, res) {
+
+	logger.debug("=================GET BLOCK INFO LIST==================");
+
+	var channelName = req.params.channelName;
+	var timestampFrom = new Date(req.query.timestampFrom);
+	var timestampTo = new Date(req.query.timestampTo);
+
+	timestampFrom = new Date(timestampFrom.getTime() + (9 * 60000 * 60)).toISOString();
+	timestampTo = new Date(timestampTo.getTime() + (9 * 60000 * 60)).toISOString();
+
+	console.log(timestampFrom + " " + timestampTo);
+
+	console.log(channelName);
+
+	mongodb.getBlockInfoList(channelName, timestampFrom, timestampTo).then(
+		function(message) {
+			var docs = JSON.parse(JSON.stringify(message));
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	)
+ });
+
+ app.get('/getBlockCount/:channelName', async function(req, res) {
+
+	var peer = "peer0.org1.example.com";
+
+	var monitorChannelName = req.params.channelName;
+
+	let message = await query.getChainInfo(peer, monitorChannelName, req.username, req.orgname);
+
+	var currentBlockCount = message.height.low;
+	
+	res.send(currentBlockCount.toString());
  });
 
  app.get('/changeState/:userid/:state', async function(req, res) {

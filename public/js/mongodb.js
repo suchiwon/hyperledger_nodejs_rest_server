@@ -8,6 +8,8 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
 
     var elementInfoSchema, elementInfoModel;
 
+    var blockInfoSchema, blockInfoModel;
+
     var loadShowPowerTradeSchema, loadShowPowerTradeModel;
 
     var logger;
@@ -34,7 +36,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 tx_id: {type: String},
                 channelName: {type: String},
                 blockNum: {type: String},
-                time: {type: String},
+                time: {type: Date, default: Date.now},
                 fcn: {type: String},
                 userid: {type: String},
                 buyer: {type: String},
@@ -45,6 +47,17 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
             }, {collection: 'power_transactions'});
 
             transactionModel = mongoose.model('power_transactions', transactionSchema, 'power_transactions');
+
+            blockInfoSchema = mongoose.Schema({
+                channelName: {type: String},
+                blockNum: {type: Number},
+                timestamp: {type: Date, default: Date.now},
+                transactionCount: {type: Number},
+                blockSize: {type: String},
+                blockHash: {type: String}
+            }, {collection: 'block_info'});
+
+            blockInfoModel = mongoose.model('block_info', blockInfoSchema, 'block_info');
 
             fcnNameSchema = mongoose.Schema({
                 fcn: {type: String},
@@ -99,8 +112,11 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
             this.getFcnName(fcn).then(
                 function(message) {
 
-                    console.log(message);
-                    fcnKor = JSON.parse(JSON.stringify(message)).kor;
+                    if (message != null) {
+                        fcnKor = JSON.parse(JSON.stringify(message)).kor;
+                    } else {
+                        fcnKor = fcn;
+                    }
 
                     if (fcn == 'regist') {
 
@@ -110,7 +126,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                time: jsUtil.getCurrentDateTime(),
+                                //time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: userid
                             });
@@ -124,7 +140,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                time: jsUtil.getCurrentDateTime(),
+                                //time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: userid,
                                 power: power
@@ -139,7 +155,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                time: jsUtil.getCurrentDateTime(),
+                                //time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: userid,
                                 coin: balance
@@ -156,15 +172,13 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                time: jsUtil.getCurrentDateTime(),
+                                //time: jsUtil.getCurrentDateTime(),
                                 fcn: fcnKor,
                                 userid: from,
                                 buyer: to,
                                 power: power,
                                 coin: balance
-                            });
-
-                        console.log(jsUtil.getCurrentDateTime());    
+                            });  
                     }
 
                     object.save(function(err, data){
@@ -232,6 +246,54 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                     }
                 });
             });
+        },
+        getBlockInfo: async function(channelName, blockNum) {
+            return new Promise(function (resolve, reject) {
+                fcnNameModel.findOne({
+                    channelName: channelName,
+                    blockNum: blockNum
+                }, function(err, doc){
+                    if (!err) {
+                        logger.debug("get block info success");
+    
+                        //console.log(doc);
+                        resolve(doc);
+                    } else {
+                        logger.error("get block info error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            });
+        },
+        getBlockInfoList: async function(channelName, timestampFrom, timestampTo) {
+            return new Promise(function (resolve, reject) {
+                blockInfoModel.find({
+                    channelName: channelName,
+                    timestamp: {
+                        $gte: new Date(timestampFrom),
+                        $lt: new Date(timestampTo)
+                    }
+                    
+                },{
+                    "_id": 0,
+                    "blockNum": 1,
+                    "transactionCount": 1,
+                    "timestamp": 1,
+                    "blockSize": 1,
+                    "blockHash": 1
+
+                }, function(err, doc){
+                    if (!err) {
+                        logger.debug("get block info success");
+    
+                        //console.log(doc);
+                        resolve(doc);
+                    } else {
+                        logger.error("get block info error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            });    
         },
         getAreaNames: async function() {
             return new Promise(function (resolve, reject) {
@@ -433,7 +495,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                     to: from,
                     power: -1 * power,
                     coin: coin
-                })
+                });
             } else {
                 logger.error("it is not show's trade");
                 return;
@@ -444,6 +506,34 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                     logger.error("insert show's trade error:" + err);
                 } else {
                     logger.debug("insert insert show's trade success:" + data);
+                }
+            });
+        },
+        insertBlockInfo: function(channelName, blockNum, transactionCount, timestamp, blockSize, blockHash) {
+            this.getBlockInfo(channelName, blockNum).then(function(message){
+
+                var obj;
+
+                logger.debug(channelName + " " + blockNum + " " + transactionCount + " " + timestamp + " " + blockSize + " " + blockHash);
+
+                if (message == null) {
+
+                    obj = new blockInfoModel({
+                        channelName: channelName,
+                        blockNum: blockNum,
+                        transactionCount: transactionCount,
+                        timestamp: timestamp,
+                        blockSize: blockSize,
+                        blockHash: blockHash
+                    });    
+
+                    obj.save(function(err, data) {
+                        if (err) {
+                            logger.error("insert block info error:" + err);
+                        } else {
+                            logger.debug("insert block info sucess");
+                        }
+                    });
                 }
             });
         }

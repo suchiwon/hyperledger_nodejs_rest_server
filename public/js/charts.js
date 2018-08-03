@@ -8,11 +8,9 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
 
   var transactionCount = 0;
 
-  var host_ip;
-
   var beforeShowBlock;
 
-  host_ip = location.host.split(":")[0];
+  var host_ip = location.host.split(":")[0];
   var host_port = location.host.split(":")[1];
 
   const STOP_KOR = '정지';
@@ -54,20 +52,7 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
         members = [],
         transactionChartRef, coinChartRef;
 
-    function getServerIp() {
-      var result;
-       
-      return result;
-    }
-
-    function showEle(elementId){
-      document.getElementById(elementId).style.display = 'flex';
-    }
-
-    function hideEle(elementId){
-      document.getElementById(elementId).style.display = 'none';
-    }
-
+////////////////////그래프 차트 설정 부분/////////////////////////////
     function rendertransactionChart(transactionData) {
       //hideEle("transactionChartLoader");
         var ctx = document.getElementById("transactionChart").getContext("2d");
@@ -110,8 +95,8 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
                 stacked: true,
                 ticks: {
                   min: 0,
-                  max: 1000,
-                  stepSize: 100,
+                  max: 100,
+                  stepSize: 10,
                   fontColor: "white"
                 }
               }
@@ -166,8 +151,8 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
             id: "use-y-axis",
             ticks: {
               min: 0,
-              max: 4000000,
-              stepSize: 400000,
+              max: 400000,
+              stepSize: 40000,
               fontColor: "white"
             }
           }
@@ -269,11 +254,10 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
 
     renderCoinChart(coinChartConfig);
 
+////////////////////차트 데이터 갱신 부분///////////////////////////////////
     ws.on('new-chart-data', function(data) {
         //console.log("get chart new data");
         var newTempData = data;
-
-        var mean = 0;
 
         var currentTime = util.getCurrentTime();
 
@@ -315,6 +299,7 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
         coinChartRef.data.datasets[0].data.push(parseInt($("#createdCoin").text().replace(/\,/g,"")));
         coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
 
+        //테스트 확인용 계정의 트랜잭션이 있는 블록인지 확인
         if (newTempData.showTransactionBlock > 0 && newTempData.consumeCoin > 0 && checkShowBlockInterval(newTempData.showTransactionBlock)) {
           console.log("it's show block: " + newTempData.showTransactionBlock + " " + beforeShowBlock);
           coinChartRef.data.datasets[1].pointStyle.push(starPoint);
@@ -335,6 +320,7 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
 
         transactionCount += newTempData.tranPerSec;
 
+        //통계 정보 갱신 부분
         $('#transactionCount').text(util.makeCommaNumber(transactionCount));
         $('#maxTransaction').text(newTempData.maxTranPerSec);
         $('#clockTime').text(currentTime);
@@ -346,8 +332,6 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
 
         if (newTempData.showTransactionBlock - beforeShowBlock > 5) {
           beforeShowBlock = newTempData.showTransactionBlock;
-          //$('#showBlockPopup').dialog('open');  
-          //setTimeout(function(){$('#showBlockPopup').dialog("close")},3000);
         }
     });
 
@@ -359,11 +343,8 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
 ///////////////////////////BLOCK SCANNER CODE////////////////////////////////////
 $(document).ready(function() {
 
-  var leftSet = 1000;
-
   $('#currentDate').text(util.getCurrentDate());
 
-  
   $(".block-gif").each(function(index) {
     $(this).gifplayer('play');
   });
@@ -490,8 +471,6 @@ $(document).ready(function() {
     selector: 'tr',
     callback: function(key, options) {
 
-      var index = $('tr').index(this);
-
       var userid = $(this).find("td").eq(6).text();
 
       var state;
@@ -510,11 +489,12 @@ $(document).ready(function() {
     },
     items: {
                 "stop": {name: STOP_KOR, icon: "edit"},
-                "resume": {name: "시작", icon: "cut"}
+                "resume": {name: NORMAL_KOR, icon: "cut"}
     }
   });
 });
 
+//발전소 목록 테이블 설정 함수. 1초 마다 호출
   function setPlantTable(area_id) {
     $.ajax ({
       url: txData.makeGetPlantsUrl(host_ip, host_port),
@@ -590,7 +570,6 @@ $(document).ready(function() {
       
       var dataJSON = JSON.parse(data);
 
-      //$('#createdCoin').text(util.makeCommaNumber(dataJSON.createdCoin));
       $('#usedCoin').text(util.makeCommaNumber(dataJSON.usedCoin));
     });
   }
@@ -687,7 +666,6 @@ $(document).ready(function() {
   function animateBlock(count, startIndex, newBlockNum) {
     var j = 0;
     var left;
-    var tween;
     
     if (currentBlockNumber >= max_block_gif) {
 

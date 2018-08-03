@@ -180,9 +180,9 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args, block_num_save);
 
 		//get current block number
-		txData.catchBlockCreate(channelName, parseInt(block_num_save) + 1);
+		//txData.catchBlockCreate(channelName, parseInt(block_num_save) + 1);
 
-		//mongodb.insertPowerTransaction(tx_id_string, channelName, block_num_save, fcn, args);
+		mongodb.insertPowerTransaction(tx_id_string, channelName, block_num_save, fcn, args);
 
 		var invoke_response = {
 			"transaction_id": tx_id_string,

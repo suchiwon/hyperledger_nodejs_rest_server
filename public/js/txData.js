@@ -23,8 +23,7 @@ define(["socket.io"], function(io) {
     const showId = 'show';
 
     var blockNumber = 0;
-
-    var timeLabel;
+    var blockNumberMap;
 
     var showTransactionBlock;
 
@@ -71,9 +70,13 @@ define(["socket.io"], function(io) {
 
             maxTxPerSecMap = new Map();
 
+            blockNumberMap = new Map();
+
             for (var i = 0; i < channelNameSet.length; i++) {
                 txPerSecMap.set(channelNameSet[i], 0);
                 maxTxPerSecMap.set(channelNameSet[i], 0);
+                
+                blockNumberMap.set(channelNameSet[i], 0);
             }
 
             createdCoin = 0;
@@ -146,7 +149,7 @@ define(["socket.io"], function(io) {
                       maxTranPerSec: maxTran,
                       createdCoin: createdCoin,
                       consumeCoin: consumeCoin,
-                      currentBlockNumber: blockNumber,
+                      currentBlockNumber: blockNumberMap.get(monitorChannelName),
                       //time: timeLabel,
                       showTransactionBlock: showTransactionBlock
                     };
@@ -174,23 +177,46 @@ define(["socket.io"], function(io) {
                 //ws.emit('block-create', blockNumber);
             }
         },
-        startBlockScanner: function(query) {
+        startBlockScanner: function(query, mongodb) {
             setInterval(async function() {
-                let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
 
-                var currentBlockCount = message.height.low;
+                for (var channelIndex = 0; channelIndex < channelNameSet.length; channelIndex++) {
+                    var channelName = channelNameSet[channelIndex];
+                    var blockNumber = blockNumberMap.get(channelName);
+                    var message = await query.getChainInfo(peer, channelName, username, orgname);
 
-                if (currentBlockCount > blockNumber) {
-                    console.log("block created:(block number:%d)", currentBlockCount);
+                    var currentBlockCount = message.height.low;
 
-                    blockNumber = currentBlockCount;
+                    if (currentBlockCount > blockNumber) {
+                        console.log("block created:(block number:%d)", currentBlockCount);
+
+                        if (blockNumber > 0) {
+                            for (var i = blockNumber; i < currentBlockCount; i++) {
+                                message = await query.getBlockByNumber(peer, channelName, i, username, orgname);
+
+                                var transactionCount = message.data.data.length;
+                                var timestamp = new Date(message.data.data[0].payload.header.channel_header.timestamp);
+                                var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+                                var blockSize = "98M";
+                                var blockHash = message.header.data_hash;
+
+                                mongodb.insertBlockInfo(channelName, i, transactionCount, timeUTC, blockSize, blockHash);
+                            }
+                        }
+                    }
+
+                    blockNumberMap.set(channelName, currentBlockCount);
                 }
             }, 1000);
         },
         initBlockNumber: async function(query) {
+            /*
             let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
 
             blockNumber = message.height.low;
+            */
+
+            var blockNumber = blockNumberMap.get(monitorChannelName);
 
             ws.emit('send-block-number', blockNumber); 
         },
