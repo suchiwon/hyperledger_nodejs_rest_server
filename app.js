@@ -434,6 +434,8 @@ app.get('/channels/:channelName/blocks/:blockId', async function(req, res) {
 	}
 
 	let message = await query.getBlockByNumber(peer, req.params.channelName, blockId, req.username, req.orgname);
+
+	console.log("block " + blockId + "'s transaction count:" + JSON.parse(JSON.stringify(message))).data.data.length;
 	res.send(message);
 });
 // Query Get Transaction by Transaction ID
