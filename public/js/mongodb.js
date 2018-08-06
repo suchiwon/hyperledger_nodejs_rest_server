@@ -177,6 +177,41 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 power: power,
                                 coin: balance
                             });  
+                    } else if (fcn == 'startDR') {
+        
+                        object = new transactionModel({
+                                tx_id: transactionId,
+                                channelName: channelName,
+                                blockNum: blockNum,
+                                //time: jsUtil.getCurrentDateTime(),
+                                fcn: fcnKor
+                        });  
+                    } else if (fcn == 'publish') {
+                        var publisher = args[0];
+                        var tradeType = args[1];
+                        var power = args[2];
+                        var unitPrice = args[3];
+        
+                        object = new transactionModel({
+                                tx_id: transactionId,
+                                channelName: channelName,
+                                blockNum: blockNum,
+                                //time: jsUtil.getCurrentDateTime(),
+                                fcn: fcnKor,
+                                userid: publisher,
+                                tradeType: tradeType,
+                                power: power,
+                                coin: unitPrice
+                            });  
+                    } else if (fcn == 'tradeMapping') {
+        
+                        object = new transactionModel({
+                                tx_id: transactionId,
+                                channelName: channelName,
+                                blockNum: blockNum,
+                                //time: jsUtil.getCurrentDateTime(),
+                                fcn: fcnKor
+                            });  
                     }
 
                     object.save(function(err, data){
