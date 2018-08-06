@@ -74,6 +74,8 @@ var getBlockByNumber = async function(peer, channelName, blockNumber, username, 
 		let response_payload = await channel.queryBlock(parseInt(blockNumber, peer));
 		if (response_payload) {
 			logger.debug(response_payload);
+
+			console.log("block " + blockNumber + "'s transaction count:" + response_payload.data.data.length);
 			return response_payload;
 		} else {
 			logger.error('response_payload is null');
