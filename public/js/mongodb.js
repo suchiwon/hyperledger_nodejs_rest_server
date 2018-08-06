@@ -35,7 +35,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
             transactionSchema = mongoose.Schema({
                 tx_id: {type: String},
                 channelName: {type: String},
-                blockNum: {type: String},
+                blockNum: {type: Number},
                 time: {type: Date, default: Date.now},
                 fcn: {type: String},
                 userid: {type: String},
@@ -366,16 +366,16 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                         blockNum: "$blockNum"
                     },
                     blockNum: {$first: "$blockNum"},
-                    count: { $sum: 1},
-                    time: {$min:"$time"},
+                    transactionCount: { $sum: 1},
+                    timestamp: {$min:"$time"},
                 }
             }, 
             {
                 $project: {
                     _id: 0,
                     blockNum: 1,
-                    count: 1,
-                    time: 1
+                    transactionCount: 1,
+                    timestamp: 1
                 }
             }], function(err, doc){
                     if (!err) {

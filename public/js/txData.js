@@ -304,6 +304,13 @@ define(["socket.io"], function(io) {
                 }
             }
         },
+        checkTradeCoin: function(fcn, args) {
+            if (fcn == "powertrade") {
+                var balance = parseInt(args[3]);
+
+                addConsumeCoin(balance);
+            }
+        },
         makeGetAreasUrl: function(host_ip, host_port) {
             return "http://" + host_ip + ":" + host_port + "/channels/" + monitorChannelName + "/chaincodes/" + monitorChaincodeName
                 + "?peer=peer0.org1.example.com&fcn=getAreas&args=[]";

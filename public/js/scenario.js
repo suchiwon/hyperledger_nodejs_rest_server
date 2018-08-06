@@ -15,7 +15,7 @@ define(['request', "./util.js"], function(request, util) {
 
     function setPostBody(fcn, args) {
         var option = {
-            url: 'http://localhost:4000/channels/energygyochannel/chaincodes/power_trade',
+            url: 'http://localhost:4000/channels/energygyochannel/chaincodes/energy',
             method: 'POST',
             header: this.header,
             form: {
