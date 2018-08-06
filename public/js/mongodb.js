@@ -40,6 +40,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 fcn: {type: String},
                 userid: {type: String},
                 buyer: {type: String},
+                tradeType: {type: String},
                 power: {type: String},
                 coin: {type: String},
                 name: {type: String},
@@ -106,6 +107,8 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
 
             var object;
             var fcnKor;
+            var timestamp = new Date();
+            var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
 
             this.getFcnName(fcn).then(
                 function(message) {
@@ -124,7 +127,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                //time: jsUtil.getCurrentDateTime(),
+                                time: timeUTC,
                                 fcn: fcnKor,
                                 userid: userid
                             });
@@ -138,7 +141,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                //time: jsUtil.getCurrentDateTime(),
+                                time: timeUTC,
                                 fcn: fcnKor,
                                 userid: userid,
                                 power: power
@@ -153,7 +156,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                //time: jsUtil.getCurrentDateTime(),
+                                time: timeUTC,
                                 fcn: fcnKor,
                                 userid: userid,
                                 coin: balance
@@ -170,7 +173,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                //time: jsUtil.getCurrentDateTime(),
+                                time: timeUTC,
                                 fcn: fcnKor,
                                 userid: from,
                                 buyer: to,
@@ -183,7 +186,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                //time: jsUtil.getCurrentDateTime(),
+                                time: timeUTC,
                                 fcn: fcnKor
                         });  
                     } else if (fcn == 'publish') {
@@ -196,7 +199,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                //time: jsUtil.getCurrentDateTime(),
+                                time: timeUTC,
                                 fcn: fcnKor,
                                 userid: publisher,
                                 tradeType: tradeType,
@@ -209,7 +212,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
-                                //time: jsUtil.getCurrentDateTime(),
+                                time: timeUTC,
                                 fcn: fcnKor
                             });  
                     }
@@ -343,6 +346,50 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                     }
                 });
             });    
+        },
+        getBlockInfoListByTransactions: async function(channelName, timestampFrom, timestampTo) {
+            return new Promise(function (resolve, reject) {
+                transactionModel.aggregate([{
+                    $match: {
+                    channelName: channelName,
+                    time: {
+                        $gte: new Date(timestampFrom),
+                        $lt: new Date(timestampTo)
+                    }
+                    
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        channelName: "$channelName",
+                        blockNum: "$blockNum"
+                    },
+                    blockNum: {$first: "$blockNum"},
+                    count: { $sum: 1},
+                    time: {$min:"$time"},
+                }
+            }, 
+            {
+                $project: {
+                    _id: 0,
+                    blockNum: 1,
+                    count: 1,
+                    time: 1
+                }
+            }], function(err, doc){
+                    if (!err) {
+                        logger.debug("get block info by transactions success");
+    
+                        //console.log(doc);
+                        resolve(doc);
+                    } else {
+                        logger.error("get block info by transactions error:" + err);
+                        reject(Error(err));
+                    }
+                }
+            );
+        });    
         },
         getAreaNames: async function() {
             return new Promise(function (resolve, reject) {

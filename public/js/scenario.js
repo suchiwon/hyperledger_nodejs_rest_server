@@ -38,7 +38,7 @@ define(['request', "./util.js"], function(request, util) {
         startScript: function() {
             addCoinIntervalID = setInterval(function(){
 
-                var count = util.getRandomInt(1, 1);
+                var count = util.getRandomInt(2, 4);
 
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
@@ -57,7 +57,7 @@ define(['request', "./util.js"], function(request, util) {
 
             supplyIntervalID = setInterval(function(){
 
-                var count = util.getRandomInt(1, 1);
+                var count = util.getRandomInt(2, 4);
 
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
@@ -124,6 +124,8 @@ define(['request', "./util.js"], function(request, util) {
 
                 var postBody = setPostBody("publish", args);
 
+                util.sleep(100);
+
                 request(postBody, function(error, response, body) {
                     if (!error && response.statusCode == 200) {
                         util.sleep(500)
@@ -135,6 +137,8 @@ define(['request', "./util.js"], function(request, util) {
                 var args = "['sample','SELL','" + i * 100 + "','400']";
 
                 var postBody = setPostBody("publish", args);
+
+                util.sleep(100);
 
                 request(postBody, function(error, response, body) {
                     if (!error && response.statusCode == 200) {

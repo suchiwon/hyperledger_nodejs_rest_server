@@ -159,7 +159,7 @@ function getErrorMessage(field) {
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
 var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
-txData.startBlockScanner(query, mongodb);
+//txData.startBlockScanner(query, mongodb);
 
 var monitorChannelName = 'kcoinchannel';
 var monitorChaincodeName = 'energy';
@@ -654,7 +654,7 @@ app.get('/main/:channelName', async function(req, res) {
 
 	console.log(channelName);
 
-	mongodb.getBlockInfoList(channelName, timestampFrom, timestampTo).then(
+	mongodb.getBlockInfoListByTransactions(channelName, timestampFrom, timestampTo).then(
 		function(message) {
 			var docs = JSON.parse(JSON.stringify(message));
 			res.send(docs);
