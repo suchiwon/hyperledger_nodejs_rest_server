@@ -109,17 +109,12 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
                 '<col style="width: auto;" />' + 
                 '<col style="width: auto;" />' +
                 '<col style="width: auto;" />' +
-                '<col style="width: auto;" />' +
-                '<col style="width: auto;" />' +
-                '<col style="width: auto;" />' +
             '</colgroup>' +
             '<thead>' +
                 '<tr>' +
                     '<th scope="col" id="blockNum" style="width:10%;">블록 번호</th>' +
                     '<th scope="col" id="transactionCount" style="width:10%;">트랜잭션 갯수</th>' +
                     '<th scope="col" id="timestamp" style="width:30%;">생성 시간</th>' +
-                    '<th scope="col" id="blockSize" style="width:10%;">블록 크기</th>' +
-                    '<th scope="col" id="blockHash" style="width:40%;">해시값</th>' +
                 '</tr>' +
             '</thead>' +
             '<tbody id="chainInfoTableBody">' + 

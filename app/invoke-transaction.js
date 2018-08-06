@@ -175,14 +175,14 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		logger.info(message);
 
 		//transaction count increase for txPerSec monitor
-		txData.set(channelName, txData.get(channelName) + 1);
+		txData.addTransactionCount(channelName, block_num_save);
 
-		txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args, block_num_save);
-
-		//get current block number
-		//txData.catchBlockCreate(channelName, parseInt(block_num_save) + 1);
+		//txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args, block_num_save);
 
 		mongodb.insertPowerTransaction(tx_id_string, channelName, block_num_save, fcn, args);
+
+		//get current block number
+		txData.catchBlockCreate(channelName, parseInt(block_num_save) + 1);
 
 		var invoke_response = {
 			"transaction_id": tx_id_string,

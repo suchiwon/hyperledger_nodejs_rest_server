@@ -159,7 +159,7 @@ function getErrorMessage(field) {
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
 var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
-//txData.startBlockScanner(query, mongodb);
+txData.startBlockScanner(query, mongodb);
 
 var monitorChannelName = 'kcoinchannel';
 var monitorChaincodeName = 'energy';
@@ -169,11 +169,11 @@ var io = require('socket.io').listen(4001);
 io.sockets.on("connection", function(ws) {
 	txData.setWs(ws);
 	txData.initBlockNumber(query);
-	txData.setElementInfo(mongodb);
+	//txData.setElementInfo(mongodb);
 	txData.startChartInterval();
 
 	ws.emit('news', {monitorChannelName: monitorChannelName});
-	ws.emit('send-block-number', txData.getBlockNumber);
+	//ws.emit('send-block-number', txData.getBlockNumber);
 	ws.on("event", function(message) {
 		console.log("Received: %s", message);
 	});
@@ -210,7 +210,8 @@ app.post('/users', async function(req, res) {
 		g_username = username;
 		g_orgname = orgName;
 
-		txData.init(username, orgName);
+		txData.setSess(username, orgName);
+		txData.initMap(query);
 
 		res.json(response);
 	} else {

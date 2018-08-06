@@ -24,6 +24,7 @@ define(["socket.io"], function(io) {
 
     var blockNumber = 0;
     var blockNumberMap;
+    var blockNumberSaverMap;
 
     var showTransactionBlock;
 
@@ -65,32 +66,46 @@ define(["socket.io"], function(io) {
 
     var exports = {
 
-        init : function(_username, _orgname) {
+        init : async function(_username, _orgname) {
             txPerSecMap = new Map();
 
             maxTxPerSecMap = new Map();
 
             blockNumberMap = new Map();
+            blockNumberSaverMap = new Map();
+
+            username = _username;
+            orgname = _orgname;
 
             for (var i = 0; i < channelNameSet.length; i++) {
                 txPerSecMap.set(channelNameSet[i], 0);
                 maxTxPerSecMap.set(channelNameSet[i], 0);
                 
                 blockNumberMap.set(channelNameSet[i], 0);
+                blockNumberSaverMap.set(channelNameSet[i], 0);
             }
 
             createdCoin = 0;
             consumeCoin = 0;
             supplyPower = 0;
 
-            username = _username;
-            orgname = _orgname;
-
             blockNumber = 0;
 
             showTransactionBlock = 0;
 
             monitorChannelName = channelNameSet[0];
+        },
+        initMap: async function(query) {
+            for (var i = 0; i < channelNameSet.length; i++) {
+                var message = await query.getChainInfo(peer, channelNameSet[i], username, orgname);
+
+                var temp = message.height.low;
+
+                console.log("channel[" + channelNameSet[i] + "]'s block count:" + temp);
+                
+                blockNumberMap.set(channelNameSet[i], temp);
+                blockNumberSaverMap.set(channelNameSet[i], temp);
+            }
         },
         setSess : function(_username, _orgname) {
             username = _username;
@@ -168,11 +183,14 @@ define(["socket.io"], function(io) {
 
             intervalInstance = true;
         },
+        addTransactionCount: async function(channelName, blockNumber) {
+            txPerSecMap.set(channelName, txPerSecMap.get(channelName) + 1);
+        },
         catchBlockCreate: async function(channelName, currentBlockNumber) {
-            if (channelName == monitorChannelName && blockNumber < currentBlockNumber) {
+            if (blockNumberMap.get(channelName) < currentBlockNumber) {
                 console.log("block created:(block number:%d)", currentBlockNumber - 1);
 
-                blockNumber = currentBlockNumber;
+                blockNumberMap.set(channelName,currentBlockNumber);
 
                 //ws.emit('block-create', blockNumber);
             }
@@ -183,40 +201,42 @@ define(["socket.io"], function(io) {
                 for (var channelIndex = 0; channelIndex < channelNameSet.length; channelIndex++) {
                     var channelName = channelNameSet[channelIndex];
                     var blockNumber = blockNumberMap.get(channelName);
-                    var message = await query.getChainInfo(peer, channelName, username, orgname);
+                    var blockNumberSaver = blockNumberSaverMap.get(channelName);
 
-                    var currentBlockCount = message.height.low;
+                    if (blockNumber > blockNumberSaver) {
 
-                    if (currentBlockCount > blockNumber) {
-                        console.log("block created:(block number:%d)", currentBlockCount);
+                        var channelNameSaver = channelName;
 
-                        if (blockNumber > 0) {
-                            for (var i = blockNumber; i < currentBlockCount; i++) {
-                                message = await query.getBlockByNumber(peer, channelName, i, username, orgname);
+                        if (blockNumberSaver > 0) {
+                            for (var i = blockNumberSaver; i < blockNumber; i++) {
 
-                                var transactionCount = message.data.data.length;
-                                var timestamp = new Date(message.data.data[0].payload.header.channel_header.timestamp);
+                                var transactionCount;
+                                var timestamp = new Date();
                                 var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
-                                var blockSize = "98M";
-                                var blockHash = message.header.data_hash;
-
-                                mongodb.insertBlockInfo(channelName, i, transactionCount, timeUTC, blockSize, blockHash);
+                                var num = i;
+                                mongodb.getBlockTransactionCount(channelNameSaver, i).then(
+                                    function(message){
+                                        transactionCount = parseInt(message);
+                                        console.log("transactionCount:" + transactionCount);
+                                       
+                                        mongodb.insertBlockInfo(channelNameSaver, num, transactionCount, timeUTC);
+                                    }, function(error) {
+                                        transactionCount = 0;
+                                        mongodb.insertBlockInfo(channelNameSaver, num, transactionCount, timeUTC);
+                                    }
+                                );
                             }
                         }
-                    }
 
-                    blockNumberMap.set(channelName, currentBlockCount);
+                        blockNumberSaverMap.set(channelName, blockNumber);
+                    }
                 }
             }, 1000);
         },
         initBlockNumber: async function(query) {
-            /*
-            let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
+            blockNumber = blockNumberMap.get(monitorChannelName);
 
-            blockNumber = message.height.low;
-            */
-
-            var blockNumber = blockNumberMap.get(monitorChannelName);
+            console.log("initBlockNumber:" + blockNumber);
 
             ws.emit('send-block-number', blockNumber); 
         },

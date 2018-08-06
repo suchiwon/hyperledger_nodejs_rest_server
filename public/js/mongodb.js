@@ -52,9 +52,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 channelName: {type: String},
                 blockNum: {type: Number},
                 timestamp: {type: Date, default: Date.now},
-                transactionCount: {type: Number},
-                blockSize: {type: String},
-                blockHash: {type: String}
+                transactionCount: {type: Number}
             }, {collection: 'block_info'});
 
             blockInfoModel = mongoose.model('block_info', blockInfoSchema, 'block_info');
@@ -230,6 +228,24 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 });
             });
         },
+        getBlockTransactionCount: function(channelName, blockNumber) {
+            return new Promise(function (resolve, reject) {
+                transactionModel.count({
+                    channelName: channelName,
+                    blockNum: blockNumber
+                }, function(err, docs){
+                    if (!err) {
+                        logger.debug("get transaction count success");
+    
+                        //console.log(docs);
+                        resolve(docs);
+                    } else {
+                        logger.error("get transaction count error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            });
+        },
         getFcnName: async function(fcn) {
             return new Promise(function (resolve, reject) {
                 fcnNameModel.findOne({
@@ -278,9 +294,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                     "_id": 0,
                     "blockNum": 1,
                     "transactionCount": 1,
-                    "timestamp": 1,
-                    "blockSize": 1,
-                    "blockHash": 1
+                    "timestamp": 1
 
                 }, function(err, doc){
                     if (!err) {
@@ -509,12 +523,10 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 }
             });
         },
-        insertBlockInfo: function(channelName, blockNum, transactionCount, timestamp, blockSize, blockHash) {
+        insertBlockInfo: function(channelName, blockNum, transactionCount, timestamp) {
             this.getBlockInfo(channelName, blockNum).then(function(message){
 
                 var obj;
-
-                logger.debug(channelName + " " + blockNum + " " + transactionCount + " " + timestamp + " " + blockSize + " " + blockHash);
 
                 if (message == null) {
 
@@ -522,9 +534,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                         channelName: channelName,
                         blockNum: blockNum,
                         transactionCount: transactionCount,
-                        timestamp: timestamp,
-                        blockSize: blockSize,
-                        blockHash: blockHash
+                        timestamp: timestamp
                     });    
 
                     obj.save(function(err, data) {
