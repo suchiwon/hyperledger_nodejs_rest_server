@@ -8,6 +8,7 @@ define(['request', "./util.js"], function(request, util) {
     var addCoinIntervalID;
     var supplyIntervalID;
     var powerTradeIntervalID;
+    var massiveIntervalID;
 
     var header = {
         'Content-Type': 'application/json'
@@ -15,7 +16,7 @@ define(['request', "./util.js"], function(request, util) {
 
     function setPostBody(fcn, args) {
         var option = {
-            url: 'http://localhost:4000/channels/energygyochannel/chaincodes/energy',
+            url: 'http://localhost:4000/channels/energyseoulchannel/chaincodes/energy',
             method: 'POST',
             header: this.header,
             form: {
@@ -116,6 +117,35 @@ define(['request', "./util.js"], function(request, util) {
                     }   
                 });
             }
+        },
+        sampleRegistMassive: async function() {
+            for (var i = 0; i < 200; i++) {
+                var args = "['" + i + "']";
+
+                var postBody = setPostBody("regist", args);
+
+                request(postBody, function(error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                    }   
+                });
+            }
+        },
+        startMassiveScript: function() {
+            massiveIntervalID = setInterval(function(){
+                for (var i = 0; i < 200; ++i) {
+                    var args = "['" + i + "','1']";
+
+                    var postBody = setPostBody("supply", args);
+
+                    request(postBody, function(error, response, body) {
+                        if (!error && response.statusCode == 200) {
+                    }   
+                    });
+                }
+            }, 1000);
+        },
+        stopMassiveScript: function() {
+            clearInterval(massiveIntervalID);
         },
         samplePublish: async function() {
 

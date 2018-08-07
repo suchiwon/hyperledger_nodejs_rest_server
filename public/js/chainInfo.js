@@ -45,8 +45,11 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
             theme: 'dark',
             inline: false,
             step: 5,
-            defaultDate: '1970/09/01',
+            //startDate: '1970/09/01',
             onSelectDate:function(dp,$input){
+                $('#timestampFrom').text($input.val());
+            },
+            onSelectTime:function(dp,$input){
                 $('#timestampFrom').text($input.val());
             }
         });
@@ -56,8 +59,11 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
             theme: 'dark',
             inline: false,
             step: 5,
-            defaultDate: '2099/01/01',
+            //startDate: '2099/01/01',
             onSelectDate:function(dp,$input){
+                $('#timestampTo').text($input.val());
+            },
+            onSelectTime:function(dp,$input){
                 $('#timestampTo').text($input.val());
             }
         });
@@ -125,5 +131,11 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
         $('#chainInfoTable').smpSortableTable(data, 10);
         });
     }
+
+    $('tr').on('click', function(){
+        var blockNum = $(this + ":nth-child(1)").text();
+
+        alert(blockNum);
+    });
 
 });

@@ -629,6 +629,14 @@ app.get('/main/:channelName', async function(req, res) {
 	scenario.stopScript();
  });
 
+ app.get('/startMassiveScript', function(req, res) {
+	scenario.startMassiveScript();
+ });
+
+ app.get('/stopMassiveScript', function(req, res) {
+	scenario.stopMassiveScript();
+ });
+
  app.get('/getTrades', function(req, res) {
 	mongodb.getTrades().then(
 		function(message) {
@@ -710,6 +718,10 @@ app.get('/main/:channelName', async function(req, res) {
 
  app.get('/sampleRegist', function(req, res) {
 	scenario.sampleRegist();
+ });
+
+ app.get('/sampleRegistMassive', function(req, res) {
+	scenario.sampleRegistMassive();
  });
 
  app.get('/samplePublish', function(req, res) {
