@@ -76,6 +76,43 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
             setChainInfoTable(monitorChannelName);
         });
 
+        $('#chainInfoTableDiv').on('click', 'tr', function(){
+            var blockNum = $(this).find('td:eq(0)').text();
+    
+            $.ajax ({
+                url: '/transactions/' + monitorChannelName + '/' + blockNum,
+                method: 'GET'
+            }).done(function(data) {
+
+                console.log(data);
+
+                $('#transactionsTableBody').empty();
+
+                $('#blockNumTxt').text(blockNum);
+        
+                for (var i = 0; i < data.length; i++) {
+        
+                   var transaction = data[i];
+
+                   if (transaction.coin == undefined) {
+                       transaction.coin = 0;
+                   }
+
+                   $('#transactionsTableBody').append("<tr>" +
+                                            "<td style='overflow: hidden;'>" + transaction.tx_id + " " +
+                                            "<td>" + transaction.chaincodeName + "</td>" +
+                                            "<td>" + transaction.fcn + "</td>" +
+                                            "<td>" + transaction.userid + "</td>" +
+                                            "<td>" + transaction.coin + "ETN</td>" + 
+                                            "<td class='plant-control'>" + "완료" + "</td>" +
+                                            "</tr>"
+                    );
+
+                }
+              
+            });
+        });
+
         //setChainInfoTable(monitorChannelName);
     });
 
@@ -131,11 +168,5 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
         $('#chainInfoTable').smpSortableTable(data, 10);
         });
     }
-
-    $('tr').on('click', function(){
-        var blockNum = $(this + ":nth-child(1)").text();
-
-        alert(blockNum);
-    });
 
 });

@@ -179,6 +179,8 @@ io.sockets.on("connection", function(ws) {
 	});
 });
 
+var utilJS = requirejs('./public/js/util.js');
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////// REST ENDPOINTS START HERE ///////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -378,7 +380,7 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 
 	let message;
 
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
 
 	logger.debug(message);
 	res.send(message);

@@ -531,7 +531,7 @@ $(document).ready(function() {
                                             "<td class='plant-control'><a class='plant-state txt'>" + transaction.Record.state + "</a></td>" +
                                             "<td class='userid' style='display:none;'>" + transaction.Key + "</td>" + 
                                             "</tr>"
-                );
+                  );
 
                 if (transaction.Record.state == STOP_KOR) {
                   $('.plant-state').eq(plantCount).css({'color': 'red', 'font-weight': 'bold'});

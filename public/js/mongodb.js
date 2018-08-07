@@ -37,6 +37,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 channelName: {type: String},
                 blockNum: {type: Number},
                 time: {type: Date, default: Date.now},
+                chaincodeName: {type: String},
                 fcn: {type: String},
                 userid: {type: String},
                 buyer: {type: String},
@@ -103,12 +104,10 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
 
             elementInfoModel = mongoose.model('element_info', elementInfoSchema, 'element_info');
         },
-        insertPowerTransaction: function(transactionId, channelName, blockNum, fcn, args) {           
+        insertPowerTransaction: function(transactionId, channelName, blockNum, chaincodeName, timeUTC, fcn, args) {           
 
             var object;
             var fcnKor;
-            var timestamp = new Date();
-            var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
 
             this.getFcnName(fcn).then(
                 function(message) {
@@ -127,6 +126,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
+                                chaincodeName: chaincodeName,
                                 time: timeUTC,
                                 fcn: fcnKor,
                                 userid: userid
@@ -141,6 +141,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
+                                chaincodeName: chaincodeName,
                                 time: timeUTC,
                                 fcn: fcnKor,
                                 userid: userid,
@@ -156,6 +157,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
+                                chaincodeName: chaincodeName,
                                 time: timeUTC,
                                 fcn: fcnKor,
                                 userid: userid,
@@ -173,6 +175,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
+                                chaincodeName: chaincodeName,
                                 time: timeUTC,
                                 fcn: fcnKor,
                                 userid: from,
@@ -186,6 +189,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
+                                chaincodeName: chaincodeName,
                                 time: timeUTC,
                                 fcn: fcnKor
                         });  
@@ -199,6 +203,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
+                                chaincodeName: chaincodeName,
                                 time: timeUTC,
                                 fcn: fcnKor,
                                 userid: publisher,
@@ -212,6 +217,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 tx_id: transactionId,
                                 channelName: channelName,
                                 blockNum: blockNum,
+                                chaincodeName: chaincodeName,
                                 time: timeUTC,
                                 fcn: fcnKor
                             });  

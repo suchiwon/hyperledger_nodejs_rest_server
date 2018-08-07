@@ -124,6 +124,11 @@ define([], function(){
         }, sleep: function(ms) {
             ts1 = new Date().getTime() + ms;
             do ts2 = new Date().getTime(); while (ts2<ts1);
+        }, getLocalUTCTime: function() {
+            var timestamp = new Date();
+            var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+
+            return timeUTC;
         }
     };
     return exports;
