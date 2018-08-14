@@ -1,4 +1,4 @@
-define(["js/util.js", "js/txData.js"], function(util, txData) {
+define(["js/util.js"], function(util) {
 
     $(document).ready(function() {
         var monitorChannelName = $('#monitorChannelName').text();
@@ -7,7 +7,6 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
 
         $.ajax ({
             url: '/getAreaNames',
-            //url: txData.makeGetAreasUrl(host_ip, host_port),
             method: 'GET',
             dataType: 'json'
           }).done(function(data) {
@@ -32,7 +31,6 @@ define(["js/util.js", "js/txData.js"], function(util, txData) {
 
         $.ajax ({
             url: '/getBlockCount/' + monitorChannelName,
-            //url: txData.makeGetAreasUrl(host_ip, host_port),
             method: 'GET',
             dataType: 'json'
         }).done(function(data) {
