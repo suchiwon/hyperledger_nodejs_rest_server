@@ -309,7 +309,7 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
         coinChartRef.update();
 
         if (newTempData.currentBlockNumber > currentBlockNumber && currentBlockNumber > 0) {
-          console.log("add block");
+          //console.log("add block");
 
           addBlock(newTempData.currentBlockNumber, newTempData.showTransactionBlock);
         }

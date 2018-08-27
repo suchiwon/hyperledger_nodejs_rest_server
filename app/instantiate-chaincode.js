@@ -190,7 +190,8 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 	} else {
 		let message = util.format('Failed to instantiate. cause:%s',error_message);
 		logger.error(message);
-		throw new Error(message);
+		return error_message;
+		//throw new Error(message);
 	}
 };
 exports.instantiateChaincode = instantiateChaincode;
