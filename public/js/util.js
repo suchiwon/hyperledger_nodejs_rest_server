@@ -129,6 +129,12 @@ define([], function(){
             var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
 
             return timeUTC;
+        }, getHostIp: function() {
+            var host_ip = location.host.split(":")[0];
+            return host_ip;
+        }, getHostPort: function() {
+            var host_port = location.host.split(":")[1];
+            return host_port;
         }
     };
     return exports;

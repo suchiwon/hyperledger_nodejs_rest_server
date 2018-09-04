@@ -12,6 +12,8 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
 
     var loadShowPowerTradeSchema, loadShowPowerTradeModel;
 
+    var nodeInfoSchema, nodeInfoModel;
+
     var logger;
 
     var mongodb;
@@ -103,6 +105,16 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
             }, {collection: 'element_info'});
 
             elementInfoModel = mongoose.model('element_info', elementInfoSchema, 'element_info');
+
+            nodeInfoSchema = mongoose.Schema({
+                channel: {type: String},
+                name: {type: String},
+                area: {type: String},
+                ip: {type: String},
+                port: {type: String}
+            }, {collection: 'node_info'});
+
+            nodeInfoModel = mongoose.model('node_info', nodeInfoSchema, 'node_info');
         },
         insertPowerTransaction: function(transactionId, channelName, blockNum, chaincodeName, timeUTC, fcn, args) {           
 
@@ -633,6 +645,23 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                         }
                     });
                 }
+            });
+        },
+        getNodeListInChannel: function(channelName) {
+            return new Promise(function (resolve, reject) {
+                nodeInfoModel.find({
+                    channel: channelName
+                }, function(err, docs){
+                    if (!err) {
+                        //logger.debug("get plants success");
+    
+                        //console.log(docs);
+                        resolve(docs);
+                    } else {
+                        logger.error("get nodelist error:" + err);
+                        reject(Error(err));
+                    }
+                });
             });
         }
     }

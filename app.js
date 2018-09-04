@@ -126,6 +126,7 @@ app.use(express.static(path.join(__dirname,'/public')));
 app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
 app.use('/main', express.static(path.join(__dirname, '/public')));
 app.use('/chainInfo', express.static(path.join(__dirname, '/public')));
+app.use('/peerInfo', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
@@ -161,10 +162,13 @@ var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
 //txData.startBlockScanner(query, mongodb);
 
+var peerMgr = requirejs('./public/js/peerMgr.js');
+
 var monitorChannelName = 'kcoinchannel';
 var monitorChaincodeName = 'energy';
 
 var io = require('socket.io').listen(4001);
+var peerNodeIo = require('socket.io').listen(4002);
 
 io.sockets.on("connection", function(ws) {
 	txData.setWs(ws);
@@ -177,6 +181,12 @@ io.sockets.on("connection", function(ws) {
 	ws.on("event", function(message) {
 		console.log("Received: %s", message);
 	});
+});
+
+peerNodeIo.sockets.on("connection", function(ws) {
+	peerMgr.setWs(ws);
+
+	peerMgr.startPeerStatInterval();
 });
 
 var utilJS = requirejs('./public/js/util.js');
@@ -508,6 +518,14 @@ app.get('/channels', async function(req, res) {
 	res.send(message);
 });
 
+app.get('/channelPeers/:channelName', async function(req, res){
+	logger.debug('================ GET CHANNEL PEERS ======================');
+	logger.debug('channelName : ' + req.params.channelName);
+
+	let message = await query.getChannelPeers(req.params.channelName, req.username, req.orgname);
+	res.send(message);
+});
+
 app.get('/monitor', async function(req, res) {
 	logger.debug('================== MONITOR BLOCKCHAIN =====================');
 	
@@ -538,6 +556,16 @@ app.get('/main/:channelName', async function(req, res) {
 	monitorChannelName = req.params.channelName;
 
 	res.render('chainInfo.ejs',{monitorChannelName: monitorChannelName});
+ });
+
+ app.get('/peerInfo/:channelName', async function(req, res) {
+	logger.debug("=============PEER INFO===================");
+
+	peerMgr.changeMonitorChannel(req.params.channelName);
+	peerMgr.setMonitorContainer("","");
+	monitorChannelName = req.params.channelName;
+
+	res.render('peerInfo.ejs',{monitorChannelName: monitorChannelName});
  });
 
  app.get('/transactions/:channelName/:blockNum', async function(req, res) {
@@ -712,6 +740,24 @@ app.get('/main/:channelName', async function(req, res) {
 			logger.error("Transaction error: " + error);
 		}
 	);
+ });
+
+ app.get('/getNodeList/:channelName', async function(req, res) {
+	logger.debug("=================GET NODE LIST JOINED CHANNEL==================");
+
+	mongodb.getNodeListInChannel(req.params.channelName).then(
+		function(message) {
+			//logger.debug("Transaction result: " + message);
+			var docs = JSON.parse(JSON.stringify(message));
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });
+
+ app.get('/setMonitorPeer/:dockerHost/:containerId', function(req, res) {
+	peerMgr.setMonitorContainer(req.params.dockerHost, req.params.containerId);
  });
 
  app.get('/d3test', function(req, res) {

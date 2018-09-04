@@ -10,8 +10,8 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
 
   var beforeShowBlock;
 
-  var host_ip = location.host.split(":")[0];
-  var host_port = location.host.split(":")[1];
+  var host_ip = util.getHostIp();
+  var host_port = util.getHostPort();
 
   const STOP_KOR = '정지';
   const NORMAL_KOR = '정상';

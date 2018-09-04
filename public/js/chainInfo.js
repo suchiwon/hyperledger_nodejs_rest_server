@@ -137,33 +137,33 @@ define(["js/util.js"], function(util) {
             url: '/getBlockInfoList/' + monitorChannelName,
             method: 'GET',
             data: {timestampFrom: timestampFrom, timestampTo: timestampTo}
-          }).done(function(data) {
+        }).done(function(data) {
         
-        console.log(data);
+            console.log(data);
 
-        $('#chainInfoTableDiv').empty();
+            $('#chainInfoTableDiv').empty();
 
-        $('#chainInfoTableDiv').append(
-        
-        '<table id="chainInfoTable">' + 
-            '<colgroup>' + 
-                '<col style="width: auto;" />' + 
-                '<col style="width: auto;" />' +
-                '<col style="width: auto;" />' +
-            '</colgroup>' +
-            '<thead>' +
-                '<tr>' +
-                    '<th scope="col" id="blockNum" style="width:10%;">블록 번호</th>' +
-                    '<th scope="col" id="transactionCount" style="width:10%;">트랜잭션 갯수</th>' +
-                    '<th scope="col" id="timestamp" style="width:30%;">생성 시간</th>' +
-                '</tr>' +
-            '</thead>' +
-            '<tbody id="chainInfoTableBody">' + 
-            '</tbody>' + 
-        '</table>'
-    );
+            $('#chainInfoTableDiv').append(
+            
+            '<table id="chainInfoTable">' + 
+                '<colgroup>' + 
+                    '<col style="width: auto;" />' + 
+                    '<col style="width: auto;" />' +
+                    '<col style="width: auto;" />' +
+                '</colgroup>' +
+                '<thead>' +
+                    '<tr>' +
+                        '<th scope="col" id="blockNum" style="width:10%;">블록 번호</th>' +
+                        '<th scope="col" id="transactionCount" style="width:10%;">트랜잭션 갯수</th>' +
+                        '<th scope="col" id="timestamp" style="width:30%;">생성 시간</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody id="chainInfoTableBody">' + 
+                '</tbody>' + 
+            '</table>'
+            );
 
-        $('#chainInfoTable').smpSortableTable(data, 10);
+            $('#chainInfoTable').smpSortableTable(data, 10);
         });
     }
 
