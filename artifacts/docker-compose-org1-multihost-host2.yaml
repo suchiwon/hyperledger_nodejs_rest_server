@@ -5,10 +5,10 @@
 #
 version: '2'
 
-services:
+networks:
+  hyperledger:
 
-  networks:
-    hyperledger:
+services:
 
   couchdb:
     container_name: couchdb2
