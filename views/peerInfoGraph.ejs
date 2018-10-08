@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>kt Energy Chain</title>
+<link rel="stylesheet" href="css/jquery.contextMenu.min.css">
+<link rel="stylesheet" href="css/ui.css" type="text/css">
+<script src="js/socket.io.js"></script>
+</head>
+
+<body>
+<div id="EnergyChain">
+	<!-- header -->
+	<!--
+	<header id="Header">
+		<h1 class="logo"><a href="#">kt Energy Chain</a></h1>
+		<ul class="nav">
+			<li><a href="#">트랜잭션 통계</a></li>
+			<li><a href="#">블록 정보</a></li>
+			<li class="on"><a href="#">네트워크 정보</a></li>
+		</ul>
+		<div class="userinfo">
+			<span class="date">2018. 07.02 Mon</span>
+			<span class="time">03:25:48</span>
+			<a href="#" class="set">setting</a>
+		</div>
+	</header>
+	-->
+	<!-- //header -->
+	<!-- container -->
+	<div class="network_container">
+		<div class="wrap_blockinfo">
+			<div class="boardhead">
+				<span class="tit">네트워크 구성도</span>
+				<div class="selectbox">
+					<a><select id="power_area" class="selectpicker" style="display: inline; width: 100px;"></select></a>
+				</div>
+				<div class="view_select"><button type="button" class="viewList">리스트로 보기</button></div>
+			</div>
+			<div class="graphic_view">
+				<ul class="list" id="nodeList">
+					<!--
+					<li class="on"><a href="#"><span>우면동</span></a></li>
+					<li><a href="#"><span>강남</span></a></li>
+					<li><a href="#"><span>강서</span></a></li>
+					<li><a href="#"><span>강북</span></a></li>
+					<li><a href="#"><span>서초</span></a></li>
+					<li><a href="#"><span>종로</span></a></li>
+					-->
+				</ul>
+			</div>
+			<div class="nodeinfo">
+				<div class="nodewrap">
+					<h2 class="tit">노드 정보</h2>
+					<dl class="detail">
+						<dt>노드명</dt>
+						<dd id="nodeAreaInfo"></dd>
+						<dt>노드 IP 주소</dt>
+						<dd id="networkAddressInfo"></dd>
+						<dt>가입 채널</dt>
+						<dd id="channelListInfo"></dd>
+						<dt>설치된 체인 코드</dt>
+						<dd id="installedChaincodeInfo"></dd>
+						<dt>노드 상태</dt>
+						<dd>
+							<ul class="chart-container">
+								<li class="pr-chart-ctrl ">
+									<div id="nodeStatusInfo" class="stop">정지</div>
+									<p>작동상태</p>
+								</li>
+								<li class="pr-chart-ctrl pr-chart-ctrl_1">
+									<div id="cpuUsageInfo" class="pr-chart" data-percent="25"><i></i></div>
+									<p>CPU 사용량</p>
+								</li>
+								<li class="pr-chart-ctrl pr-chart-ctrl_2">
+									<div id="memoryUsageInfo" class="pr-chart" data-percent="50"><i></i></div>
+									<p>메모리 사용량</p>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- //container -->
+</div>
+
+<h1 id="monitorChannelName" style="display: none"><%= monitorChannelName %></h1>
+<h1 id="viewMode" style="display: none"><%= viewMode %></h1>
+
+<script src="js/jquery.easypiechart.min.js"></script>
+<script type="text/javascript" data-main="js/peerInfoGraph.js" src="js/require.js"></script>
+</body>
+</html>

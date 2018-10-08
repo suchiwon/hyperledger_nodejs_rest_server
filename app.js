@@ -127,6 +127,8 @@ app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
 app.use('/main', express.static(path.join(__dirname, '/public')));
 app.use('/chainInfo', express.static(path.join(__dirname, '/public')));
 app.use('/peerInfo', express.static(path.join(__dirname, '/public')));
+app.use('/peerInfoGraph', express.static(path.join(__dirname, '/public')));
+app.use('/peerInfoList', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
@@ -539,7 +541,7 @@ app.get('/main/:channelName', async function(req, res) {
 
 	logger.debug('================== MONITOR BLOCKCHAIN =====================');
 	
-	res.render('main.ejs', {monitorChannelName: monitorChannelName});
+	res.render('main.ejs', {monitorChannelName: monitorChannelName, monitorPage: 'main' });
 });
 
  ///////////////////////BLOCK INFO/////////////////////////////////
@@ -555,7 +557,7 @@ app.get('/main/:channelName', async function(req, res) {
 	txData.changeMonitorChannel(req.params.channelName);
 	monitorChannelName = req.params.channelName;
 
-	res.render('chainInfo.ejs',{monitorChannelName: monitorChannelName});
+	res.render('chainInfo.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'chainInfo' });
  });
 
  app.get('/peerInfo/:channelName', async function(req, res) {
@@ -565,7 +567,27 @@ app.get('/main/:channelName', async function(req, res) {
 	peerMgr.setMonitorContainer("","");
 	monitorChannelName = req.params.channelName;
 
-	res.render('peerInfo.ejs',{monitorChannelName: monitorChannelName});
+	res.render('peerInfo.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'peerInfo' });
+ });
+
+ app.get('/peerInfoGraph/:channelName', async function(req, res) {
+	logger.debug("=============PEER INFO GRAPH MODE===================");
+
+	peerMgr.changeMonitorChannel(req.params.channelName);
+	peerMgr.setMonitorContainer("","");
+	monitorChannelName = req.params.channelName;
+
+	res.render('peerInfoGraph.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'peerInfo', viewMode: 'peerInfoGraph'});
+ });
+
+ app.get('/peerInfoList/:channelName', async function(req, res) {
+	logger.debug("=============PEER INFO LIST MODE===================");
+
+	peerMgr.changeMonitorChannel(req.params.channelName);
+	peerMgr.setMonitorContainer("","");
+	monitorChannelName = req.params.channelName;
+
+	res.render('peerInfoList.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'peerInfo', viewMode: 'peerInfoList'});
  });
 
  app.get('/transactions/:channelName/:blockNum', async function(req, res) {
@@ -746,6 +768,20 @@ app.get('/main/:channelName', async function(req, res) {
 	logger.debug("=================GET NODE LIST JOINED CHANNEL==================");
 
 	mongodb.getNodeListInChannel(req.params.channelName).then(
+		function(message) {
+			//logger.debug("Transaction result: " + message);
+			var docs = JSON.parse(JSON.stringify(message));
+			res.send(docs);
+		}, function(error) {
+			logger.error("Transaction error: " + error);
+		}
+	);
+ });
+
+ app.get('/getNodeInfo/:channelName/:areaName', async function(req, res) {
+	logger.debug("=================GET NODE INFO CHANNEL & AREA==================");
+
+	mongodb.getNodeAreaInChannel(req.params.channelName, req.params.areaName).then(
 		function(message) {
 			//logger.debug("Transaction result: " + message);
 			var docs = JSON.parse(JSON.stringify(message));

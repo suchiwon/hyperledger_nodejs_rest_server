@@ -1,6 +1,6 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
-define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr, txData) {
+define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], function(util, blockMgr, txData, header) {
 
   const max_block_gif = 5;
   const position_offset = 168;
@@ -323,8 +323,8 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js"], function(util, blockMgr
         //통계 정보 갱신 부분
         $('#transactionCount').text(util.makeCommaNumber(transactionCount));
         $('#maxTransaction').text(newTempData.maxTranPerSec);
-        $('#clockTime').text(currentTime);
-        $('#clockDate').text(util.getCurrentDate());
+        //$('#clockTime').text(currentTime);
+        //$('#clockDate').text(util.getCurrentDate());
         $('#averageTransaction').text(util.getAverage(transactionChartRef.data.datasets[0].data));
 
         //$('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
@@ -676,6 +676,7 @@ $(document).ready(function() {
       
         KUTE.to('#block' + i, {left:left, opacity: 0}, {duration: 400}).start();
         $('#block' + i).addClass("deleteBlock");
+        $('#tooltip' + i).parent().addClass("deleteBlock");
         ++j;
       }
 

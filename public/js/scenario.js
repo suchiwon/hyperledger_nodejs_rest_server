@@ -154,11 +154,8 @@ define(['request', "./util.js"], function(request, util) {
 
                 var postBody = setPostBody("publish", args);
 
-                util.sleep(100);
-
                 request(postBody, function(error, response, body) {
                     if (!error && response.statusCode == 200) {
-                        util.sleep(500)
                     }   
                 });
             }
@@ -168,11 +165,8 @@ define(['request', "./util.js"], function(request, util) {
 
                 var postBody = setPostBody("publish", args);
 
-                util.sleep(100);
-
                 request(postBody, function(error, response, body) {
                     if (!error && response.statusCode == 200) {
-                        util.sleep(500)
                     }   
                 });
             }

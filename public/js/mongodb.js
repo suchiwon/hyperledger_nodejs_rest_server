@@ -663,6 +663,24 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                     }
                 });
             });
+        },
+        getNodeAreaInChannel: function(channelName, areaName) {
+            return new Promise(function (resolve, reject) {
+                nodeInfoModel.findOne({
+                    channel: channelName,
+                    area: areaName
+                }, function(err, docs){
+                    if (!err) {
+                        //logger.debug("get plants success");
+    
+                        //console.log(docs);
+                        resolve(docs);
+                    } else {
+                        logger.error("get nodelist error:" + err);
+                        reject(Error(err));
+                    }
+                });
+            });
         }
     }
 

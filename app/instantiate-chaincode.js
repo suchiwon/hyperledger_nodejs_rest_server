@@ -43,14 +43,26 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 		// will need the transaction ID string for the event registration later
 		var deployId = tx_id.getTransactionID();
 
+
+		var policy = {
+			identities: [
+			  { role: { name: "member", mspId: "org1" }},
+			  { role: { name: "member", mspId: "org2" }}
+			],
+			policy: {
+			  "2-of": [{ "signed-by": 0 }, { "signed-by": 1 }]
+			}
+		  }
+
 		// send proposal to endorser
 		var request = {
-			targets : peers,
-			chaincodeId: chaincodeName,
-			chaincodeType: chaincodeType,
-			chaincodeVersion: chaincodeVersion,
-			args: args,
-			txId: tx_id
+			"targets" : peers,
+			"chaincodeId": chaincodeName,
+			"chaincodeType": chaincodeType,
+			"chaincodeVersion": chaincodeVersion,
+			"args": args,
+			"txId": tx_id,
+			"endorsement-policy": policy
 		};
 
 		if (functionName)

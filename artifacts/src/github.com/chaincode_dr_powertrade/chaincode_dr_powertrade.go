@@ -53,10 +53,12 @@ type PowerTrader struct {
 	TradeMapper		int		`json:"tradeMapper"`	//구매-판매 연결 index
 }
 
+//구매용 거래의 매핑 점수 계산 함수
 func getBuyScore(trade PowerTrader) int64 {
 	return trade.Power
 }
 
+//판매용 거래의 매핑 점수 계산 함수
 func getSellScore(trade PowerTrader) int64 {
 	return trade.Power
 }
@@ -241,6 +243,11 @@ func (cc *PowerTradeChaincode) changeState(stub shim.ChaincodeStubInterface, arg
 	return shim.Success(nil)
 }
 
+/*
+ * @fn: startDR
+ * @desc: DR 거래 시작 함수. 이전 거래의 정보 삭제. 10분마다 호출.
+ * @args: 
+ */
 func (cc *PowerTradeChaincode) startDR(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	var err error
@@ -275,6 +282,11 @@ func (cc *PowerTradeChaincode) startDR(stub shim.ChaincodeStubInterface, args []
 	return shim.Success(nil)
 }
 
+/*
+ * @fn: tradeMapping
+ * @desc: 등록된 구매, 판매 거래를 점수에 따라 연결.
+ * @args: 
+ */
 func (cc *PowerTradeChaincode) tradeMapping(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	var err error
@@ -354,6 +366,11 @@ func (cc *PowerTradeChaincode) tradeMapping(stub shim.ChaincodeStubInterface, ar
 	return shim.Success(nil)
 }
 
+/*
+ * @fn: getSellTrades
+ * @desc: 판매용 거래 정보 리스트 출력.
+ * @args: 
+ */
 func (cc *PowerTradeChaincode) getSellTrades(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	queryString := "{\"selector\": {\"docType\":\"SELL\"}}"
@@ -365,6 +382,11 @@ func (cc *PowerTradeChaincode) getSellTrades(stub shim.ChaincodeStubInterface, a
 	return shim.Success(queryResults)
 }
 
+/*
+ * @fn: getBuyTrades
+ * @desc: 구매용 거래 정보 리스트 출력.
+ * @args: 
+ */
 func (cc *PowerTradeChaincode) getBuyTrades(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	queryString := "{\"selector\": {\"docType\":\"BUY\"}}"

@@ -16,6 +16,11 @@ define(['request','socket.io'], function(request, io){
     var ws;
 
     function getCpuPercentage(dockerStat) {
+
+        if (dockerStat == undefined) {
+            return 0.0;
+        }
+
         var previousCPU = dockerStat.precpu_stats.cpu_usage.total_usage;
         var previousSystemCPU = dockerStat.precpu_stats.system_cpu_usage;
 
@@ -39,7 +44,12 @@ define(['request','socket.io'], function(request, io){
     };
 
     function getMemoryUsage(dockerStat) {
+
         var memory = dockerStat.memory_stats.usage;
+
+        if (memory == undefined) {
+            return "0 Bytes";
+        }
 
         if (memory > 1024) {
             memory = memory/1024;
@@ -108,7 +118,12 @@ define(['request','socket.io'], function(request, io){
                         console.log("cpu percent:" + cpuUsage);
 
                         memoryUsage = getMemoryUsage(JSON.parse(body));
-                        containerStatus = 'ACK';
+
+                        if (memoryUsage != "0 Bytes") {
+                            containerStatus = 'ACK';
+                        } else {
+                            containerStatus = 'STOP';
+                        }
                     } else {
                         cpuUsage = 0;
                         memoryUsage = "0 Bytes";

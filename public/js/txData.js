@@ -188,7 +188,7 @@ define(["socket.io"], function(io) {
         },
         catchBlockCreate: async function(channelName, currentBlockNumber) {
             if (blockNumberMap.get(channelName) < currentBlockNumber) {
-                console.log("block created:(block number:%d)", currentBlockNumber - 1);
+                //console.log("block created:(block number:%d)", currentBlockNumber - 1);
 
                 blockNumberMap.set(channelName,currentBlockNumber);
 

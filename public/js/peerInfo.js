@@ -1,4 +1,4 @@
-define(["js/util.js"], function(util) {
+define(["js/util.js", "js/header.js"], function(util, header) {
 
     var host_ip = util.getHostIp();
     var host_port = util.getHostPort();
@@ -61,7 +61,11 @@ define(["js/util.js"], function(util) {
         });
 
         $("#power_area").change(function() {
-            location.href = '/peerInfo/' + $(this).val();
+
+            var viewMode = $('#viewMode').text();
+
+
+            location.href = '/' + viewMode + '/' + $(this).val();
         });
 
         $('#peerInfoTableBody').on('click', 'tr', function(){

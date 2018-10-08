@@ -1,4 +1,4 @@
-define(["js/util.js"], function(util) {
+define(["js/util.js", "js/header.js"], function(util, header) {
 
     $(document).ready(function() {
         var monitorChannelName = $('#monitorChannelName').text();

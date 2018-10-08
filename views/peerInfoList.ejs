@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>kt Energy Chain</title>
+<link rel="stylesheet" href="css/jquery.contextMenu.min.css">
+<link rel="stylesheet" href="css/ui.css" type="text/css">
+<script src="js/socket.io.js"></script>
+</head>
+
+<body>
+<div id="EnergyChain">
+	<!-- container -->
+	<div class="network_container">
+		<div class="wrap_blockinfo">
+			<div class="boardhead">
+				<span class="tit">네트워크 구성도</span>
+				<div class="selectbox">
+					<a><select id="power_area" class="selectpicker" style="display: inline; width: 100px;"></select></a>
+				</div>
+				<div class="view_select"><button type="button" class="viewGraph">그림으로 보기</button></div>
+			</div>
+			<div class="boardlist">
+				<table>
+					<col style="width:30%">
+					<col>
+					<col style="width:200px">
+					<thead>
+					<tr>
+						<th scope="col">노드 명</th>
+						<th scope="col">노드 위치</th>
+						<th scope="col">노드 상태</th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="normal"><div class="ellipsis">정상</div></td>
+					</tr>
+					<tr class="on">
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="stop"><div class="ellipsis">정지</div></td>
+					</tr>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="normal"><div class="ellipsis">정상</div></td>
+					</tr>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="stop"><div class="ellipsis">정지</div></td>
+					</tr>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="normal"><div class="ellipsis">정상</div></td>
+					</tr>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="stop"><div class="ellipsis">정지</div></td>
+					</tr>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="normal"><div class="ellipsis">정상</div></td>
+					</tr>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="stop"><div class="ellipsis">정지</div></td>
+					</tr>
+					<tr>
+						<td>강북</td>
+						<td>127.16.254.1</td>
+						<td class="normal"><div class="ellipsis">정상</div></td>
+					</tr>
+					</tbody>
+				</table>
+				<div class="paging">
+					<a href="#" class="prev">&lt;</a>
+					<a href="#">1</a>
+					<a href="#">2</a>
+					<a href="#">3</a>
+					<a href="#">4</a>
+					<strong>5</strong>
+					<a href="#" class="next">&gt;</a>
+				</div>
+			</div>
+			<div class="nodeinfo">
+				<div class="nodewrap">
+					<h2 class="tit">노드 정보</h2>
+					<dl class="detail">
+						<dt>노드명</dt>
+						<dd id="nodeAreaInfo"></dd>
+						<dt>노드 IP 주소</dt>
+						<dd id="networkAddressInfo"></dd>
+						<dt>가입 채널</dt>
+						<dd id="channelListInfo"></dd>
+						<dt>설치된 체인 코드</dt>
+						<dd id="installedChaincodeInfo"></dd>
+						<dt>노드 상태</dt>
+						<dd>
+							<ul class="chart-container">
+								<li class="pr-chart-ctrl ">
+									<div id="nodeStatusInfo" class="stop">정지</div>
+									<p>작동상태</p>
+								</li>
+								<li class="pr-chart-ctrl pr-chart-ctrl_1">
+									<div id="cpuUsageInfo" class="pr-chart" data-percent="25"><i></i></div>
+									<p>CPU 사용량</p>
+								</li>
+								<li class="pr-chart-ctrl pr-chart-ctrl_2">
+									<div id="memoryUsageInfo" class="pr-chart" data-percent="50"><i></i></div>
+									<p>메모리 사용량</p>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- //container -->
+</div>
+<h1 id="monitorChannelName" style="display: none"><%= monitorChannelName %></h1>
+<h1 id="viewMode" style="display: none"><%= viewMode %></h1>
+
+<script src="js/jquery.easypiechart.min.js"></script>
+<script type="text/javascript" data-main="js/peerInfoList.js" src="js/require.js"></script>
+</body>
+</html>

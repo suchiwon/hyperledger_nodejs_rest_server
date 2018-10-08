@@ -155,7 +155,7 @@ organizations:
 #
 orderers:
   orderer.example.com:
-    url: grpc://localhost:7050
+    url: grpc://192.168.1.10:7050
 
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor
@@ -173,10 +173,10 @@ orderers:
 peers:
   peer0.org1.example.com:
     # this URL is used to send endorsement and query requests
-    url: grpc://localhost:7051
+    url: grpc://192.168.1.10:7051
 
     # this URL is used to connect the EventHub and registering event listeners
-    eventUrl: grpc://localhost:7053
+    eventUrl: grpc://192.168.1.10:7053
 
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
@@ -190,7 +190,7 @@ peers:
 #
 certificateAuthorities:
   ca-org1:
-    url: http://localhost:7054
+    url: http://192.168.1.10:7054
     # the properties specified under this object are passed to the 'http' client verbatim when
     # making the request to the Fabric-CA server
     httpOptions:
