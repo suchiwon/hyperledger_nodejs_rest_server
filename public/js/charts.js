@@ -13,9 +13,6 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
   var host_ip = util.getHostIp();
   var host_port = util.getHostPort();
 
-  const STOP_KOR = '정지';
-  const NORMAL_KOR = '정상';
-
   const FCN_NAME_REGIST = '등록';
   const FCN_NAME_SUPPLY = '전력 발전';
   const FCN_NAME_ADDCOIN = '코인 발급';
@@ -476,9 +473,9 @@ $(document).ready(function() {
       var state;
 
       if (key == "stop") {
-        state = STOP_KOR;
+        state = util.STOP_KOR;
       } else if (key == "resume") {
-        state = NORMAL_KOR;
+        state = util.NORMAL_KOR;
       }
       
       $.ajax({
@@ -488,8 +485,8 @@ $(document).ready(function() {
         });
     },
     items: {
-                "stop": {name: STOP_KOR, icon: "edit"},
-                "resume": {name: NORMAL_KOR, icon: "cut"}
+                "stop": {name: util.STOP_KOR, icon: "edit"},
+                "resume": {name: util.NORMAL_KOR, icon: "cut"}
     }
   });
 });
@@ -533,7 +530,7 @@ $(document).ready(function() {
                                             "</tr>"
                   );
 
-                if (transaction.Record.state == STOP_KOR) {
+                if (transaction.Record.state == util.STOP_KOR) {
                   $('.plant-state').eq(plantCount).css({'color': 'red', 'font-weight': 'bold'});
                   $('.plant-state').eq(plantCount).addClass('red');
                   errorCount++;
@@ -542,7 +539,7 @@ $(document).ready(function() {
 
                 plantCount++;
 
-              } else if (transaction.state == STOP_KOR) {
+              } else if (transaction.state == util.STOP_KOR) {
                 allErrorCount++;
               }
 

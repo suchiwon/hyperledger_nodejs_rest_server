@@ -84,6 +84,9 @@ define([], function(){
     };
 
     var exports = {
+        STOP_KOR: '정지',
+        NORMAL_KOR: '정상',
+        RESTART_KOR: '복구',
         init: function() {
         },
         getRandomInt: function(min, max) {

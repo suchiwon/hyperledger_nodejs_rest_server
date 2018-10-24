@@ -40,10 +40,14 @@ define(["js/util.js", "js/header.js"], function(util, header) {
             dataType: 'json'
         }).done(function(data) {
             console.log(data);
-            $('#nodeList').empty();
+            $('#nodeListTableBody').empty();
 
             for (var i = 0; i < data.length; i++) {
-                $('#nodeList').append("<li><a href='#'><span>" + data[i].area + "</span></a></li>");
+                $('#nodeListTableBody').append("<tr>" + 
+                                                "<td>" + data[i].area + "</td>" + 
+                                                "<td>" + data[i].ip + ":" + data[i].port + "</td>" + 
+                                                "<td>" + "정상" + "</td>" + 
+                                               "</tr>");
             }
         });
 
@@ -65,20 +69,22 @@ define(["js/util.js", "js/header.js"], function(util, header) {
 
         $("#power_area").change(function() {
 
-            location.href = '/peerInfoGraph/' + $(this).val();
+            location.href = '/peerInfoList/' + $(this).val();
         });
 
         $('.viewGraph').click(function(data){
             location.href = '/peerInfoGraph/' + monitorChannelName;
         });
 
-        $('#nodeList').on('click', 'a', function(){
+        $('#nodeListTableBody').on('click', 'tr', function(){
 
-            $('#nodeList').children('li').removeClass('on');
+            $('#nodeListTableBody').children('tr').removeClass('on');
 
-            var area = $(this).children('span').text();
+            var area = $(this).find('td').eq(0).text();
 
-            $(this).children('li').addClass('on');
+            $(this).addClass('on');
+
+            console.log("getNodeInfo");
 
             $.ajax({
                 url: '/getNodeInfo/' + monitorChannelName + '/' + area
@@ -86,6 +92,8 @@ define(["js/util.js", "js/header.js"], function(util, header) {
                 var nodeName = data.name;
                 var areaName = data.area;
                 var address = data.ip + ":" + data.port;
+
+                console.log(nodeName + " " + address);
 
                 $('#nodeAreaInfo').text(areaName);
                 $('#networkAddressInfo').text(address);
@@ -106,8 +114,12 @@ define(["js/util.js", "js/header.js"], function(util, header) {
                     
                     $('#channelListInfo').empty();
             
-                    for (var i = 0; i < data.channels.length; i++) {
-                        $('#channelListInfo').append('- ' + data.channels[i].channel_id + '<br>');
+                    if (data instanceof String) {
+                        $('#channelListInfo').append(data);
+                    } else {
+                        for (var i = 0; i < data.channels.length; i++) {
+                            $('#channelListInfo').append('- ' + data.channels[i].channel_id + '<br>');
+                        }
                     }
                   
                 });
@@ -120,13 +132,20 @@ define(["js/util.js", "js/header.js"], function(util, header) {
                     console.log(data);
                     
                     $('#installedChaincodeInfo').empty();
-            
-                    for (var i = 0; i < data.length; i++) {
-                        $('#installedChaincodeInfo').append('- ' + data[i] + '<br>');
+
+                    if (!(data instanceof Array)) {
+                        $('#installedChaincodeInfo').append(data);
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            $('#installedChaincodeInfo').append('- ' + data[i] + '<br>');
+                        }
                     }
-                  
                 });
+            }).fail(function(data){
+                console.log("getNodeInfo failed:" + data);
             });
+
+            console.log("getNodeInfo end");
         });
     });
 

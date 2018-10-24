@@ -46,8 +46,8 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 
 		var policy = {
 			identities: [
-			  { role: { name: "member", mspId: "org1" }},
-			  { role: { name: "member", mspId: "org2" }}
+			  { role: { name: "member", mspId: "Org1MSP" }},
+			  { role: { name: "member", mspId: "Org2MSP" }}
 			],
 			policy: {
 			  "2-of": [{ "signed-by": 0 }, { "signed-by": 1 }]

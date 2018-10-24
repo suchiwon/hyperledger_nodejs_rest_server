@@ -2,7 +2,7 @@ define(['request','socket.io'], function(request, io){
 
     var intervalInstance = false;
 
-    var dockerHost = '192.168.1.132:2375';
+    var dockerHost = '192.168.1.133:2375';
     var containerId = 'peer0.org1.example.com';
 
     const dockerSocketPort = '2375';
@@ -95,6 +95,32 @@ define(['request','socket.io'], function(request, io){
         },
         changeMonitorChannel: function(channelName) {
             monitorChannelName = channelName;
+        },
+        stopContainer: function(_dockerHost, _containerId) {
+            var requestURL = 'http://' + _dockerHost + ':' + dockerSocketPort + '/containers/' + _containerId + '/stop';
+
+            request.post({
+                url: requestURL
+            }, function(error, response, body){
+                if (!error && response && (response.statusCode == 204 || response.statusCode == 200)) {
+                    console.log("success stop docker container");
+                } else {
+                    console.log("fail to stop docker container:" + response);
+                }
+            });
+        },
+        restartContainer: function(_dockerHost, _containerId) {
+            var requestURL = 'http://' + _dockerHost + ':' + dockerSocketPort + '/containers/' + _containerId + '/restart';
+
+            request.post({
+                url: requestURL
+            }, function(error, response, body){
+                if (!error && response && (response.statusCode == 204 || response.statusCode == 200)) {
+                    console.log("success restart docker container");
+                } else {
+                    console.log("fail to restart docker container:" + response);
+                }
+            });
         },
         startPeerStatInterval: function() {
 

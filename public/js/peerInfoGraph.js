@@ -5,10 +5,60 @@ define(["js/util.js", "js/header.js"], function(util, header) {
 
     var ws = io.connect("http://" + host_ip + ":4002");
 
+    function setMonitorPeer(address, nodeName) {
+        $.ajax({
+            url: '/setMonitorPeer/' + address + '/' + nodeName,
+            method: 'GET'
+        }).done(function(data){
+
+        });
+    }
+
+    function printNodeInfo(nodeName) {
+        $.ajax ({
+            url: '/channels?peer=' + nodeName,
+            method: 'GET'
+        }).done(function(data) {
+
+            console.log(data);
+            
+            $('#channelListInfo').empty();
+    
+            if (data instanceof String) {
+                $('#channelListInfo').append(data);
+            } else {
+                for (var i = 0; i < data.channels.length; i++) {
+                    $('#channelListInfo').append('- ' + data.channels[i].channel_id + '<br>');
+                }
+            }
+          
+        });
+
+        $.ajax ({
+            url: '/chaincodes?peer=' + nodeName,
+            method: 'GET'
+        }).done(function(data) {
+
+            console.log(data);
+            
+            $('#installedChaincodeInfo').empty();
+
+            if (!(data instanceof Array)) {
+                $('#installedChaincodeInfo').append(data);
+            } else {
+                for (var i = 0; i < data.length; i++) {
+                    $('#installedChaincodeInfo').append('- ' + data[i] + '<br>');
+                }
+            }
+        });
+    }
+
     $(document).ready(function() {
         var monitorChannelName = $('#monitorChannelName').text();
 
         console.log("monitorChannelName:" + monitorChannelName);
+
+        setMonitorPeer("","");
 
         $.ajax ({
             url: '/getAreaNames',
@@ -43,7 +93,7 @@ define(["js/util.js", "js/header.js"], function(util, header) {
             $('#nodeList').empty();
 
             for (var i = 0; i < data.length; i++) {
-                $('#nodeList').append("<li><a href='#'><span>" + data[i].area + "</span></a></li>");
+                $('#nodeList').append("<li class='node'><a href='#'><span>" + data[i].area + "</span></a></li>");
             }
         });
 
@@ -72,6 +122,44 @@ define(["js/util.js", "js/header.js"], function(util, header) {
             location.href = '/peerInfoList/' + monitorChannelName;
         });
 
+        $.contextMenu({
+            selector: 'li > a',
+            callback: function(key, options) {
+        
+              var area = $(this).children('span').text();
+
+              console.log(area);
+
+              $.ajax({
+                 url: '/getNodeInfo/' + monitorChannelName + '/' + area
+              }).done(function(data) {
+                var dockerHost = data.ip;
+                var nodeName = data.name;
+
+                console.log(dockerHost + " " + nodeName);
+
+                if (key == "stop") {
+                    $.ajax({
+                        url: '/stopNode/' + dockerHost + '/' + nodeName
+                    }).done(function(data){
+                        printNodeInfo(nodeName);
+                    });
+                } else if (key == "resume") {
+                    $.ajax({
+                        url: '/resumeNode/' + dockerHost + '/' + nodeName
+                    }).done(function(data){
+                        printNodeInfo(nodeName);
+                    });
+                }
+              });
+              
+            },
+            items: {
+                        "stop": {name: util.STOP_KOR, icon: "edit"},
+                        "resume": {name: util.RESTART_KOR, icon: "cut"}
+            }
+          });
+
         $('#nodeList').on('click', 'a', function(){
 
             $('#nodeList').children('li').removeClass('on');
@@ -90,49 +178,9 @@ define(["js/util.js", "js/header.js"], function(util, header) {
                 $('#nodeAreaInfo').text(areaName);
                 $('#networkAddressInfo').text(address);
 
-                $.ajax({
-                    url: '/setMonitorPeer/' + address + '/' + nodeName,
-                    method: 'GET'
-                }).done(function(data){
+                setMonitorPeer(address, nodeName);
 
-                });
-
-                $.ajax ({
-                    url: '/channels?peer=' + nodeName,
-                    method: 'GET'
-                }).done(function(data) {
-    
-                    console.log(data);
-                    
-                    $('#channelListInfo').empty();
-            
-                    if (data instanceof String) {
-                        $('#channelListInfo').append(data);
-                    } else {
-                        for (var i = 0; i < data.channels.length; i++) {
-                            $('#channelListInfo').append('- ' + data.channels[i].channel_id + '<br>');
-                        }
-                    }
-                  
-                });
-    
-                $.ajax ({
-                    url: '/chaincodes?peer=' + nodeName,
-                    method: 'GET'
-                }).done(function(data) {
-    
-                    console.log(data);
-                    
-                    $('#installedChaincodeInfo').empty();
-
-                    if (!(data instanceof Array)) {
-                        $('#installedChaincodeInfo').append(data);
-                    } else {
-                        for (var i = 0; i < data.length; i++) {
-                            $('#installedChaincodeInfo').append('- ' + data[i] + '<br>');
-                        }
-                    }
-                });
+                printNodeInfo(nodeName);
             });
         });
     });

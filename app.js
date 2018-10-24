@@ -796,6 +796,18 @@ app.get('/main/:channelName', async function(req, res) {
 	peerMgr.setMonitorContainer(req.params.dockerHost, req.params.containerId);
  });
 
+ app.get('/stopNode/:dockerHost/:containerId', function(req, res) {
+	logger.debug("==================STOP NODE=========================");
+
+	peerMgr.stopContainer(req.params.dockerHost, req.params.containerId);
+ });
+
+ app.get('/resumeNode/:dockerHost/:containerId', function(req, res) {
+	
+	logger.debug("==================RESUME NODE=========================")
+	peerMgr.restartContainer(req.params.dockerHost, req.params.containerId);
+ });
+
  app.get('/d3test', function(req, res) {
 	res.render('d3test.ejs');
  });
