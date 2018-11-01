@@ -20,7 +20,7 @@ define(['request', "./util.js"], function(request, util) {
             method: 'POST',
             header: this.header,
             form: {
-                'peers': 'peer0.org1.example.com',
+                'peers': ['peer0.org1.example.com','peer1.org2.example.com'],
                 'fcn': fcn, 
                 'args': args
             }
