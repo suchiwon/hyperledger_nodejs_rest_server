@@ -332,16 +332,17 @@ func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString 
 }
 
 // cc = 이 class가 EstateChaincode의 mathod가 된다.(이 class가 EstateChaincode에 들어간다. 현재 EstateChaincode는 빈 struct)
-func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	// args: 첫번째가 Key, 두번째가 state
+func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	// args: 첫번째가 contractKey, 두번째가 state
 	if len(args) < 2 {
 		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
 
-	// key는 key로, coin은 state로
+	// key는 contractKey로, coin은 state로
 	// _state는 변경할(바꿔 주어야 하는) state를 의미한다.
-	key := args[0]
+	contractKey := args[0]
 	_state := args[1]
+	userKey := args[2]
 	var err error
 	var tmp int
 	var state int
@@ -358,14 +359,109 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 	state = int(tmp)
 
 	// key 값의 world state를 받아 stateAsBytes에 대입
-	stateAsBytes, err := stub.GetState(key)
+	stateAsBytes, err := stub.GetState(contractKey)
 
 	// error 처리
 	if err != nil {
 		// state를 못 받아올 경우
 		return shim.Error("Failed to get state:" + err.Error())
 	} else if contractAsBytes == nil {
-		// Contract가 없을 경우(key값으로 못 찾음)
+		// Contract가 없을 경우(contractKey값으로 못 찾음)
+		return shim.Error("Contract does not exist")
+	}
+
+	// temp contract(바꿔야 하는 contract)
+	stateToTransfer := Contract{}
+
+	err = json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	
+
+	// flag는 SignArray에 입력되었는지 여부 판단하는 변수
+	var flag := false;
+	// count는 왼료된 sign의 개수
+	var count := 0;
+
+	for i := 0; i < len(stateToTransfer.LandLordSignArray) && !flag; i++ {
+		// 이미 사인된 상태라면 count를 하나 올려준다.
+		if LandLordSignArray[i] == true { ++count }
+		// 사인해야 하는 대상에 userKey가 없다면 넘기고,
+		if LandLordSignArray[i] != userKey {}
+		// 존재할 경우에만 array의 값을 true로 바꾼다(사인했다는 의미).
+		else { 
+			LandLordSignArray[i] = true
+			flag = true
+			++count
+		}
+	}
+
+	// 위의 조건에서 userKey 검출 못 했을 때에만 아래 반복문 실행
+	if !flag {
+		// count를 0으로 재설정
+		count = 0;
+		for i := 0; i < len(stateToTransfer.LandLordSignArray) && !flag; i++ {
+			if LandLordSignArray[i] == true { ++count }
+			if LandLordSignArray[i] != userKey {}
+			else { 
+				LandLordSignArray[i] = true
+				flag = true
+				++count
+			}
+		}
+	}
+
+	// count가 LandLordSignArray나 LesseeSignArray의 길이와 같다면 모든 사람이 사인한 것이므로
+	if count == len(stateToTransfer.LandLordSignArray) || count == len(stateToTransfer.LesseeSignArray) {
+		// state를 변경한다.
+		stateToTransfer.state = state //change the state
+
+		stateJSONasBytes, _ := json.Marshal(stateToTransfer)
+		err = stub.PutState(name, stateJSONasBytes) //rewrite the marble
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		fmt.Println("- end Contract State Change (success)")
+		return shim.Success(nil)
+	}
+}
+
+func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	// args: 첫번째가 contractKey, 두번째가 state
+	if len(args) < 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	// key는 contractKey로, coin은 state로
+	// _state는 변경할(바꿔 주어야 하는) state를 의미한다.
+	contractKey := args[0]
+	_state := args[1]
+	var err error
+	var tmp int
+	var state int
+	
+	// 바꿀 state를 tmp에 저장한다.
+	tmp, err = strconv.Atoi(_state)
+
+	// argument가(state) 없을 경우 error 처리
+	if err != nil {
+		return shim.Error("Incorrect argument for state")
+	}
+
+	// 제대로 받았기 때문에 tmp 값을 state에 대입
+	state = int(tmp)
+
+	// contractKey 값의 world state를 받아 stateAsBytes에 대입
+	stateAsBytes, err := stub.GetState(contractKey)
+
+	// error 처리
+	if err != nil {
+		// state를 못 받아올 경우
+		return shim.Error("Failed to get state:" + err.Error())
+	} else if contractAsBytes == nil {
+		// Contract가 없을 경우(contractKey값으로 못 찾음)
 		return shim.Error("Contract does not exist")
 	}
 

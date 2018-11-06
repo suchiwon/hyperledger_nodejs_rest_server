@@ -875,13 +875,16 @@ app.get('/main/:channelName', async function(req, res) {
 	 args.push(req.body.contractKey);
 	 
 	 var state = contractStruct.CONTRACT_STATE.WAIT_PAYFEE.value;
-	 args.push(state);
+	 args.push(state.toString());
+
+	 var userKey = req.body.userKey;
+	 args.push(userKey.toString);
 	 
 	 // chaincode에 넘겨줘야 하는 기본 data
 	 var peers = contractStruct.PEERS;
 	 var channelName = contractStruct.CHANNEL_NAME;
 	 var chaincodeName = contractStruct.CHAINCODE_NAME;
-	 var fcn = "changeState";
+	 var fcn = "changeStateSigned";
  
 	 console.log(state);
  
@@ -902,7 +905,7 @@ app.get('/main/:channelName', async function(req, res) {
 	args.push(req.body.contractKey);
 	
 	var state = contractStruct.CONTRACT_STATE.REJECT_SIGN.value;
-	args.push(state);
+	args.push(state.toString());
 
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
@@ -928,7 +931,7 @@ app.get('/main/:channelName', async function(req, res) {
 	args.push(req.body.contractKey);
 	
 	var state = contractStruct.CONTRACT_STATE.WAIT_DEPOSIT.value;
-	args.push(state);
+	args.push(state.toString());
 
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
@@ -954,7 +957,7 @@ app.get('/main/:channelName', async function(req, res) {
 		args.push(req.body.contractKey);
 		
 		var state = contractStruct.CONTRACT_STATE.EXPIRE_DEPOSIT.value;
-		args.push(state);
+		args.push(state.toString());
 	
 		var peers = contractStruct.PEERS;
 		var channelName = contractStruct.CHANNEL_NAME;
@@ -980,7 +983,7 @@ app.get('/main/:channelName', async function(req, res) {
 		args.push(req.body.contractKey);
 		
 		var state = contractStruct.CONTRACT_STATE.CANCEL_COMPLETE.value;
-		args.push(state);
+		args.push(state.toString());
 	
 		var peers = contractStruct.PEERS;
 		var channelName = contractStruct.CHANNEL_NAME;
