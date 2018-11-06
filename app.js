@@ -124,11 +124,6 @@ app.use(expressLayouts);
 
 app.use(express.static(path.join(__dirname,'/public')));
 app.use('/blockinfo', express.static(path.join(__dirname, '/public')));
-app.use('/main', express.static(path.join(__dirname, '/public')));
-app.use('/chainInfo', express.static(path.join(__dirname, '/public')));
-app.use('/peerInfo', express.static(path.join(__dirname, '/public')));
-app.use('/peerInfoGraph', express.static(path.join(__dirname, '/public')));
-app.use('/peerInfoList', express.static(path.join(__dirname, '/public')));
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// MONGODB CONFIG /////////////////////////////////////
 //var couchdb = requirejs('./public/js/couchdb.js');
@@ -162,36 +157,24 @@ function getErrorMessage(field) {
 ////////////////////////////// TXPERSECMAP CONFIG /////////////////////////////
 var txData = requirejs('./public/js/txData.js');
 txData.init('Jim','Org1');
-//txData.startBlockScanner(query, mongodb);
-
-var peerMgr = requirejs('./public/js/peerMgr.js');
-
-var monitorChannelName = 'kcoinchannel';
-var monitorChaincodeName = 'energy';
 
 var io = require('socket.io').listen(4001);
-var peerNodeIo = require('socket.io').listen(4002);
 
 io.sockets.on("connection", function(ws) {
 	txData.setWs(ws);
 	txData.initBlockNumber(query);
-	//txData.setElementInfo(mongodb);
+	txData.setElementInfo(mongodb);
 	txData.startChartInterval();
 
-	ws.emit('news', {monitorChannelName: monitorChannelName});
-	//ws.emit('send-block-number', txData.getBlockNumber);
+	ws.emit('news', {hello: 'world'});
+	ws.emit('send-block-number', txData.getBlockNumber);
 	ws.on("event", function(message) {
 		console.log("Received: %s", message);
 	});
 });
 
-peerNodeIo.sockets.on("connection", function(ws) {
-	peerMgr.setWs(ws);
-
-	peerMgr.startPeerStatInterval();
-});
-
-var utilJS = requirejs('./public/js/util.js');
+const monitorChannelName = 'kcoinchannel';
+const monitorChaincodeName = 'energy';
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////// REST ENDPOINTS START HERE ///////////////////////////
@@ -224,8 +207,7 @@ app.post('/users', async function(req, res) {
 		g_username = username;
 		g_orgname = orgName;
 
-		txData.setSess(username, orgName);
-		txData.initMap(query);
+		txData.init(username, orgName);
 
 		res.json(response);
 	} else {
@@ -392,9 +374,25 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 
 	let message;
 
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	//check invoke regist duplicate id
+	if (chaincodeName == monitorChaincodeName && fcn == 'regist') {
 
-	logger.debug(message);
+		mongodb.getPlant(args[0]).then(
+			async function(message) {
+				logger.debug("Transaction result: " + message);
+				if (message) {
+					logger.debug("this id registed before");
+					return;
+				} else {
+					message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
+				}
+			}, async function(error) {
+				logger.error("Transaction error: " + error);
+			}
+		);
+	} else {
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb);
+	}
 	res.send(message);
 });
 // Query on chaincode on target peers
@@ -448,7 +446,6 @@ app.get('/channels/:channelName/blocks/:blockId', async function(req, res) {
 	}
 
 	let message = await query.getBlockByNumber(peer, req.params.channelName, blockId, req.username, req.orgname);
-
 	res.send(message);
 });
 // Query Get Transaction by Transaction ID
@@ -520,28 +517,16 @@ app.get('/channels', async function(req, res) {
 	res.send(message);
 });
 
-app.get('/channelPeers/:channelName', async function(req, res){
-	logger.debug('================ GET CHANNEL PEERS ======================');
-	logger.debug('channelName : ' + req.params.channelName);
-
-	let message = await query.getChannelPeers(req.params.channelName, req.username, req.orgname);
-	res.send(message);
-});
-
 app.get('/monitor', async function(req, res) {
 	logger.debug('================== MONITOR BLOCKCHAIN =====================');
 	
 	res.render('monitor.ejs', {txData: txData});
 });
 
-app.get('/main/:channelName', async function(req, res) {
-
-	txData.changeMonitorChannel(req.params.channelName);
-	monitorChannelName = req.params.channelName;
-
+app.get('/main', async function(req, res) {
 	logger.debug('================== MONITOR BLOCKCHAIN =====================');
 	
-	res.render('main.ejs', {monitorChannelName: monitorChannelName, monitorPage: 'main' });
+	res.render('main.ejs');
 });
 
  ///////////////////////BLOCK INFO/////////////////////////////////
@@ -551,50 +536,11 @@ app.get('/main/:channelName', async function(req, res) {
 	res.render('blockinfo.ejs',{blockNum: req.params.blockNum});
  });
 
- app.get('/chainInfo/:channelName', async function(req, res) {
-	logger.debug("=============CHAIN INFO===================");
-
-	txData.changeMonitorChannel(req.params.channelName);
-	monitorChannelName = req.params.channelName;
-
-	res.render('chainInfo.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'chainInfo' });
- });
-
- app.get('/peerInfo/:channelName', async function(req, res) {
-	logger.debug("=============PEER INFO===================");
-
-	peerMgr.changeMonitorChannel(req.params.channelName);
-	peerMgr.setMonitorContainer("","");
-	monitorChannelName = req.params.channelName;
-
-	res.render('peerInfo.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'peerInfo' });
- });
-
- app.get('/peerInfoGraph/:channelName', async function(req, res) {
-	logger.debug("=============PEER INFO GRAPH MODE===================");
-
-	peerMgr.changeMonitorChannel(req.params.channelName);
-	peerMgr.setMonitorContainer("","");
-	monitorChannelName = req.params.channelName;
-
-	res.render('peerInfoGraph.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'peerInfo', viewMode: 'peerInfoGraph'});
- });
-
- app.get('/peerInfoList/:channelName', async function(req, res) {
-	logger.debug("=============PEER INFO LIST MODE===================");
-
-	peerMgr.changeMonitorChannel(req.params.channelName);
-	peerMgr.setMonitorContainer("","");
-	monitorChannelName = req.params.channelName;
-
-	res.render('peerInfoList.ejs',{monitorChannelName: monitorChannelName, monitorPage: 'peerInfo', viewMode: 'peerInfoList'});
- });
-
- app.get('/transactions/:channelName/:blockNum', async function(req, res) {
+ app.get('/transactions/:blockNum', async function(req, res) {
 	logger.debug("=================GET TRANSACTIONS IN BLOCK==================");
 	logger.debug('block num: ' + req.params.blockNum);
 
-	mongodb.getTransactionList(req.params.channelName, req.params.blockNum).then(
+	mongodb.getTransactionList(req.params.blockNum).then(
 		function(message) {
 			//logger.debug("Transaction result: " + message);
 			var docs = JSON.parse(JSON.stringify(message));
@@ -681,14 +627,6 @@ app.get('/main/:channelName', async function(req, res) {
 	scenario.stopScript();
  });
 
- app.get('/startMassiveScript', function(req, res) {
-	scenario.startMassiveScript();
- });
-
- app.get('/stopMassiveScript', function(req, res) {
-	scenario.stopMassiveScript();
- });
-
  app.get('/getTrades', function(req, res) {
 	mongodb.getTrades().then(
 		function(message) {
@@ -700,54 +638,8 @@ app.get('/main/:channelName', async function(req, res) {
 	)
  });
 
- app.get('/getBlockInfoList/:channelName', function(req, res) {
-
-	logger.debug("=================GET BLOCK INFO LIST==================");
-
-	var channelName = req.params.channelName;
-	var timestampFrom = new Date(req.query.timestampFrom);
-	var timestampTo = new Date(req.query.timestampTo);
-
-	timestampFrom = new Date(timestampFrom.getTime() + (9 * 60000 * 60)).toISOString();
-	timestampTo = new Date(timestampTo.getTime() + (9 * 60000 * 60)).toISOString();
-
-	console.log(timestampFrom + " " + timestampTo);
-
-	console.log(channelName);
-
-	mongodb.getBlockInfoListByTransactions(channelName, timestampFrom, timestampTo).then(
-		function(message) {
-			var docs = JSON.parse(JSON.stringify(message));
-			res.send(docs);
-		}, function(error) {
-			logger.error("Transaction error: " + error);
-		}
-	)
- });
-
- app.get('/getBlockCount/:channelName', async function(req, res) {
-
-	var peer = "peer0.org1.example.com";
-
-	var monitorChannelName = req.params.channelName;
-
-	let message = await query.getChainInfo(peer, monitorChannelName, req.username, req.orgname);
-
-	var currentBlockCount = message.height.low;
-	
-	res.send(currentBlockCount.toString());
- });
-
  app.get('/changeState/:userid/:state', async function(req, res) {
-	//mongodb.changeState(req.params.userid, req.params.state);
-	let message;
-
-	var args = "['"+ req.params.userid +"','" + req.params.state+ "']";
-	
-	args = args.replace(/'/g, '"');
-	args = JSON.parse(args);
-
-	message = await invoke.invokeChaincode("peer0.org1.example.com", monitorChannelName, monitorChaincodeName, "changeState", args, req.username, req.orgname, txData, mongodb);
+	mongodb.changeState(req.params.userid, req.params.state);
 	res.send(null);
  });
 
@@ -764,63 +656,11 @@ app.get('/main/:channelName', async function(req, res) {
 	);
  });
 
- app.get('/getNodeList/:channelName', async function(req, res) {
-	logger.debug("=================GET NODE LIST JOINED CHANNEL==================");
-
-	mongodb.getNodeListInChannel(req.params.channelName).then(
-		function(message) {
-			//logger.debug("Transaction result: " + message);
-			var docs = JSON.parse(JSON.stringify(message));
-			res.send(docs);
-		}, function(error) {
-			logger.error("Transaction error: " + error);
-		}
-	);
- });
-
- app.get('/getNodeInfo/:channelName/:areaName', async function(req, res) {
-	logger.debug("=================GET NODE INFO CHANNEL & AREA==================");
-
-	mongodb.getNodeAreaInChannel(req.params.channelName, req.params.areaName).then(
-		function(message) {
-			//logger.debug("Transaction result: " + message);
-			var docs = JSON.parse(JSON.stringify(message));
-			res.send(docs);
-		}, function(error) {
-			logger.error("Transaction error: " + error);
-		}
-	);
- });
-
- app.get('/setMonitorPeer/:dockerHost/:containerId', function(req, res) {
-	peerMgr.setMonitorContainer(req.params.dockerHost, req.params.containerId);
- });
-
- app.get('/stopNode/:dockerHost/:containerId', function(req, res) {
-	logger.debug("==================STOP NODE=========================");
-
-	peerMgr.stopContainer(req.params.dockerHost, req.params.containerId);
- });
-
- app.get('/resumeNode/:dockerHost/:containerId', function(req, res) {
-	
-	logger.debug("==================RESUME NODE=========================")
-	peerMgr.restartContainer(req.params.dockerHost, req.params.containerId);
- });
-
  app.get('/d3test', function(req, res) {
 	res.render('d3test.ejs');
  });
 
  app.get('/sampleRegist', function(req, res) {
 	scenario.sampleRegist();
- });
-
- app.get('/sampleRegistMassive', function(req, res) {
-	scenario.sampleRegistMassive();
- });
-
- app.get('/samplePublish', function(req, res) {
-	scenario.samplePublish();
  });
  

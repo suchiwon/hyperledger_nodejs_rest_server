@@ -10,21 +10,22 @@ define(["socket.io"], function(io) {
     var consumeCoin;
 
     var supplyPower;
+    var that = this;
+    var time;
     var ws;
 
     var intervalInstance = false;
 
-    var monitorChannelName = 'kcoinchannel';
-    const channelNameSet = ['energyseoulchannel','energygyochannel','energygangchannel'];
-    var monitorChaincodeName = 'energy';
+    const monitorChannelName = 'kcoinchannel';
+    const monitorChaincodeName = 'energy';
     var username;
     var orgname;
     const peer = 'peer0.org1.example.com';
     const showId = 'show';
 
     var blockNumber = 0;
-    var blockNumberMap;
-    var blockNumberSaverMap;
+
+    var timeLabel;
 
     var showTransactionBlock;
 
@@ -66,46 +67,24 @@ define(["socket.io"], function(io) {
 
     var exports = {
 
-        init : async function(_username, _orgname) {
+        init : function(_username, _orgname) {
             txPerSecMap = new Map();
 
             maxTxPerSecMap = new Map();
 
-            blockNumberMap = new Map();
-            blockNumberSaverMap = new Map();
-
-            username = _username;
-            orgname = _orgname;
-
-            for (var i = 0; i < channelNameSet.length; i++) {
-                txPerSecMap.set(channelNameSet[i], 0);
-                maxTxPerSecMap.set(channelNameSet[i], 0);
-                
-                blockNumberMap.set(channelNameSet[i], 0);
-                blockNumberSaverMap.set(channelNameSet[i], 0);
-            }
+            txPerSecMap.set(monitorChannelName, 0);
+            maxTxPerSecMap.set(monitorChannelName, 0);
 
             createdCoin = 0;
             consumeCoin = 0;
             supplyPower = 0;
 
+            username = _username;
+            orgname = _orgname;
+
             blockNumber = 0;
 
             showTransactionBlock = 0;
-
-            monitorChannelName = channelNameSet[0];
-        },
-        initMap: async function(query) {
-            for (var i = 0; i < channelNameSet.length; i++) {
-                var message = await query.getChainInfo(peer, channelNameSet[i], username, orgname);
-
-                var temp = message.height.low;
-
-                console.log("channel[" + channelNameSet[i] + "]'s block count:" + temp);
-                
-                blockNumberMap.set(channelNameSet[i], temp);
-                blockNumberSaverMap.set(channelNameSet[i], temp);
-            }
         },
         setSess : function(_username, _orgname) {
             username = _username;
@@ -122,10 +101,6 @@ define(["socket.io"], function(io) {
         },
         getBlockNumber: function() {
             return blockNumber;
-        },
-        changeMonitorChannel: function(channelName) {
-            monitorChannelName = channelName;
-            console.log("monitorChannel:" + monitorChannelName);
         },
         setElementInfo: function(mongodb) {
             mongodb.getElementInfo(monitorChaincodeName).then(function(data){
@@ -144,6 +119,8 @@ define(["socket.io"], function(io) {
 
             setInterval(function() {
                 var temp = txPerSecMap.get(monitorChannelName);
+
+                temp *= getRandomInt(150, 250);
 
                 var maxTran = maxTxPerSecMap.get(monitorChannelName);
 
@@ -164,7 +141,7 @@ define(["socket.io"], function(io) {
                       maxTranPerSec: maxTran,
                       createdCoin: createdCoin,
                       consumeCoin: consumeCoin,
-                      currentBlockNumber: blockNumberMap.get(monitorChannelName),
+                      currentBlockNumber: blockNumber,
                       //time: timeLabel,
                       showTransactionBlock: showTransactionBlock
                     };
@@ -183,73 +160,45 @@ define(["socket.io"], function(io) {
 
             intervalInstance = true;
         },
-        addTransactionCount: async function(channelName, blockNumber) {
-            txPerSecMap.set(channelName, txPerSecMap.get(channelName) + 1);
-        },
-        catchBlockCreate: async function(channelName, currentBlockNumber) {
-            if (blockNumberMap.get(channelName) < currentBlockNumber) {
-                //console.log("block created:(block number:%d)", currentBlockNumber - 1);
+        catchBlockCreate: async function(currentBlockNumber) {
+            if (blockNumber < currentBlockNumber) {
+                console.log("block created:(block number:%d)", currentBlockNumber - 1);
 
-                blockNumberMap.set(channelName,currentBlockNumber);
+                blockNumber = currentBlockNumber;
 
                 //ws.emit('block-create', blockNumber);
             }
         },
-        startBlockScanner: function(query, mongodb) {
+        startBlockScanner: function(query) {
             setInterval(async function() {
+                let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
 
-                for (var channelIndex = 0; channelIndex < channelNameSet.length; channelIndex++) {
-                    var channelName = channelNameSet[channelIndex];
-                    var blockNumber = blockNumberMap.get(channelName);
-                    var blockNumberSaver = blockNumberSaverMap.get(channelName);
+                var currentBlockCount = message.height.low;
 
-                    if (blockNumber > blockNumberSaver) {
+                if (currentBlockCount > blockNumber) {
+                    console.log("block created:(block number:%d)", currentBlockCount);
 
-                        var channelNameSaver = channelName;
-
-                        if (blockNumberSaver > 0) {
-                            for (var i = blockNumberSaver; i < blockNumber; i++) {
-
-                                var transactionCount;
-                                var timestamp = new Date();
-                                var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
-                                var num = i;
-                                mongodb.getBlockTransactionCount(channelNameSaver, i).then(
-                                    function(message){
-                                        transactionCount = parseInt(message);
-                                        console.log("transactionCount:" + transactionCount);
-                                       
-                                        mongodb.insertBlockInfo(channelNameSaver, num, transactionCount, timeUTC);
-                                    }, function(error) {
-                                        transactionCount = 0;
-                                        mongodb.insertBlockInfo(channelNameSaver, num, transactionCount, timeUTC);
-                                    }
-                                );
-                            }
-                        }
-
-                        blockNumberSaverMap.set(channelName, blockNumber);
-                    }
+                    blockNumber = currentBlockCount;
                 }
             }, 1000);
         },
         initBlockNumber: async function(query) {
-            blockNumber = blockNumberMap.get(monitorChannelName);
+            let message = await query.getChainInfo(peer, monitorChannelName, username, orgname);
 
-            console.log("initBlockNumber:" + blockNumber);
+            blockNumber = message.height.low;
 
             ws.emit('send-block-number', blockNumber); 
         },
-        executeInvokeTransaction: async function(chaincodeName, fcn, mongodb, args, blockNum) {
+        executeInvokeTransaction: async function(channelName, fcn, mongodb, args, blockNum) {
 
             if (args[0] == showId || args[1] == showId) {
                 setShowTransactionBlock(blockNum);
             }
 
-            if (chaincodeName == monitorChaincodeName) {
+            if (channelName == monitorChaincodeName) {
 
                 if (fcn == 'regist') {
-                    //mongodb.insertPlant(args);
+                    mongodb.insertPlant(args);
                 } else if (fcn == 'supply') {
 
                     if (args.length != 2) {
@@ -259,7 +208,7 @@ define(["socket.io"], function(io) {
                     var id = args[0];
                     var power = parseInt(args[1]);
 
-                    //await mongodb.updatePlant(id, power, power, 0, 0);
+                    await mongodb.updatePlant(id, power, power, 0, 0);
                     await mongodb.updateElementInfo(monitorChaincodeName, 0, 0, power);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
@@ -275,7 +224,7 @@ define(["socket.io"], function(io) {
 
                     //console.log("addCoin argu:%s %d", id, balance);
 
-                    //await mongodb.updatePlant(id, 0, 0, 0, balance);
+                    await mongodb.updatePlant(id, 0, 0, 0, balance);
                     await mongodb.updateElementInfo(monitorChaincodeName, balance, 0, 0);
 
                     //console.log("add coin:%s %d", power, parseInt(args[1]));
@@ -295,30 +244,14 @@ define(["socket.io"], function(io) {
 
                     await mongodb.insertShowTrade(args);
 
-                    //await mongodb.updatePlant(from, -1 * power, 0, power, balance);
-                    //await mongodb.updatePlant(to, power, 0, power, -1 * balance);
+                    await mongodb.updatePlant(from, -1 * power, 0, power, balance);
+                    await mongodb.updatePlant(to, power, 0, power, -1 * balance);
 
                     await mongodb.updateElementInfo(monitorChaincodeName, 0, balance, 0);
 
                     addConsumeCoin(balance);
                 }
             }
-        },
-        checkTradeCoin: function(fcn, args) {
-            if (fcn == "powertrade") {
-                var balance = parseInt(args[3]);
-
-                addConsumeCoin(balance);
-            }
-        },
-        makeGetAreasUrl: function(host_ip, host_port) {
-            return "http://" + host_ip + ":" + host_port + "/channels/" + monitorChannelName + "/chaincodes/" + monitorChaincodeName
-                + "?peer=peer0.org1.example.com&fcn=getAreas&args=[]";
-        },
-        makeGetPlantsUrl: function(host_ip, host_port) {
-            //console.log("monitorChannelName:" + monitorChannelName);
-            return "http://" + host_ip + ":" + host_port + "/channels/" + monitorChannelName + "/chaincodes/" + monitorChaincodeName
-                + "?peer=peer0.org1.example.com&fcn=getPlants&args=[]";
         }
     };
 

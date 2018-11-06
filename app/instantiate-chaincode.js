@@ -43,26 +43,14 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 		// will need the transaction ID string for the event registration later
 		var deployId = tx_id.getTransactionID();
 
-
-		var policy = {
-			identities: [
-			  { role: { name: "member", mspId: "Org1MSP" }},
-			  { role: { name: "member", mspId: "Org2MSP" }}
-			],
-			policy: {
-			  "2-of": [{ "signed-by": 0 }, { "signed-by": 1 }]
-			}
-		  }
-
 		// send proposal to endorser
 		var request = {
-			"targets" : peers,
-			"chaincodeId": chaincodeName,
-			"chaincodeType": chaincodeType,
-			"chaincodeVersion": chaincodeVersion,
-			"args": args,
-			"txId": tx_id,
-			"endorsement-policy": policy
+			targets : peers,
+			chaincodeId: chaincodeName,
+			chaincodeType: chaincodeType,
+			chaincodeVersion: chaincodeVersion,
+			args: args,
+			txId: tx_id
 		};
 
 		if (functionName)
@@ -202,8 +190,7 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 	} else {
 		let message = util.format('Failed to instantiate. cause:%s',error_message);
 		logger.error(message);
-		return error_message;
-		//throw new Error(message);
+		throw new Error(message);
 	}
 };
 exports.instantiateChaincode = instantiateChaincode;

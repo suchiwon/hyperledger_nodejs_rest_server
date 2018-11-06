@@ -8,7 +8,6 @@ define(['request', "./util.js"], function(request, util) {
     var addCoinIntervalID;
     var supplyIntervalID;
     var powerTradeIntervalID;
-    var massiveIntervalID;
 
     var header = {
         'Content-Type': 'application/json'
@@ -16,11 +15,11 @@ define(['request', "./util.js"], function(request, util) {
 
     function setPostBody(fcn, args) {
         var option = {
-            url: 'http://localhost:4000/channels/energyseoulchannel/chaincodes/energy',
+            url: 'http://localhost:4000/channels/kcoinchannel/chaincodes/energy',
             method: 'POST',
             header: this.header,
             form: {
-                'peers': ['peer0.org1.example.com','peer1.org2.example.com'],
+                'peers': 'peer0.org1.example.com',
                 'fcn': fcn, 
                 'args': args
             }
@@ -33,18 +32,18 @@ define(['request', "./util.js"], function(request, util) {
         init: function() {
             fcnSet = ['addCoin', 'supply', 'powertrade'];
             useridSet = ['A','B','C','D','E','F','G'];
-            nameSet = ['고양','김포','안산','수원','분당','부천','파주'];
+            nameSet = ['우면동','강남','고양','김포','속초','평창','천안'];
             areaSet = ['SEOUL','SEOUL','GYO','GYO','GANG','GANG','CHUNG'];
         },
         startScript: function() {
             addCoinIntervalID = setInterval(function(){
 
-                var count = util.getRandomInt(2, 4);
+                var count = util.getRandomInt(1, 1);
 
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
 
-                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(100, 1000) * 10 + "']";
+                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 10 + "']";
     
                     var postBody = setPostBody("addCoin", args);
     
@@ -54,16 +53,16 @@ define(['request', "./util.js"], function(request, util) {
                     });
                 }
 
-            }, 500);
+            }, 3500);
 
             supplyIntervalID = setInterval(function(){
 
-                var count = util.getRandomInt(2, 4);
+                var count = util.getRandomInt(1, 1);
 
                 for (var i = 0; i < count; ++i) {
                     var index = util.getRandomInt(0, useridSet.length - 1);
 
-                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(100, 1000) * 10 + "']";
+                    var args = "['" + useridSet[index] + "','" + util.getRandomInt(10, 100) * 1 + "']";
 
                     var postBody = setPostBody("supply", args);
 
@@ -73,7 +72,7 @@ define(['request', "./util.js"], function(request, util) {
                     });
                 }
 
-            }, 500);
+            }, 3000);
 
             powerTradeIntervalID = setInterval(function(){
 
@@ -87,7 +86,7 @@ define(['request', "./util.js"], function(request, util) {
                         return;
                     }
     
-                    var args = "['" + useridSet[indexFrom] + "','" + useridSet[indexTo] + "','" + util.getRandomInt(100, 1000) + "','" + util.getRandomInt(4, 20) * 1000 + "']";
+                    var args = "['" + useridSet[indexFrom] + "','" + useridSet[indexTo] + "','" + util.getRandomInt(100, 1000) + "','" + util.getRandomInt(4, 20) * 100000 + "']";
     
                     var postBody = setPostBody("powertrade", args);
     
@@ -97,7 +96,7 @@ define(['request', "./util.js"], function(request, util) {
                     }); 
                 }
 
-            }, 1000);
+            }, 4000);
         },
         stopScript: function() {
             clearInterval(addCoinIntervalID);
@@ -111,59 +110,6 @@ define(['request', "./util.js"], function(request, util) {
                 var args = "['" + useridSet[i] + "','" + nameSet[i] + "','" + areaSet[i] + "']";
 
                 var postBody = setPostBody("regist", args);
-
-                request(postBody, function(error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                    }   
-                });
-            }
-        },
-        sampleRegistMassive: async function() {
-            for (var i = 0; i < 200; i++) {
-                var args = "['" + i + "']";
-
-                var postBody = setPostBody("regist", args);
-
-                request(postBody, function(error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                    }   
-                });
-            }
-        },
-        startMassiveScript: function() {
-            massiveIntervalID = setInterval(function(){
-                for (var i = 0; i < 200; ++i) {
-                    var args = "['" + i + "','1']";
-
-                    var postBody = setPostBody("supply", args);
-
-                    request(postBody, function(error, response, body) {
-                        if (!error && response.statusCode == 200) {
-                    }   
-                    });
-                }
-            }, 1000);
-        },
-        stopMassiveScript: function() {
-            clearInterval(massiveIntervalID);
-        },
-        samplePublish: async function() {
-
-            for (var i = 0; i < 50; i++) {
-                var args = "['sample','BUY','" + i * 100 + "','400']";
-
-                var postBody = setPostBody("publish", args);
-
-                request(postBody, function(error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                    }   
-                });
-            }
-
-            for (var i = 0; i < 50; i++) {
-                var args = "['sample','SELL','" + i * 100 + "','400']";
-
-                var postBody = setPostBody("publish", args);
 
                 request(postBody, function(error, response, body) {
                     if (!error && response.statusCode == 200) {

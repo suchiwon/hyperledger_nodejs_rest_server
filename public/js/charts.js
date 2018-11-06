@@ -1,6 +1,6 @@
 // Using IIFE for Implementing Module Pattern to keep the Local Space for the JS Variables
 
-define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], function(util, blockMgr, txData, header) {
+define(["js/util.js", "js/blockMgr.js"], function(util, blockMgr) {
 
   const max_block_gif = 5;
   const position_offset = 168;
@@ -8,10 +8,14 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
 
   var transactionCount = 0;
 
+  var host_ip;
+
   var beforeShowBlock;
 
-  var host_ip = util.getHostIp();
-  var host_port = util.getHostPort();
+  host_ip = location.host.split(":")[0];
+
+  const STOP_KOR = '정지';
+  const NORMAL_KOR = '정상';
 
   const FCN_NAME_REGIST = '등록';
   const FCN_NAME_SUPPLY = '전력 발전';
@@ -31,8 +35,7 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
     var ws = io.connect("http://" + host_ip + ":4001");
 
     ws.on('news', function(data) {
-
-      txData.changeMonitorChannel(data.monitorChannelName);
+      console.log(data);
       ws.emit('event', {my: 'transaction io socket read'});
       beforeShowBlock = 0;
     });
@@ -49,7 +52,20 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
         members = [],
         transactionChartRef, coinChartRef;
 
-////////////////////그래프 차트 설정 부분/////////////////////////////
+    function getServerIp() {
+      var result;
+       
+      return result;
+    }
+
+    function showEle(elementId){
+      document.getElementById(elementId).style.display = 'flex';
+    }
+
+    function hideEle(elementId){
+      document.getElementById(elementId).style.display = 'none';
+    }
+
     function rendertransactionChart(transactionData) {
       //hideEle("transactionChartLoader");
         var ctx = document.getElementById("transactionChart").getContext("2d");
@@ -92,8 +108,8 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
                 stacked: true,
                 ticks: {
                   min: 0,
-                  max: 100,
-                  stepSize: 10,
+                  max: 1000,
+                  stepSize: 100,
                   fontColor: "white"
                 }
               }
@@ -148,8 +164,8 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
             id: "use-y-axis",
             ticks: {
               min: 0,
-              max: 400000,
-              stepSize: 40000,
+              max: 4000000,
+              stepSize: 400000,
               fontColor: "white"
             }
           }
@@ -251,14 +267,13 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
 
     renderCoinChart(coinChartConfig);
 
-////////////////////차트 데이터 갱신 부분///////////////////////////////////
     ws.on('new-chart-data', function(data) {
         //console.log("get chart new data");
         var newTempData = data;
 
-        var currentTime = util.getCurrentTime();
+        var mean = 0;
 
-        setPlantTable($("#power_area option:selected").val());
+        var currentTime = util.getCurrentTime();
         
         //newTempData.tranPerSec *= util.getRandomInt(50, 100);
 
@@ -291,12 +306,9 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
         }
 
         coinChartRef.data.labels.push(currentTime);
-        //coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
-        //console.log(parseInt($("#createdCoin").text().replace(",","")));
-        coinChartRef.data.datasets[0].data.push(parseInt($("#createdCoin").text().replace(/\,/g,"")));
+        coinChartRef.data.datasets[0].data.push(newTempData.createdCoin);
         coinChartRef.data.datasets[1].data.push(newTempData.consumeCoin);
 
-        //테스트 확인용 계정의 트랜잭션이 있는 블록인지 확인
         if (newTempData.showTransactionBlock > 0 && newTempData.consumeCoin > 0 && checkShowBlockInterval(newTempData.showTransactionBlock)) {
           console.log("it's show block: " + newTempData.showTransactionBlock + " " + beforeShowBlock);
           coinChartRef.data.datasets[1].pointStyle.push(starPoint);
@@ -317,18 +329,21 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
 
         transactionCount += newTempData.tranPerSec;
 
-        //통계 정보 갱신 부분
         $('#transactionCount').text(util.makeCommaNumber(transactionCount));
         $('#maxTransaction').text(newTempData.maxTranPerSec);
-        //$('#clockTime').text(currentTime);
-        //$('#clockDate').text(util.getCurrentDate());
+        $('#clockTime').text(currentTime);
+        $('#clockDate').text(util.getCurrentDate());
         $('#averageTransaction').text(util.getAverage(transactionChartRef.data.datasets[0].data));
 
-        //$('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
-        //setElementInfo();
+        $('#createdCoin').text(util.makeCommaNumber(parseInt(newTempData.createdCoin)));
+
+        setPlantTable($("#power_area option:selected").val());
+        setElementInfo();
 
         if (newTempData.showTransactionBlock - beforeShowBlock > 5) {
           beforeShowBlock = newTempData.showTransactionBlock;
+          //$('#showBlockPopup').dialog('open');  
+          //setTimeout(function(){$('#showBlockPopup').dialog("close")},3000);
         }
     });
 
@@ -340,8 +355,11 @@ define(["js/util.js", "js/blockMgr.js", "js/txData.js", "js/header.js"], functio
 ///////////////////////////BLOCK SCANNER CODE////////////////////////////////////
 $(document).ready(function() {
 
+  var leftSet = 1000;
+
   $('#currentDate').text(util.getCurrentDate());
 
+  
   $(".block-gif").each(function(index) {
     $(this).gifplayer('play');
   });
@@ -370,11 +388,9 @@ $(document).ready(function() {
   $('#blockList').on('click', '.block-gif', function(){
 
     var blockNum = $(this).parent().attr('id').substring(5);
-
-    var monitorChannelName = $('#monitorChannelName').text();
     
     $.ajax ({
-        url: '/transactions/' + monitorChannelName + '/' + blockNum,
+        url: '/transactions/' + blockNum,
         method: 'GET'
     }).done(function(data) {
 
@@ -412,70 +428,56 @@ $(document).ready(function() {
   });
 
   ////////////////////////////////CHANNEL BLOCK CONFIG/////////////////////////
-  
   $.ajax ({
     url: '/getAreaNames',
-    //url: txData.makeGetAreasUrl(host_ip, host_port),
-    method: 'GET',
-    dataType: 'json'
+    method: 'GET'
   }).done(function(data) {
 
-    var dataJSON = JSON.parse(JSON.stringify(data));
+    console.log("get area names: " + data);
 
     $('#power_area ul').empty();
 
-    var monitorChannelName = $('#monitorChannelName').text();
+    for (var i = 0; i < data.length; i++) {
 
-    for (var i = 0; i < dataJSON.length; i++) {
+       var transaction = data[i]; 
 
-       var transaction = dataJSON[i];
-       //console.log(transaction);
-
-       $("#power_area").append("<option value=" + transaction.channelName + ">" + transaction.name + "</option>");
+       $("#power_area").append("<option value=" + transaction.id + ">" + transaction.name + "</option>");
        //$("#power_area ul").append("<li data-value=" + transaction.id + ">" + transaction.name + "</option>");
-
-       console.log(transaction.channelName + " " + monitorChannelName);
-
-       if (transaction.channelName == monitorChannelName) {
-         $("#power_area").find("option:eq(" + i + ")").prop("selected", true);
-       }
     }
 
     setPlantTable($("#power_area option:selected").val());
 
-    $("#regions").text(dataJSON.length);
+    $("#regions").text(data.length);
   });
-  
 
   $.ajax ({
     url: '/getTransactionCount',
     method: 'GET'
   }).done(function(data) {
 
-    //console.log("transaction count:" + data);
+    console.log("transaction count:" + data);
     $("#transactionCount").text(util.makeCommaNumber(parseInt(data)));
     transactionCount = parseInt(data);
   });
 
   $("#power_area").change(function() {
-    txData.changeMonitorChannel($(this).val());
-    //setPlantTable($(this).val());
-
-    location.href = '/main/' + $(this).val();
+    setPlantTable($(this).val());
   });
 
   $.contextMenu({
     selector: 'tr',
     callback: function(key, options) {
 
+      var index = $('tr').index(this);
+
       var userid = $(this).find("td").eq(6).text();
 
       var state;
 
       if (key == "stop") {
-        state = util.STOP_KOR;
+        state = STOP_KOR;
       } else if (key == "resume") {
-        state = util.NORMAL_KOR;
+        state = NORMAL_KOR;
       }
       
       $.ajax({
@@ -485,52 +487,42 @@ $(document).ready(function() {
         });
     },
     items: {
-                "stop": {name: util.STOP_KOR, icon: "edit"},
-                "resume": {name: util.NORMAL_KOR, icon: "cut"}
+                "stop": {name: STOP_KOR, icon: "edit"},
+                "resume": {name: "시작", icon: "cut"}
     }
   });
 });
 
-//발전소 목록 테이블 설정 함수. 1초 마다 호출
   function setPlantTable(area_id) {
     $.ajax ({
-      url: txData.makeGetPlantsUrl(host_ip, host_port),
-      method: 'GET',
-      dataType: 'json'
+      url: '/getAllPlants/',
+      method: 'GET'
     }).done(function(data) {
 
       var errorCount = 0;
       var allErrorCount = 0;
       var plantCount = 0;
 
-      var issuedToken = 0;
-      var tradingToken = 0;
-
       $('#plantTableBody').empty();
 
-      var dataJSON = JSON.parse(JSON.stringify(data));
+          for (var i = 0; i < data.length; i++) {
 
-      //console.log(dataJSON);
+              var transaction = data[i];
 
-          for (var i = 0; i < dataJSON.length; i++) {
-
-              var transaction = dataJSON[i];
-
-              //if (transaction.Record.area == area_id) {
-                if (true) {
+              if (transaction.area_id == area_id) {
 
                   $('#plantTableBody').append("<tr>" +
-                                            "<td>" + transaction.Record.name + " " +
-                                            "<td>" + util.makeCommaNumber(transaction.Record.power) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.Record.supplyPower) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.Record.tradeCoin) + "kwh</td>" +
-                                            "<td>" + util.makeCommaNumber(transaction.Record.coin) + "ETN</td>" + 
-                                            "<td class='plant-control'><a class='plant-state txt'>" + transaction.Record.state + "</a></td>" +
-                                            "<td class='userid' style='display:none;'>" + transaction.Key + "</td>" + 
+                                            "<td>" + transaction.name + " " +
+                                            "<td>" + util.makeCommaNumber(transaction.power) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.supply) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.trade) + "kwh</td>" +
+                                            "<td>" + util.makeCommaNumber(transaction.balance) + "ETN</td>" + 
+                                            "<td class='plant-control'><a class='plant-state txt'>" + transaction.state + "</a></td>" +
+                                            "<td class='userid' style='display:none;'>" + transaction.userid + "</td>" + 
                                             "</tr>"
-                  );
+                );
 
-                if (transaction.Record.state == util.STOP_KOR) {
+                if (transaction.state == STOP_KOR) {
                   $('.plant-state').eq(plantCount).css({'color': 'red', 'font-weight': 'bold'});
                   $('.plant-state').eq(plantCount).addClass('red');
                   errorCount++;
@@ -539,23 +531,17 @@ $(document).ready(function() {
 
                 plantCount++;
 
-              } else if (transaction.state == util.STOP_KOR) {
+              } else if (transaction.state == STOP_KOR) {
                 allErrorCount++;
               }
-
-              issuedToken += transaction.Record.createdCoin;
-              tradingToken += transaction.Record.tradeCoin;
                
         }
 
         $('#plantCount').text(plantCount);
         $('#errorPlantCount').text(errorCount);
 
-        $('#allPlantCount').text(dataJSON.length);
+        $('#allPlantCount').text(data.length);
         $('#allErrorPlantCount').text(allErrorCount);
-
-        $('#createdCoin').text(util.makeCommaNumber(issuedToken));
-        $('#usedCoin').text(util.makeCommaNumber(tradingToken));
     });
   }
 
@@ -567,6 +553,7 @@ $(document).ready(function() {
       
       var dataJSON = JSON.parse(data);
 
+      //$('#createdCoin').text(util.makeCommaNumber(dataJSON.createdCoin));
       $('#usedCoin').text(util.makeCommaNumber(dataJSON.usedCoin));
     });
   }
@@ -663,6 +650,7 @@ $(document).ready(function() {
   function animateBlock(count, startIndex, newBlockNum) {
     var j = 0;
     var left;
+    var tween;
     
     if (currentBlockNumber >= max_block_gif) {
 
@@ -673,7 +661,6 @@ $(document).ready(function() {
       
         KUTE.to('#block' + i, {left:left, opacity: 0}, {duration: 400}).start();
         $('#block' + i).addClass("deleteBlock");
-        $('#tooltip' + i).parent().addClass("deleteBlock");
         ++j;
       }
 

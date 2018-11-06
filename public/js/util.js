@@ -84,10 +84,8 @@ define([], function(){
     };
 
     var exports = {
-        STOP_KOR: '정지',
-        NORMAL_KOR: '정상',
-        RESTART_KOR: '복구',
         init: function() {
+
         },
         getRandomInt: function(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -123,20 +121,6 @@ define([], function(){
             } else {
                 return parseFloat(sum/array.length).toFixed(2);
             }
-        }, sleep: function(ms) {
-            ts1 = new Date().getTime() + ms;
-            do ts2 = new Date().getTime(); while (ts2<ts1);
-        }, getLocalUTCTime: function() {
-            var timestamp = new Date();
-            var timeUTC = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
-
-            return timeUTC;
-        }, getHostIp: function() {
-            var host_ip = location.host.split(":")[0];
-            return host_ip;
-        }, getHostPort: function() {
-            var host_port = location.host.split(":")[1];
-            return host_port;
         }
     };
     return exports;
