@@ -4,7 +4,6 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 	<title>Project</title>
-	<link rel="stylesheet" type="text/css" href="css/style.css" />
 	<link rel="stylesheet" type="text/css" href="css/tooltip.css" />
 	<link rel="stylesheet" href="css/gifplayer.css">
         <link rel="stylesheet" href="css/jquery.contextMenu.min.css">
@@ -20,57 +19,37 @@
 
 <body>
 	<div class="wrap">
-
-		<div class="header_area">
-			<div class="header_box">
-				<div class="lnb_area">
-					<h1>kt Energy Chain</h1>
-					<ul>
-						<li class="on"><a href="#">에너지 거래</a></li>
-						<li><a href="#">DR</a></li>
-						<li><a href="#">EV 충전</a></li>
-					</ul>
-				</div>
-				<div class="user_area">
-					<ul>
-						<li><a id="clockDate">2018. 07. 02 Mon</a></li>
-						<li><a id="clockTime">03:25:48</a></li>
-					</ul>
-					<div class="user_photo"><img src="img/img_profile.png" alt=""></div>
-				</div>
-			</div>
-		</div>
 		<div class="container">
 			<!--ContentHead-->
 			<div class="content_header">
 				<ul>
 					<li>
 						<p class="tit">Transactions</p>
-						<p class="txt red" id="transactionCount">1,200</p>
+						<p class="txt red" id="transactionCount">0</p>
 					</li>
 					<li>
 						<p class="tit">Issued Token</p>
-						<p class="txt" id="createdCoin">100,000</p>
+						<p class="txt" id="createdCoin">0</p>
 					</li>
 					<li>
 						<p class="tit">Trading Token</p>
-						<p class="txt blue" id="usedCoin">200,000</p>
+						<p class="txt blue" id="usedCoin">0</p>
 					</li>
 					<li>
 						<p class="tit">Blocks</p>
-						<p class="txt" id="currentBlockNumber">9</p>
+						<p class="txt" id="currentBlockNumber">0</p>
 					</li>
 					<li>
 						<p class="tit">Regions</p>
-						<p class="txt" id="regions">4</p>
+						<p class="txt" id="regions">0</p>
 					</li>
 					<li>
 						<p class="tit">Nodes</p>
-						<p class="txt" id="allPlantCount">20</p>
+						<p class="txt" id="allPlantCount">0</p>
 					</li>
 					<li>
 						<p class="tit red">Errors</p>
-						<p class="txt red" id="allErrorPlantCount">1</p>
+						<p class="txt red" id="allErrorPlantCount">0</p>
 					</li>
 				</ul>
 			</div>
@@ -82,8 +61,8 @@
 						<div class="box_tit">Transactions</div>
 						<div class="dash_info">
 							<ul class="line">
-								<li>평균 <a id="averageTransaction">1,500</a> TPS</li>
-								<li>최고 <a id="maxTransaction">4,500</a> TPS</li>
+								<li>평균 <a id="averageTransaction">0</a> TPS</li>
+								<li>최고 <a id="maxTransaction">0</a> TPS</li>
 							</ul>
 						</div>
 					</div>
@@ -215,6 +194,7 @@
 	</div>
 
 	<div id="showBlockPopup">'쇼'님의 거래 내역이 블록에 저장되었습니다.</div>
+	<h1 id="monitorChannelName" style="display: none"><%= monitorChannelName %></h1>
 
 	<script type="text/javascript" data-main="js/charts.js" src="js/require.js"></script>
 

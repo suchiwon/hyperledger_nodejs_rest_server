@@ -155,7 +155,8 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 	} else {
 		let message = util.format('Failed to join all peers to channel. cause:%s',error_message);
 		logger.error(message);
-		throw new Error(message);
+		return error_message;
+		//throw new Error(message);
 	}
 };
 exports.joinChannel = joinChannel;

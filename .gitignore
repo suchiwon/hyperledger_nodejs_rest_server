@@ -3,3 +3,5 @@ package-lock.json
 *.jmx
 fabric-client-kv-*
 node_modules
+artifacts/channel_origin
+artifacts/channel

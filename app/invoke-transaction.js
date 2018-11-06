@@ -21,7 +21,7 @@ var hfc = require('fabric-client');
 var helper = require('./helper.js');
 var logger = helper.getLogger('invoke-chaincode');
 
-var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name, txData, mongodb) {
+var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name, txData, mongodb, utilJS) {
 	logger.debug(util.format('\n============ invoke transaction on channel %s ============\n', channelName));
 	var error_message = null;
 	var tx_id_string = null;
@@ -72,7 +72,9 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 				one_good = true;
 				logger.info('invoke chaincode proposal was good');
 			} else {
+				logger.error('invoke error response:' + proposalResponses[i].response.message);
 				logger.error('invoke chaincode proposal was bad');
+				error_message = proposalResponses[i].response.message;
 			}
 			all_good = all_good & one_good;
 		}
@@ -94,7 +96,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 						let message = 'REQUEST_TIMEOUT:' + eh.getPeerAddr();
 						logger.error(message);
 						eh.disconnect();
-					}, 3000);
+					}, 60000);
 					eh.registerTxEvent(tx_id_string, (tx, code, block_num) => {
 						logger.info('The chaincode invoke chaincode transaction has been committed on peer %s',eh.getPeerAddr());
 						logger.info('Transaction %s has status of %s in block %s', tx, code, block_num);
@@ -158,7 +160,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 				}
 			}
 		} else {
-			error_message = util.format('Failed to send Proposal and receive all good ProposalResponse');
+			//error_message = util.format('Failed to send Proposal and receive all good ProposalResponse');
 			logger.debug(error_message);
 		}
 	} catch (error) {
@@ -173,14 +175,18 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		logger.info(message);
 
 		//transaction count increase for txPerSec monitor
-		txData.set(channelName, txData.get(channelName) + 1);
+		txData.addTransactionCount(channelName, block_num_save);
 
-		txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args, block_num_save);
+		//txData.executeInvokeTransaction(chaincodeName, fcn, mongodb, args, block_num_save);
+
+		var timestamp = utilJS.getLocalUTCTime();
+
+		mongodb.insertPowerTransaction(tx_id_string, channelName, parseInt(block_num_save), chaincodeName, timestamp, fcn, args);
 
 		//get current block number
-		txData.catchBlockCreate(parseInt(block_num_save) + 1);
+		txData.catchBlockCreate(channelName, parseInt(block_num_save) + 1);
 
-		mongodb.insertPowerTransaction(tx_id_string, block_num_save, fcn, args);
+		txData.checkTradeCoin(fcn, args);
 
 		var invoke_response = {
 			"transaction_id": tx_id_string,
@@ -192,7 +198,8 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 	} else {
 		let message = util.format('Failed to invoke chaincode. cause:%s',error_message);
 		logger.error(message);
-		throw new Error(message);
+
+		return new Error(message);
 	}
 };
 
