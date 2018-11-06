@@ -29,6 +29,11 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 
 	console.log(args);
 
+	for (var i in args) {
+		args[i] = args[i].replace(/'/g, '"');
+		logger.info(args[i]);
+	}
+
 	try {
 		// first setup the client for this org
 		var client = await helper.getClientForOrg(org_name, username);

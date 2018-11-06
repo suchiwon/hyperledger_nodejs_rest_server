@@ -62,7 +62,7 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 			"chaincodeVersion": chaincodeVersion,
 			"args": args,
 			"txId": tx_id,
-			"endorsement-policy": policy
+			//"endorsement-policy": policy
 		};
 
 		if (functionName)

@@ -20,12 +20,45 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"bytes"
+	"encoding/json"
+	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
 var logger = shim.NewLogger("example_cc0")
+
+//Const 상수 선언부
+const (
+	MONTHLY = iota
+	RENT
+	TRADE
+) //CONTRACT_CLASS: 계약 타입 분류
+
+type Contract struct {
+	ObjectType string 	`json:"docType"`
+	Val int				`json:"val"`
+}
+
+type MonthlyContract struct {
+	Contract
+	MonthlyPayment int	`json:"monthlyPayment"`
+}
+
+type RentContract struct {
+	Contract
+	RentStartDate time.Time	`json:"rentStartDate"`
+	RentEndDate time.Time	`json:"rentEndDate"`
+}
+
+type OtherContract struct {
+	ObjectType string 		`json:"docType"`
+	Val int					`json:"val"`
+	RentStartDate string	`json:"rentStartDate"`
+	RentEndDate string		`json:"rentEndDate"`
+}
 
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
@@ -63,6 +96,20 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response  {
 		return shim.Error(err.Error())
 	}
 
+	contract := &OtherContract{"contract", 3, "2018-10-14", "2018-11-03"}
+
+	contractBytes, err := json.Marshal(contract)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = stub.PutState("tester0", contractBytes)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
 	return shim.Success(nil)
 
 
@@ -86,6 +133,22 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	if function == "move" {
 		// Deletes an entity from its state
 		return t.move(stub, args)
+	}
+
+	if function == "registContract" {
+		return t.registContract(stub, args)
+	}
+
+	if function == "getContractList" {
+		return t.getContractList(stub, args)
+	}
+
+	if function == "registContractJSON" {
+		return t.registContractJSON(stub, args)
+	}
+
+	if function == "changeContractValues" {
+		return t.changeContractValues(stub, args)
 	}
 
 	logger.Errorf("Unknown action, check the first argument, must be one of 'delete', 'query', or 'move'. But got: %v", args[0])
@@ -198,6 +261,161 @@ func (t *SimpleChaincode) query(stub shim.ChaincodeStubInterface, args []string)
 	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
 	logger.Infof("Query Response:%s\n", jsonResp)
 	return shim.Success(Avalbytes)
+}
+
+func (t *SimpleChaincode) registContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	var contractClass int
+	var key string
+	var objectType string
+	var err error
+	var contractBytes []byte
+
+	key = args[0]
+	contractClass, _ = strconv.Atoi(args[1])
+
+	if contractClass == MONTHLY {
+		objectType = "Contract"
+		payment, _ := strconv.Atoi(args[2])
+		contract := &MonthlyContract{Contract{objectType, contractClass}, payment}
+		contractBytes, err = json.Marshal(contract)
+
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+	} else if contractClass == RENT {
+		objectType = "Contract"
+		startDate, _ := time.Parse("2018-10-14", args[2])
+		endDate, _ := time.Parse("2018-10-14", args[3])
+		contract := &RentContract{Contract{objectType, contractClass}, startDate, endDate}
+
+		contractBytes, err = json.Marshal(contract)
+
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+	} else {
+		objectType = "Contract"
+		startDate := args[2]
+		endDate := args[3]
+		contract := &OtherContract{objectType, contractClass, startDate, endDate}
+		contractBytes, err = json.Marshal(contract)
+		
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+	}
+
+	err = stub.PutState(key, contractBytes)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success(contractBytes)
+}
+
+func (t *SimpleChaincode) registContractJSON(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	key := args[0]
+	JSONBytes := args[1]
+	var err error
+
+	err = stub.PutState(key, []byte(JSONBytes))
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success([]byte(JSONBytes))
+}
+
+func (t *SimpleChaincode) changeContractValues(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	key := args[0]
+	val, _ := strconv.Atoi(args[1])
+	rentStartDate := args[2]
+	rentEndDate := args[3]
+	var err error
+
+	contractBytes, err := stub.GetState(key)
+
+	if err != nil {
+		return shim.Error("Failed to get contract:" + err.Error())
+	} else if contractBytes == nil {
+		return shim.Error("contract does not exist")
+	}
+
+	contract := OtherContract{}
+
+	err = json.Unmarshal(contractBytes, &contract) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	contract.Val += val
+	contract.RentStartDate = rentStartDate
+	contract.RentEndDate = rentEndDate
+
+	contractBytes, err = json.Marshal(contract)
+	err = stub.PutState(key, contractBytes) //rewrite the marble
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success([]byte(contractBytes))
+}
+
+func (t *SimpleChaincode) getContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	queryString := "{\"selector\": {\"docType\":\"Contract\"}}"
+
+	queryResults, err := getQueryResultForQueryString(stub, queryString)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(queryResults)
+}
+
+func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString string) ([]byte, error) {
+
+	fmt.Printf("- getQueryResultForQueryString queryString:\n%s\n", queryString)
+
+	resultsIterator, err := stub.GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	// buffer is a JSON array containing QueryRecords
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+
+	bArrayMemberAlreadyWritten := false
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString("{\"Key\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(queryResponse.Key)
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"Record\":")
+		// Record is a JSON object, so we write as-is
+		buffer.WriteString(string(queryResponse.Value))
+		buffer.WriteString("}")
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+
+	fmt.Printf("- getQueryResultForQueryString queryResult:\n%s\n", buffer.String())
+
+	return buffer.Bytes(), nil
 }
 
 func main() {

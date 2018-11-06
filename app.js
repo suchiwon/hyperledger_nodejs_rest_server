@@ -387,6 +387,8 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 	}
 
 	args = args.replace(/'/g, '"');
+	args = args.replace(/!/g, "'");
+	logger.debug(args);
 	args = JSON.parse(args);
 	logger.debug(args);
 
@@ -823,4 +825,34 @@ app.get('/main/:channelName', async function(req, res) {
  app.get('/samplePublish', function(req, res) {
 	scenario.samplePublish();
  });
- 
+
+ //////////////////////////////////부동산 계약 관련 API
+
+ var contractStruct = requirejs('./public/estate/contractStruct.js');
+ contractStruct.init();
+
+ app.post('/estate/invoke/createContract', async function(req, res) {
+
+	var args = [];
+
+	args.push(req.body.saleKey);
+
+	var contractBody = contractStruct.makeContractJSON(req.body.contract);
+
+	if (contractBody == null) {
+		res.send("createContract error");
+	}
+	args.push(contractBody);
+
+	var peers = ["peer0.org2.example.com","peer1.org2.example.com"];
+	var channelName = "estatechannel";
+	var chaincodeName = "estate";
+	var fcn = "createContractJSON";
+
+	let message;
+
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+
+	logger.debug(message);
+	res.send(message);
+ });
