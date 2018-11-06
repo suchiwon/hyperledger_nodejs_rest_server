@@ -192,6 +192,8 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.getContractList(stub, args)
 	} else if fn == "getContractListByKeyArray" {
 		return cc.getContractListByKeyArray(stub, args)
+	} else if fn == "changeState" {
+		return cc.changeState(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + fn) //error
@@ -327,4 +329,63 @@ func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString 
 	fmt.Printf("- getQueryResultForQueryString queryResult:\n%s\n", buffer.String())
 
 	return buffer.Bytes(), nil
+}
+
+// cc = 이 class가 EstateChaincode의 mathod가 된다.(이 class가 EstateChaincode에 들어간다. 현재 EstateChaincode는 빈 struct)
+func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	// args: 첫번째가 Key, 두번째가 state
+	if len(args) < 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	// key는 key로, coin은 state로
+	// _state는 변경할(바꿔 주어야 하는) state를 의미한다.
+	key := args[0]
+	_state := args[1]
+	var err error
+	var tmp int
+	var state int
+	
+	// 바꿀 state를 tmp에 저장한다.
+	tmp, err = strconv.Atoi(_state)
+
+	// argument가(state) 없을 경우 error 처리
+	if err != nil {
+		return shim.Error("Incorrect argument for state")
+	}
+
+	// 제대로 받았기 때문에 tmp 값을 state에 대입
+	state = int(tmp)
+
+	// key 값의 world state를 받아 stateAsBytes에 대입
+	stateAsBytes, err := stub.GetState(key)
+
+	// error 처리
+	if err != nil {
+		// state를 못 받아올 경우
+		return shim.Error("Failed to get state:" + err.Error())
+	} else if contractAsBytes == nil {
+		// Contract가 없을 경우(key값으로 못 찾음)
+		return shim.Error("Contract does not exist")
+	}
+
+	// temp contract(바꿔야 하는 contract)
+	stateToTransfer := Contract{}
+
+	err = json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// ContractState
+	stateToTransfer.state = state //change the state
+
+	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
+	err = stub.PutState(name, stateJSONasBytes) //rewrite the marble
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end Contract State Change (success)")
+	return shim.Success(nil)
 }
