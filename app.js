@@ -860,3 +860,139 @@ app.get('/main/:channelName', async function(req, res) {
 	logger.debug(message);
 	res.send(message);
  });
+
+
+
+  ////////////////////////////////// 계약 state Flag 변경 API
+  ////////////////////////////////// Created by Jiyoung Park(2018.11.06)
+  /***********		계약 서명: state를 WAIT_PAYFEE로 변경		**********/
+  // contractStruct.js를 base로 한다.
+  app.post('/estate/invoke/signContract', async function(req, res) {
+ 
+	 var args = [];
+	 // 첫 번째 argument에 push(args[0])
+	 // args[0] == contractKey가 된다.
+	 args.push(req.body.contractKey);
+	 
+	 var state = contractStruct.CONTRACT_STATE.WAIT_PAYFEE.value;
+	 args.push(state);
+	 
+	 // chaincode에 넘겨줘야 하는 기본 data
+	 var peers = contractStruct.PEERS;
+	 var channelName = contractStruct.CHANNEL_NAME;
+	 var chaincodeName = contractStruct.CHAINCODE_NAME;
+	 var fcn = "changeState";
+ 
+	 console.log(state);
+ 
+	 let message;
+ 
+	 message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+ 
+	 logger.debug(message);
+	 res.send(message);
+  });
+ 
+  /***********		계약 서명 거절: state를 REJECT_SIGN으로 변경		**********/
+  app.post('/estate/invoke/rejectSignContract', async function(req, res) {
+ 
+	var args = [];
+	// 첫 번째 argument에 push(args[0])
+	// args[0] == contractKey가 된다.
+	args.push(req.body.contractKey);
+	
+	var state = contractStruct.CONTRACT_STATE.REJECT_SIGN.value;
+	args.push(state);
+
+	var peers = contractStruct.PEERS;
+	var channelName = contractStruct.CHANNEL_NAME;
+	var chaincodeName = contractStruct.CHAINCODE_NAME;
+	var fcn = "changeState";
+
+	console.log(state);
+
+	let message;
+
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+
+	logger.debug(message);
+	res.send(message);
+ });
+
+   /***********		임차인 수수료 지불: state를 WAIT_DEPOSIT으로 변경		**********/
+   app.post('/estate/invoke/lesseePayFees', async function(req, res) {
+ 
+	var args = [];
+	// 첫 번째 argument에 push(args[0])
+	// args[0] == contractKey가 된다.
+	args.push(req.body.contractKey);
+	
+	var state = contractStruct.CONTRACT_STATE.WAIT_DEPOSIT.value;
+	args.push(state);
+
+	var peers = contractStruct.PEERS;
+	var channelName = contractStruct.CHANNEL_NAME;
+	var chaincodeName = contractStruct.CHAINCODE_NAME;
+	var fcn = "changeState";
+
+	console.log(state);
+
+	let message;
+
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+
+	logger.debug(message);
+	res.send(message);
+ });
+
+    /***********		계약금 지불 기한 만료로 인한 계약 파기: state를 EXPIRE_DEPOSIT으로 변경		**********/
+	app.post('/estate/invoke/destructContract', async function(req, res) {
+ 
+		var args = [];
+		// 첫 번째 argument에 push(args[0])
+		// args[0] == contractKey가 된다.
+		args.push(req.body.contractKey);
+		
+		var state = contractStruct.CONTRACT_STATE.EXPIRE_DEPOSIT.value;
+		args.push(state);
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "changeState";
+	
+		console.log(state);
+	
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
+
+    /***********		취소된 계약 완료함으로 이동: state를 CANCEL_COMPLETE으로 변경		**********/
+	app.post('/estate/invoke/destructContract', async function(req, res) {
+ 
+		var args = [];
+		// 첫 번째 argument에 push(args[0])
+		// args[0] == contractKey가 된다.
+		args.push(req.body.contractKey);
+		
+		var state = contractStruct.CONTRACT_STATE.CANCEL_COMPLETE.value;
+		args.push(state);
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "changeState";
+	
+		console.log(state);
+	
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
