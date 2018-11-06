@@ -844,10 +844,14 @@ app.get('/main/:channelName', async function(req, res) {
 	}
 	args.push(contractBody);
 
-	var peers = ["peer0.org2.example.com","peer1.org2.example.com"];
-	var channelName = "estatechannel";
-	var chaincodeName = "estate";
+	var peers = contractStruct.PEERS;
+	var channelName = contractStruct.CHANNEL_NAME;
+	var chaincodeName = contractStruct.CHAINCODE_NAME;
 	var fcn = "createContractJSON";
+
+	var state = contractStruct.CONTRACT_STATE.WAIT_SIGN.value;
+
+	console.log(state);
 
 	let message;
 

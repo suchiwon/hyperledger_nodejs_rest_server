@@ -9,7 +9,7 @@ define(["enum", "moment"], function(Enum, moment) {
     const CONTRACT_STATE = new Enum({
         WAIT_SIGN: 0,
         REQUEST_MODIFY: 1,
-        WAIT_PAYPEE: 2,
+        WAIT_PAYFEE: 2,
         WAIT_DEPOSIT: 3,
         REJECT_MODIFY: 4,
         REJECT_SIGN: 5,
@@ -225,6 +225,10 @@ define(["enum", "moment"], function(Enum, moment) {
     }
     
     var exports = {
+        CHANNEL_NAME: 'estatechannel',
+        PEERS: ["peer0.org2.example.com","peer1.org2.example.com"],
+        CHAINCODE_NAME: "estate",
+        CONTRACT_STATE: CONTRACT_STATE,
         init: function() {
 
         },
