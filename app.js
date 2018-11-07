@@ -884,6 +884,25 @@ app.get('/main/:channelName', async function(req, res) {
 	res.send(message);
  });
 
+ app.post('/estate/invoke/contractModify', async function(req, res) {
+
+	var args = [];
+
+	args.push(req.body.contractKey);
+
+	var peers = contractStruct.PEERS;
+	var channelName = contractStruct.CHANNEL_NAME;
+	var chaincodeName = contractStruct.CHAINCODE_NAME;
+	var fcn = "contractModify";
+
+	let message;
+
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+	logger.debug(message);
+	res.send(message);
+ });
+
 
 
   ////////////////////////////////// 계약 state Flag 변경 API

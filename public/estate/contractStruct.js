@@ -398,7 +398,7 @@ define(["enum", "moment", "../code/response.js"], function(Enum, moment, respons
                 var json = {
                     'docType': 'ModifyContract',
                     'modifyDate': Date.now().toString(),
-                    'modifyUser': userKey,
+                    'modifyUserKey': userKey,
                     'salePrice': salePrice,
                     'deposit': deposit,
                     'depositDate': depositDate,
