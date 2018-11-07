@@ -286,6 +286,7 @@ define(["enum", "moment", "../code/response.js"], function(Enum, moment, respons
     var exports = {
         CHANNEL_NAME: 'estatechannel',
         PEERS: ["peer0.org2.example.com","peer1.org2.example.com"],
+        PEER: "peer0.org2.example.com",
         CHAINCODE_NAME: "estate",
         CONTRACT_FLAG: CONTRACT_FLAG,
         init: function() {

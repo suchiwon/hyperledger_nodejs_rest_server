@@ -26,6 +26,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 	var error_message = null;
 	var tx_id_string = null;
 	var block_num_save = null;
+	var result_code;
 
 	console.log(args);
 
@@ -41,6 +42,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		var channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
+			result_code = responseCode.ERROR_CODE.WAS_NO_CHANNEL.value;
 			logger.error(message);
 			throw new Error(message);
 		}
@@ -80,6 +82,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 				logger.error('invoke error response:' + proposalResponses[i].response.message);
 				logger.error('invoke chaincode proposal was bad');
 				error_message = proposalResponses[i].response.message;
+				result_code = responseCode.ERROR_CODE.WAS_BAD_PROPOSAL.value;
 			}
 			all_good = all_good & one_good;
 		}
@@ -99,6 +102,8 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 				let invokeEventPromise = new Promise((resolve, reject) => {
 					let event_timeout = setTimeout(() => {
 						let message = 'REQUEST_TIMEOUT:' + eh.getPeerAddr();
+						error_message = message;
+						result_code = responseCode.ERROR_CODE.WAS_REQUEST_TIMEOUT.value;
 						logger.error(message);
 						eh.disconnect();
 					}, 60000);
@@ -193,10 +198,14 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 
 		txData.checkTradeCoin(fcn, args);
 
+		/*
 		var invoke_response = {
 			"transaction_id": tx_id_string,
 			"response": proposalResponses[0].response.payload.toString('utf8')
 		}
+		*/
+
+		var invoke_response = responseCode.makeSuccessContractResponse(tx_id_string, proposalResponses[0].response.payload.toString('utf8'));
 
 		//return tx_id_string;
 		return JSON.stringify(invoke_response);
@@ -204,7 +213,9 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		let message = util.format('Failed to invoke chaincode. cause:%s',error_message);
 		logger.error(message);
 
-		return new Error(message);
+		var error_response = responseCode.makeFailureContractResponse(result_code, message);
+
+		return new Error(error_response);
 	}
 };
 

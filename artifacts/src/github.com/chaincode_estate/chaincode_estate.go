@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	_ "time"
+	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
@@ -197,7 +197,7 @@ func (cc *EstateChaincode) createContractJSON(stub shim.ChaincodeStubInterface, 
 
 	fmt.Println("- end regist contract")
 
-	return shim.Success(contractBytes)
+	return shim.Success([]byte(key))
 }
 
 func (cc *EstateChaincode) getContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -215,7 +215,7 @@ func (cc *EstateChaincode) getContractListByKeyArray(stub shim.ChaincodeStubInte
 
 	userKey := args[0]
 
-	queryString := "{\"selector\": {\"landLordKeyArray\":\"" + userKey + "\"}}"
+	queryString := "{\"selector\": {\"$or\": [{\"landLordKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}},{\"lesseeKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}}]}}"
 
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
@@ -353,6 +353,10 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 		stateToTransfer.ContractFlag = WAIT_PAYFEE
 	}
 
+	t := time.Now()
+
+	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
+
 	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
 	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
 	if err != nil {
@@ -360,7 +364,7 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 	}
 
 	fmt.Println("- end Contract Sign (success)")
-	return shim.Success(nil)
+	return shim.Success([]byte(contractKey))
 }
 
 func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -411,6 +415,10 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 	// ContractState
 	stateToTransfer.ContractFlag = state //change the state
 
+	t := time.Now()
+
+	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
+
 	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
 	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
 	if err != nil {
@@ -418,5 +426,5 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 	}
 
 	fmt.Println("- end Contract State Change (success)")
-	return shim.Success(nil)
+	return shim.Success([]byte(contractKey))
 }

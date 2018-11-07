@@ -850,9 +850,31 @@ app.get('/main/:channelName', async function(req, res) {
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
 	var fcn = "createContractJSON";
 
-	var state = contractStruct.CONTRACT_FLAG.WAIT_SIGN.value;
+	let message;
 
-	console.log(state);
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+	logger.debug(message);
+	res.send(message);
+ });
+
+ app.post('/estate/invoke/requestContractModify', async function(req, res) {
+
+	var args = [];
+
+	args.push(req.body.contractKey);
+
+	var modifyContractBody = contractStruct.makeContractJSON(req.body.contract);
+
+	if (!isNaN(modifyContractBody)) {
+		res.send(responseCode.makeFailureContractResponse(modifyContractBody, "requestContractModify error"));
+	}
+	args.push(modifyContractBody);
+
+	var peers = contractStruct.PEERS;
+	var channelName = contractStruct.CHANNEL_NAME;
+	var chaincodeName = contractStruct.CHAINCODE_NAME;
+	var fcn = "createContractModify";
 
 	let message;
 
@@ -997,6 +1019,24 @@ app.get('/main/:channelName', async function(req, res) {
 	
 		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 	
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getContractList', async function(req, res) {
+ 
+		var args = [];
+		// 첫 번째 argument에 push(args[0])
+		// args[0] == contractKey가 된다.
+		args.push(req.params.userKey);
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContractListByKeyArray";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname);
+
 		logger.debug(message);
 		res.send(message);
 	 });
