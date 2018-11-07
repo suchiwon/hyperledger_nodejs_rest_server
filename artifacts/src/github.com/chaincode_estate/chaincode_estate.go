@@ -78,24 +78,7 @@ var LOAN_PROCESSING_METHOD = [...]string{
 type EstateChaincode struct {
 }
 
-type Contract struct {
-	ContractClass int		`json:"contractClass"`
-	ContractFlag int		`json:"contractFlag"`
-	ContractDate string 	`json:"contractDate"`
-	UpdatedAt string		`json:"updatedAt"`
-	ContractHash string		`json:"contractHash"`
-	LandLordKeyArray []string	`json:"landLordKeyArray"`
-	LandLordSignArray []bool	`json:"landLordSignArray"`
-	LesseeKeyArray []string		`json:"lesseeKeyArray"`
-	LesseeSignArray []bool		`json:"lesseeSignArray"`
-	UserKey string			`json:"userKey"`
-	CancelReason string		`json:"cancelReason"`
-	Address string			`json:"address"`
-	Landmark string			`json:"landmark"`
-	LandArea uint64			`json:"landArea"`
-	BuildingStructure string	`json:"buildingStructure"`
-	BuildingPurpose string		`json:"buildingPurpose"`
-	BuildingArea uint64			`json:"buildingArea"`
+type ModifyContract struct {
 	SalePrice uint64			`json:"salePrice"`
 	Deposit uint64				`json:"deposit"`
 	DepositDate string			`json:"depositDate"`
@@ -116,6 +99,27 @@ type Contract struct {
 	MonthlyPaymentWay int		`json:"monthlyPaymentWay"`
 	SpecialAgreement []string	`json:"specialAgreement"`
 	ObjectType 	string 	`json:"docType"`
+}
+
+type Contract struct {
+	ContractClass int		`json:"contractClass"`
+	ContractFlag int		`json:"contractFlag"`
+	ContractDate string 	`json:"contractDate"`
+	UpdatedAt string		`json:"updatedAt"`
+	ContractHash string		`json:"contractHash"`
+	LandLordKeyArray []string	`json:"landLordKeyArray"`
+	LandLordSignArray []bool	`json:"landLordSignArray"`
+	LesseeKeyArray []string		`json:"lesseeKeyArray"`
+	LesseeSignArray []bool		`json:"lesseeSignArray"`
+	UserKey string			`json:"userKey"`
+	CancelReason string		`json:"cancelReason"`
+	Address string			`json:"address"`
+	Landmark string			`json:"landmark"`
+	LandArea uint64			`json:"landArea"`
+	BuildingStructure string	`json:"buildingStructure"`
+	BuildingPurpose string		`json:"buildingPurpose"`
+	BuildingArea uint64			`json:"buildingArea"`
+	ModifyContract
 }
 
 func parseArray(arg string) []string {
@@ -196,6 +200,57 @@ func (cc *EstateChaincode) createContractJSON(stub shim.ChaincodeStubInterface, 
 	}
 
 	fmt.Println("- end regist contract")
+
+	return shim.Success([]byte(key))
+}
+
+func (cc *EstateChaincode) createContractModify(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	key := args[0]
+	modifyKey := key + "_M"
+	var err error
+
+	contractBytes, err := stub.GetState(key)
+
+	if err != nil {
+		return shim.Error("Failed to get contract: " + err.Error())
+	}
+
+	// temp contract(바꿔야 하는 contract)
+	stateToTransfer := Contract{}
+
+	err = json.Unmarshal(contractBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	stateToTransfer.ContractState = REQUEST_MODIFY
+
+	t := time.Now()
+
+	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
+
+	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
+
+	err = stub.PutState(key, stateJSONasBytes)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	contractModifyBytes := []byte(args[1])
+
+	err = stub.PutState(modifyKey, contractModifyBytes)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end regist contract modify")
 
 	return shim.Success([]byte(key))
 }
@@ -333,8 +388,6 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 
 	// 위의 조건에서 userKey 검출 못 했을 때에만 아래 반복문 실행
 	if !flag {
-		// count를 0으로 재설정
-		count = 0;
 		for i := 0; i < len(stateToTransfer.LesseeKeyArray) && !flag; i++ {
 
 			if stateToTransfer.LesseeKeyArray[i] != userKey {

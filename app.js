@@ -864,7 +864,7 @@ app.get('/main/:channelName', async function(req, res) {
 
 	args.push(req.body.contractKey);
 
-	var modifyContractBody = contractStruct.makeContractJSON(req.body.contract);
+	var modifyContractBody = contractStruct.makeModifyContractJSON(req.body.contract);
 
 	if (!isNaN(modifyContractBody)) {
 		res.send(responseCode.makeFailureContractResponse(modifyContractBody, "requestContractModify error"));
@@ -1023,7 +1023,7 @@ app.get('/main/:channelName', async function(req, res) {
 		res.send(message);
 	 });
 
-	 app.get('/estate/query/getContractList', async function(req, res) {
+	 app.get('/estate/query/getContractList/:userKey', async function(req, res) {
  
 		var args = [];
 		// 첫 번째 argument에 push(args[0])
@@ -1035,7 +1035,9 @@ app.get('/main/:channelName', async function(req, res) {
 		var chaincodeName = contractStruct.CHAINCODE_NAME;
 		var fcn = "getContractListByKeyArray";
 	
-		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname);
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+
 
 		logger.debug(message);
 		res.send(message);

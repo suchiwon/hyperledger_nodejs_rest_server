@@ -512,9 +512,9 @@ $(document).ready(function() {
 
       //console.log(dataJSON);
 
-          for (var i = 0; i < dataJSON.length; i++) {
+          for (var i = 0; i < dataJSON.record.length; i++) {
 
-              var transaction = dataJSON[i];
+              var transaction = dataJSON.record[i];
 
               //if (transaction.Record.area == area_id) {
                 if (true) {

@@ -51,6 +51,14 @@ define(["enum"], function(Enum){
             }
 
             return json;
+        },
+        makeSuccessQueryResponse: function(record) {
+            var json = {
+                "result": "success",
+                "record": record
+            }
+
+            return json;
         }
     };
 

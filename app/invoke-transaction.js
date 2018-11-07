@@ -215,7 +215,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 
 		var error_response = responseCode.makeFailureContractResponse(result_code, message);
 
-		return new Error(error_response);
+		return JSON.stringify(error_response);
 	}
 };
 

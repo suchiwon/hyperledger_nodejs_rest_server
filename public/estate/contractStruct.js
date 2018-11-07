@@ -92,8 +92,6 @@ define(["enum", "moment", "../code/response.js"], function(Enum, moment, respons
     function initContract(request) {
         var doc = request;
 
-            console.log(doc);
-
             contractClass = doc.contractClass;
 
             if (!CONTRACT_CLASS.isDefined(contractClass)) {
@@ -149,138 +147,144 @@ define(["enum", "moment", "../code/response.js"], function(Enum, moment, respons
                 console.log("bulidingArea must have positive number:" + buildingArea);
                 return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
             }
+            
+            return initModifyContract(request);
+    }
 
-            salePrice = isPositiveNumber(doc.salePrice);
+    function initModifyContract(request) {
+        var doc = request;
 
-            if (salePrice == FALSE) {
-                console.log("salePrice must have positive number:" + salePrice);
+        salePrice = isPositiveNumber(doc.salePrice);
+
+        if (salePrice == FALSE) {
+            console.log("salePrice must have positive number:" + salePrice);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        deposit = isPositiveNumber(doc.deposit);
+
+        if (deposit == FALSE) {
+            console.log("deposit must have positive number:" + deposit);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (checkDateFormat(doc.depositDate)) {
+             depositDate = doc.depositDate;
+        } else {
+            console.log("depositDate date format is YYYY-MM-DD:" + doc.depositDate);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        downPayment = isPositiveNumber(doc.downPayment);
+
+        if (downPayment == FALSE) {
+            console.log("downPayment must have positive number:" + downPayment);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (checkDateFormat(doc.downPaymentDate)) {
+            downPaymentDate = doc.downPaymentDate;
+        } else {
+            console.log("downPaymentDate date format is YYYY-MM-DD:" + doc.downPaymentDate);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+         middlePayment1 = isPositiveNumber(doc.middlePayment1);
+
+        if (middlePayment1 == FALSE) {
+            console.log("middlePayment1 must have positive number:" + middlePayment1);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (checkDateFormat(doc.middlePaymentDate1)) {
+            middlePaymentDate1 = doc.middlePaymentDate1;
+        } else {
+            console.log("middlePaymentDate1 date format is YYYY-MM-DD:" + doc.middlePaymentDate1);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        middlePayment2 = isPositiveNumber(doc.middlePayment2);
+
+        if (middlePayment2 == FALSE) {
+            console.log("middlePayment2 must have positive number:" + middlePayment2);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (checkDateFormat(doc.middlePaymentDate2)) {
+            middlePaymentDate2 = doc.middlePaymentDate2;
+        } else {
+            console.log("middlePaymentDate2 date format is YYYY-MM-DD:" + doc.middlePaymentDate2);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        balancePayment = isPositiveNumber(doc.balancePayment);
+
+        if (balancePayment == FALSE) {
+            console.log("balancePayment must have positive number:" + balancePayment);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (checkDateFormat(doc.balancePaymentDate)) {
+            balancePaymentDate = doc.balancePaymentDate;
+        } else {
+            console.log("balancePaymentDate date format is YYYY-MM-DD:" + doc.balancePaymentDate);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        loan = isPositiveNumber(doc.loan);
+
+        if (loan == FALSE) {
+            console.log("loan must have positive number:" + loan);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        loanProcessingMethod = doc.loanProcessingMethod;
+
+        if (!LOAN_PROCESSING_METHOD.isDefined(loanProcessingMethod)) {
+            console.log("monthlyPaymentWay error:" + monthlyPaymentWay);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (checkDateFormat(doc.rentStartDate)) {
+            rentStartDate = doc.rentStartDate;
+        } else {
+            console.log("rentStartDate date format is YYYY-MM-DD:" + doc.rentStartDate);
+            return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (checkDateFormat(doc.rentEndDate)) {
+            rentEndDate = doc.rentEndDate;
+        } else {
+            console.log("rentEndDate date format is YYYY-MM-DD:" + doc.rentEndDate);
+            return FresponseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
+        }
+
+        if (contractClass == CONTRACT_CLASS.MONTHLY) {
+            monthlyPayment = isPositiveNumber(doc.monthlyPayment);
+
+            if (monthlyPayment == FALSE) {
+                console.log("monthlyPayment must have positive number:" + monthlyPayment);
                 return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
             }
 
-            deposit = isPositiveNumber(doc.deposit);
+            monthlyPaymentDay = isPositiveNumber(doc.monthlyPayment);
 
-            if (deposit == FALSE) {
-                console.log("deposit must have positive number:" + deposit);
+            if (monthlyPaymentDay == FALSE || monthlyPaymentDay < 1 || monthlyPaymentDay > 31) {
+                console.log("monthlyPaymentDay must have positive number between 1 ~ 31:" + monthlyPaymentDay);
                 return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
             }
 
-            if (checkDateFormat(doc.depositDate)) {
-                depositDate = doc.depositDate;
-            } else {
-                console.log("depositDate date format is YYYY-MM-DD:" + doc.depositDate);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
+            monthlyPaymentWay = doc.monthlyPaymentWay;
 
-            downPayment = isPositiveNumber(doc.downPayment);
-
-            if (downPayment == FALSE) {
-                console.log("downPayment must have positive number:" + downPayment);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            if (checkDateFormat(doc.downPaymentDate)) {
-                downPaymentDate = doc.downPaymentDate;
-            } else {
-                console.log("downPaymentDate date format is YYYY-MM-DD:" + doc.downPaymentDate);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            middlePayment1 = isPositiveNumber(doc.middlePayment1);
-
-            if (middlePayment1 == FALSE) {
-                console.log("middlePayment1 must have positive number:" + middlePayment1);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            if (checkDateFormat(doc.middlePaymentDate1)) {
-                middlePaymentDate1 = doc.middlePaymentDate1;
-            } else {
-                console.log("middlePaymentDate1 date format is YYYY-MM-DD:" + doc.middlePaymentDate1);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            middlePayment2 = isPositiveNumber(doc.middlePayment2);
-
-            if (middlePayment2 == FALSE) {
-                console.log("middlePayment2 must have positive number:" + middlePayment2);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            if (checkDateFormat(doc.middlePaymentDate2)) {
-                middlePaymentDate2 = doc.middlePaymentDate2;
-            } else {
-                console.log("middlePaymentDate2 date format is YYYY-MM-DD:" + doc.middlePaymentDate2);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            balancePayment = isPositiveNumber(doc.balancePayment);
-
-            if (balancePayment == FALSE) {
-                console.log("balancePayment must have positive number:" + balancePayment);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            if (checkDateFormat(doc.balancePaymentDate)) {
-                balancePaymentDate = doc.balancePaymentDate;
-            } else {
-                console.log("balancePaymentDate date format is YYYY-MM-DD:" + doc.balancePaymentDate);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            loan = isPositiveNumber(doc.loan);
-
-            if (loan == FALSE) {
-                console.log("loan must have positive number:" + loan);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            loanProcessingMethod = doc.loanProcessingMethod;
-
-            if (!LOAN_PROCESSING_METHOD.isDefined(loanProcessingMethod)) {
+            if (!MONTHLY_PAYMENT_WAY.isDefined(monthlyPaymentWay)) {
                 console.log("monthlyPaymentWay error:" + monthlyPaymentWay);
                 return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
             }
+        }
 
-            if (checkDateFormat(doc.rentStartDate)) {
-                rentStartDate = doc.rentStartDate;
-            } else {
-                console.log("rentStartDate date format is YYYY-MM-DD:" + doc.rentStartDate);
-                return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            if (checkDateFormat(doc.rentEndDate)) {
-                rentEndDate = doc.rentEndDate;
-            } else {
-                console.log("rentEndDate date format is YYYY-MM-DD:" + doc.rentEndDate);
-                return FresponseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-            }
-
-            if (contractClass == CONTRACT_CLASS.MONTHLY) {
-                monthlyPayment = isPositiveNumber(doc.monthlyPayment);
-
-                if (monthlyPayment == FALSE) {
-                    console.log("monthlyPayment must have positive number:" + monthlyPayment);
-                    return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-                }
-
-                monthlyPaymentDay = isPositiveNumber(doc.monthlyPayment);
-
-                if (monthlyPaymentDay == FALSE || monthlyPaymentDay < 1 || monthlyPaymentDay > 31) {
-                    console.log("monthlyPaymentDay must have positive number between 1 ~ 31:" + monthlyPaymentDay);
-                    return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-                }
-
-                monthlyPaymentWay = doc.monthlyPaymentWay;
-
-                if (!MONTHLY_PAYMENT_WAY.isDefined(monthlyPaymentWay)) {
-                    console.log("monthlyPaymentWay error:" + monthlyPaymentWay);
-                    return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
-                }
-            }
-
-            specialAgreement = doc.specialAgreement;
-            
-            return SUCCESS;
+        specialAgreement = doc.specialAgreement;
+        
+        return SUCCESS;
     }
     
     var exports = {
@@ -385,6 +389,40 @@ define(["enum", "moment", "../code/response.js"], function(Enum, moment, respons
                 console.log("initContract error");
                 return resultCode;
             }
+        },
+        makeModifyContractJSON: function(request) {
+            var resultCode = initModifyContract(request);
+
+            if (resultCode == SUCCESS) {
+
+                var json = {
+                    'salePrice': salePrice,
+                    'deposit': deposit,
+                    'depositDate': depositDate,
+                    'downPayment': downPayment,
+                    'downPaymentDate': downPaymentDate,
+                    'middlePayment1': middlePayment1,
+                    'middlePaymentDate1': middlePaymentDate1,
+                    'middlePayment2': middlePayment2,
+                    'middlePaymentDate2': middlePaymentDate2,
+                    'balancePayment': balancePayment,
+                    'balancePaymentDate': balancePaymentDate,
+                    'loan': loan,
+                    'loanProcessingMethod': loanProcessingMethod,
+                    'rentStartDate': rentStartDate,
+                    'rentEndDate': rentEndDate,
+                    'monthlyPayment': monthlyPayment,
+                    'monthlyPaymentDay': monthlyPaymentDay,
+                    'monthlyPaymentWay': monthlyPaymentWay,
+                    'specialAgreement': specialAgreement
+                }
+
+                return JSON.stringify(json);
+            } else {
+                console.log("initContract error");
+                return resultCode;
+            }
+            
         }
     };
 
