@@ -267,7 +267,7 @@ define(["enum", "moment", "../code/response.js"], function(Enum, moment, respons
                 return responseCode.ERROR_CODE.REQUEST_INVALID_VALUE.value;
             }
 
-            monthlyPaymentDay = isPositiveNumber(doc.monthlyPayment);
+            monthlyPaymentDay = isPositiveNumber(doc.monthlyPaymentDay);
 
             if (monthlyPaymentDay == FALSE || monthlyPaymentDay < 1 || monthlyPaymentDay > 31) {
                 console.log("monthlyPaymentDay must have positive number between 1 ~ 31:" + monthlyPaymentDay);
@@ -390,12 +390,15 @@ define(["enum", "moment", "../code/response.js"], function(Enum, moment, respons
                 return resultCode;
             }
         },
-        makeModifyContractJSON: function(request) {
+        makeModifyContractJSON: function(request, userKey) {
             var resultCode = initModifyContract(request);
 
             if (resultCode == SUCCESS) {
 
                 var json = {
+                    'docType': 'ModifyContract',
+                    'modifyDate': Date.now().toString(),
+                    'modifyUser': userKey,
                     'salePrice': salePrice,
                     'deposit': deposit,
                     'depositDate': depositDate,

@@ -864,7 +864,7 @@ app.get('/main/:channelName', async function(req, res) {
 
 	args.push(req.body.contractKey);
 
-	var modifyContractBody = contractStruct.makeModifyContractJSON(req.body.contract);
+	var modifyContractBody = contractStruct.makeModifyContractJSON(req.body.contract, req.body.userKey);
 
 	if (!isNaN(modifyContractBody)) {
 		res.send(responseCode.makeFailureContractResponse(modifyContractBody, "requestContractModify error"));

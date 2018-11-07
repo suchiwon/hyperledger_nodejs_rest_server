@@ -162,12 +162,14 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.createContractJSON(stub, args)
 	} else if fn == "getContractList" {
 		return cc.getContractList(stub, args)
-	} else if fn == "getContractListByKeyArray" {
+	} else if fn == "getContractListByKeyArsrray" {
 		return cc.getContractListByKeyArray(stub, args)
 	} else if fn == "changeState" {
 		return cc.changeState(stub, args)
 	} else if fn == "changeStateSigned" {
 		return cc.changeStateSigned(stub, args)
+	} else if fn == "createContractModify" {
+		return cc.createContractModify(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + fn) //error
@@ -211,7 +213,7 @@ func (cc *EstateChaincode) createContractModify(stub shim.ChaincodeStubInterface
 	}
 
 	key := args[0]
-	modifyKey := key + "_M"
+	modifyKey := "cm_" + key
 	var err error
 
 	contractBytes, err := stub.GetState(key)
@@ -228,7 +230,7 @@ func (cc *EstateChaincode) createContractModify(stub shim.ChaincodeStubInterface
 		return shim.Error(err.Error())
 	}
 
-	stateToTransfer.ContractState = REQUEST_MODIFY
+	stateToTransfer.ContractFlag = REQUEST_MODIFY
 
 	t := time.Now()
 
@@ -439,7 +441,7 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 	}
 
 	// contractKey 값의 world state를 받아 stateAsBytes에 대입
-	stateAsBytes, err = stub.GetState(contractKey)
+	stateAsBytes, err := stub.GetState(contractKey)
 
 	// error 처리
 	if err != nil {
@@ -452,7 +454,7 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 
 	// temp contract(바꿔야 하는 contract)
 	stateToTransfer := Contract{}
-	err := json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	err = json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -516,7 +518,7 @@ func (cc *EstateChaincode) changeStateTest(stub shim.ChaincodeStubInterface, arg
 	}
 	*/
 
-	result, resultLog, stateToTransfer := getContractState
+	result, resultLog, stateToTransfer := getContractState(stub, contractKey)
 	if(!result) {
 		return shim.Error(resultLog)
 	}
@@ -540,7 +542,8 @@ func (cc *EstateChaincode) changeStateTest(stub shim.ChaincodeStubInterface, arg
 	}
 	*/
 
-	result, resultLog = putContractState
+	result, resultLog = putContractState(stub, contractKey, stateToTransfer)
+
 	if(!result) {
 		return shim.Error(resultLog)
 	}
@@ -551,7 +554,7 @@ func (cc *EstateChaincode) changeStateTest(stub shim.ChaincodeStubInterface, arg
 
 // 아래처럼 두가지로 만들고 싶은데 제대로 짜고 있는 건지 모르겠음
 // return 값에 pb.response가 들어갈 경우엔 어떻게 처리되지?
-func (cc *EstateChaincode) getContractState(stub shim.ChaincodeStubInterface, contractKey string) (result bool, resultLog string, stateToTransfer Contract) {
+func getContractState(stub shim.ChaincodeStubInterface, contractKey string) (result bool, resultLog string, stateToTransfer Contract) {
 	result = true;
 	resultLog = "Success";
 	// contractKey 값의 world state를 받아 stateAsBytes에 대입
@@ -570,25 +573,32 @@ func (cc *EstateChaincode) getContractState(stub shim.ChaincodeStubInterface, co
 
 	// temp contract(바꿔야 하는 contract)
 	stateToTransfer = Contract{}
-	err := json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	err = json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+
 	if err != nil {
 		result = false
 		resultLog = err.Error();
 	}
 
-	return
+	if result == false {
+		return false, resultLog, stateToTransfer
+	} else {
+		return true, resultLog, stateToTransfer
+	}
 }
 
-func (cc *EstateChaincode) putContractState(stub shim.ChaincodeStubInterface, contractKey string, stateToTransfer Contract) (result bool, resultLog string) {
+func putContractState(stub shim.ChaincodeStubInterface, contractKey string, stateToTransfer Contract) (result bool, resultLog string) {
 	// contractKey 값의 world state를 받아 stateAsBytes에 대입
 	// 두 번째 리턴값은 사용하지 않겠다. (공백처리)
 	result = true;
 	resultLog = "Success"
 	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
-	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
+
+	err := stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
 	if err != nil {
 		result = false;
 		resultLog = err.Error()
 	}
-	return
+
+	return result, resultLog
 }
