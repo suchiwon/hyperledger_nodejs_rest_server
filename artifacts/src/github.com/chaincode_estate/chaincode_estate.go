@@ -421,32 +421,25 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 }
 
 func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	// args: 첫번째가 contractKey, 두번째가 state
+	// TODO: 코드 너무 더러움 다시 짜는 게 좋을 듯
+
+	// args[0] == contractKey, args[1] == state, args[2] == cancelReason
+	// Error: args는 무조건 2 이상이어야 함.
 	if len(args) < 2 {
 		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
 
-	// key는 contractKey로, coin은 state로
-	// _state는 변경할(바꿔 주어야 하는) state를 의미한다.
 	contractKey := args[0]
-	_state := args[1]
-	var err error
-	var tmp int
-	var state int
-	
-	// 바꿀 state를 tmp에 저장한다.
-	tmp, err = strconv.Atoi(_state)
+	// args[1]은 변경해야 하는 state를 의미한다.
+	state, err := strconv.Atoi(args[1])
 
-	// argument가(state) 없을 경우 error 처리
+	// argument(state) 없을 경우 error 처리
 	if err != nil {
 		return shim.Error("Incorrect argument for state")
 	}
 
-	// 제대로 받았기 때문에 tmp 값을 state에 대입
-	state = int(tmp)
-
 	// contractKey 값의 world state를 받아 stateAsBytes에 대입
-	stateAsBytes, err := stub.GetState(contractKey)
+	stateAsBytes, err = stub.GetState(contractKey)
 
 	// error 처리
 	if err != nil {
@@ -459,25 +452,143 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 
 	// temp contract(바꿔야 하는 contract)
 	stateToTransfer := Contract{}
-
-	err = json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	err := json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
 	// ContractState
-	stateToTransfer.ContractFlag = state //change the state
+	// state flag 변경
+	stateToTransfer.ContractFlag = state
+	// timestamp 추가
+	stateToTransfer.UpdatedAt = time.Now().Format(time.RFC3339)
+	// 취소의 경우 사유 추가
+	if state == REJECT_SIGN { 
+		stateToTransfer.CancelReason = args[2]
+	}
 
-	t := time.Now()
-
-	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
-
+	// 두 번째 리턴값은 사용하지 않겠다. (공백처리)
 	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
 	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
 	if err != nil {
 		return shim.Error(err.Error())
 	}
+	fmt.Println("- end Contract State Change (success)")
+	return shim.Success([]byte(contractKey))
+}
+
+
+func (cc *EstateChaincode) changeStateTest(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	// TODO: 코드 너무 더러움 다시 짜는 게 좋을 듯
+
+	// args[0] == contractKey, args[1] == state, args[2] == cancelReason
+	// Error: args는 무조건 2 이상이어야 함.
+	if len(args) < 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	contractKey := args[0]
+	// args[1]은 변경해야 하는 state를 의미한다.
+	state, err := strconv.Atoi(args[1])
+
+	// argument(state) 없을 경우 error 처리
+	if err != nil {
+		return shim.Error("Incorrect argument for state")
+	}
+/*
+	// contractKey 값의 world state를 받아 stateAsBytes에 대입
+	stateAsBytes, err = stub.GetState(contractKey)
+
+	// error 처리
+	if err != nil {
+		// state를 못 받아올 경우
+		return shim.Error("Failed to get state:" + err.Error())
+	} else if stateAsBytes == nil {
+		// Contract가 없을 경우(contractKey값으로 못 찾음)
+		return shim.Error("Contract does not exist")
+	}
+
+	// temp contract(바꿔야 하는 contract)
+	stateToTransfer := Contract{}
+	err := json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	*/
+
+	result, resultLog, stateToTransfer := getContractState
+	if(!result) {
+		return shim.Error(resultLog)
+	}
+
+	// ContractState
+	// state flag 변경
+	stateToTransfer.ContractFlag = state
+	// timestamp 추가
+	stateToTransfer.UpdatedAt = time.Now().Format(time.RFC3339)
+	// 취소의 경우 사유 추가
+	if state == REJECT_SIGN { 
+		stateToTransfer.CancelReason = args[2]
+	}
+
+	/*
+	// 두 번째 리턴값은 사용하지 않겠다. (공백처리)
+	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
+	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	*/
+
+	result, resultLog = putContractState
+	if(!result) {
+		return shim.Error(resultLog)
+	}
 
 	fmt.Println("- end Contract State Change (success)")
 	return shim.Success([]byte(contractKey))
+}
+
+// 아래처럼 두가지로 만들고 싶은데 제대로 짜고 있는 건지 모르겠음
+// return 값에 pb.response가 들어갈 경우엔 어떻게 처리되지?
+func (cc *EstateChaincode) getContractState(stub shim.ChaincodeStubInterface, contractKey string) (result bool, resultLog string, stateToTransfer Contract) {
+	result = true;
+	resultLog = "Success";
+	// contractKey 값의 world state를 받아 stateAsBytes에 대입
+	stateAsBytes, err := stub.GetState(contractKey)
+
+	// error 처리
+	if err != nil {
+		// state를 못 받아올 경우
+		result = false
+		resultLog = "Failed to get state: " + err.Error()
+	} else if stateAsBytes == nil {
+		// Contract가 없을 경우(contractKey값으로 못 찾음)
+		result = false
+		resultLog = "Contract does not exist"
+	}
+
+	// temp contract(바꿔야 하는 contract)
+	stateToTransfer = Contract{}
+	err := json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	if err != nil {
+		result = false
+		resultLog = err.Error();
+	}
+
+	return
+}
+
+func (cc *EstateChaincode) putContractState(stub shim.ChaincodeStubInterface, contractKey string, stateToTransfer Contract) (result bool, resultLog string) {
+	// contractKey 값의 world state를 받아 stateAsBytes에 대입
+	// 두 번째 리턴값은 사용하지 않겠다. (공백처리)
+	result = true;
+	resultLog = "Success"
+	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
+	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
+	if err != nil {
+		result = false;
+		resultLog = err.Error()
+	}
+	return
 }

@@ -930,6 +930,9 @@ app.get('/main/:channelName', async function(req, res) {
 	var state = contractStruct.CONTRACT_FLAG.REJECT_SIGN.value;
 	args.push(state.toString());
 
+	// 서명 거절 이유 추가
+	args.push(req.body.cancelReason);
+
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
