@@ -192,7 +192,8 @@ peerNodeIo.sockets.on("connection", function(ws) {
 });
 
 var utilJS = requirejs('./public/js/util.js');
-
+var responseCode = requirejs('./public/code/response.js');
+responseCode.init();
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////// REST ENDPOINTS START HERE ///////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -283,7 +284,6 @@ app.post('/chaincodes', async function(req, res) {
 	var chaincodeName = req.body.chaincodeName;
 	var chaincodePath = req.body.chaincodePath;
 	var chaincodeVersion = req.body.chaincodeVersion;
-	var chaincodeType = req.body.chaincodeType;
 	logger.debug('peers : ' + peers); // target peers list
 	logger.debug('chaincodeName : ' + chaincodeName);
 	logger.debug('chaincodePath  : ' + chaincodePath);
@@ -296,7 +296,8 @@ app.post('/chaincodes', async function(req, res) {
 	if (!chaincodeName) {
 		res.json(getErrorMessage('\'chaincodeName\''));
 		return;
-	}
+	}	var chaincodeType = req.body.chaincodeType;
+
 	if (!chaincodePath) {
 		res.json(getErrorMessage('\'chaincodePath\''));
 		return;
@@ -394,7 +395,7 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', async function(req,
 
 	let message;
 
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 
 	logger.debug(message);
 	res.send(message);
@@ -749,7 +750,7 @@ app.get('/main/:channelName', async function(req, res) {
 	args = args.replace(/'/g, '"');
 	args = JSON.parse(args);
 
-	message = await invoke.invokeChaincode("peer0.org1.example.com", monitorChannelName, monitorChaincodeName, "changeState", args, req.username, req.orgname, txData, mongodb);
+	message = await invoke.invokeChaincode("peer0.org1.example.com", monitorChannelName, monitorChaincodeName, "changeState", args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 	res.send(null);
  });
 
@@ -839,8 +840,8 @@ app.get('/main/:channelName', async function(req, res) {
 
 	var contractBody = contractStruct.makeContractJSON(req.body.contract);
 
-	if (contractBody == null) {
-		res.send("createContract error");
+	if (!isNaN(contractBody)) {
+		res.send(responseCode.makeFailureContractResponse(contractBody, "createContract error"));
 	}
 	args.push(contractBody);
 
@@ -849,13 +850,13 @@ app.get('/main/:channelName', async function(req, res) {
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
 	var fcn = "createContractJSON";
 
-	var state = contractStruct.CONTRACT_STATE.WAIT_SIGN.value;
+	var state = contractStruct.CONTRACT_FLAG.WAIT_SIGN.value;
 
 	console.log(state);
 
 	let message;
 
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 
 	logger.debug(message);
 	res.send(message);
@@ -874,11 +875,13 @@ app.get('/main/:channelName', async function(req, res) {
 	 // args[0] == contractKey가 된다.
 	 args.push(req.body.contractKey);
 	 
-	 var state = contractStruct.CONTRACT_STATE.WAIT_PAYFEE.value;
+	 /*
+	 var state = contractStruct.CONTRACT_FLAG.WAIT_PAYFEE.value;
 	 args.push(state.toString());
+	 */
 
 	 var userKey = req.body.userKey;
-	 args.push(userKey.toString);
+	 args.push(userKey);
 	 
 	 // chaincode에 넘겨줘야 하는 기본 data
 	 var peers = contractStruct.PEERS;
@@ -886,11 +889,9 @@ app.get('/main/:channelName', async function(req, res) {
 	 var chaincodeName = contractStruct.CHAINCODE_NAME;
 	 var fcn = "changeStateSigned";
  
-	 console.log(state);
- 
 	 let message;
  
-	 message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	 message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
  
 	 logger.debug(message);
 	 res.send(message);
@@ -904,7 +905,7 @@ app.get('/main/:channelName', async function(req, res) {
 	// args[0] == contractKey가 된다.
 	args.push(req.body.contractKey);
 	
-	var state = contractStruct.CONTRACT_STATE.REJECT_SIGN.value;
+	var state = contractStruct.CONTRACT_FLAG.REJECT_SIGN.value;
 	args.push(state.toString());
 
 	var peers = contractStruct.PEERS;
@@ -916,7 +917,7 @@ app.get('/main/:channelName', async function(req, res) {
 
 	let message;
 
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 
 	logger.debug(message);
 	res.send(message);
@@ -930,7 +931,7 @@ app.get('/main/:channelName', async function(req, res) {
 	// args[0] == contractKey가 된다.
 	args.push(req.body.contractKey);
 	
-	var state = contractStruct.CONTRACT_STATE.WAIT_DEPOSIT.value;
+	var state = contractStruct.CONTRACT_FLAG.WAIT_DEPOSIT.value;
 	args.push(state.toString());
 
 	var peers = contractStruct.PEERS;
@@ -942,7 +943,7 @@ app.get('/main/:channelName', async function(req, res) {
 
 	let message;
 
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 
 	logger.debug(message);
 	res.send(message);
@@ -956,7 +957,7 @@ app.get('/main/:channelName', async function(req, res) {
 		// args[0] == contractKey가 된다.
 		args.push(req.body.contractKey);
 		
-		var state = contractStruct.CONTRACT_STATE.EXPIRE_DEPOSIT.value;
+		var state = contractStruct.CONTRACT_FLAG.EXPIRE_DEPOSIT.value;
 		args.push(state.toString());
 	
 		var peers = contractStruct.PEERS;
@@ -968,7 +969,7 @@ app.get('/main/:channelName', async function(req, res) {
 	
 		let message;
 	
-		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 	
 		logger.debug(message);
 		res.send(message);
@@ -982,7 +983,7 @@ app.get('/main/:channelName', async function(req, res) {
 		// args[0] == contractKey가 된다.
 		args.push(req.body.contractKey);
 		
-		var state = contractStruct.CONTRACT_STATE.CANCEL_COMPLETE.value;
+		var state = contractStruct.CONTRACT_FLAG.CANCEL_COMPLETE.value;
 		args.push(state.toString());
 	
 		var peers = contractStruct.PEERS;
@@ -994,7 +995,7 @@ app.get('/main/:channelName', async function(req, res) {
 	
 		let message;
 	
-		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS);
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
 	
 		logger.debug(message);
 		res.send(message);

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
+	_ "time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
@@ -28,7 +28,7 @@ var CONTRACT_CLASS = [...]string{
 const (
 	WAIT_SIGN = iota
 	REQUEST_MODIFY
-	WAIT_PAYPEE
+	WAIT_PAYFEE
 	WAIT_DEPOSIT
 	REJECT_MODIFY
 	REJECT_SIGN
@@ -62,14 +62,28 @@ var MONTHLY_PAYMENT_WAY = [...]string{
 	"",
 }
 
+const (
+	SUCCESION = iota
+	CANCELLATION
+	ONAGREEMENT
+)
+
+var LOAN_PROCESSING_METHOD = [...]string{
+	"승계",
+	"말소",
+	"특약사항명시",
+}
+
 // SimpleChaincode example simple Chaincode implementation
 type EstateChaincode struct {
 }
 
 type Contract struct {
-	ContractClass int	`json:"contractClass"`
-	ContractState int	`json:"contractState"`
-	LatestUpdateDate string	`json:"latestUpdateDate"`
+	ContractClass int		`json:"contractClass"`
+	ContractFlag int		`json:"contractFlag"`
+	ContractDate string 	`json:"contractDate"`
+	UpdatedAt string		`json:"updatedAt"`
+	ContractHash string		`json:"contractHash"`
 	LandLordKeyArray []string	`json:"landLordKeyArray"`
 	LandLordSignArray []bool	`json:"landLordSignArray"`
 	LesseeKeyArray []string		`json:"lesseeKeyArray"`
@@ -82,13 +96,19 @@ type Contract struct {
 	BuildingStructure string	`json:"buildingStructure"`
 	BuildingPurpose string		`json:"buildingPurpose"`
 	BuildingArea uint64			`json:"buildingArea"`
+	SalePrice uint64			`json:"salePrice"`
 	Deposit uint64				`json:"deposit"`
+	DepositDate string			`json:"depositDate"`
 	DownPayment uint64			`json:"downPayment"`
 	DownPaymentDate string		`json:"downPaymentDate"`
-	MiddlePayment uint64		`json:"middlePayment"`
-	MiddlePaymentDate string	`json:"middlePaymentDate"`
+	MiddlePayment1 uint64		`json:"middlePayment1"`
+	MiddlePaymentDate1 string	`json:"middlePaymentDate1"`
+	MiddlePayment2 uint64		`json:"middlePayment2"`
+	MiddlePaymentDate2 string	`json:"middlePaymentDate2"`
 	BalancePayment uint64		`json:"balancePayment"`
 	BalancePaymentDate string	`json:"balancePaymentDate"`
+	Loan uint64					`json:"loan"`
+	LoanProcessingMethod int	`json:"loanProcessingMethod"`
 	RentStartDate string		`json:"rentStartDate"`
 	RentEndDate string			`json:"rentEndDate"`
 	MonthlyPayment uint64		`json:"monthlyPayment"`
@@ -110,56 +130,6 @@ func initBoolArray(length int) []bool {
 	}
 
 	return arr
-}
-
-func initContract(args []string) *Contract {
-	contract := new(Contract)
-
-	objectType := "contract"
-
-	userKey := args[1]
-
-	contract.ObjectType = objectType
-
-	contract.ContractClass, _ = strconv.Atoi(args[2])
-	contract.ContractState = WAIT_SIGN
-
-	contract.LatestUpdateDate = time.Now().Format(time.RFC3339)
-	contract.LandLordKeyArray = parseArray(args[3])
-	contract.LandLordSignArray = initBoolArray(len(contract.LandLordKeyArray))
-	contract.LesseeKeyArray = parseArray(args[4])
-	contract.LesseeSignArray = initBoolArray(len(contract.LesseeKeyArray))
-	contract.UserKey = userKey
-	contract.CancelReason = ""
-	contract.Address = args[5]
-	contract.Landmark = args[6]
-	contract.LandArea, _ = strconv.ParseUint(args[7], 10, 64)
-	contract.BuildingStructure = args[8]
-	contract.BuildingPurpose = args[9]
-	contract.BuildingArea, _ = strconv.ParseUint(args[10], 10, 64)
-	contract.Deposit, _ = strconv.ParseUint(args[11], 10, 64)
-	contract.DownPayment, _ = strconv.ParseUint(args[12], 10, 64)
-
-	contract.DownPaymentDate = args[13]
-	contract.MiddlePayment, _ = strconv.ParseUint(args[14], 10, 64)
-
-	contract.MiddlePaymentDate = args[15]
-	contract.BalancePayment, _ = strconv.ParseUint(args[16], 10, 64)
-
-	contract.BalancePaymentDate = args[17]
-
-	contract.RentStartDate = args[18]
-
-	contract.RentEndDate = args[19]
-
-	contract.MonthlyPayment, _ = strconv.ParseUint(args[20], 10, 64)
-
-	day, _ := strconv.ParseUint(args[21], 10, 8)
-	contract.MonthlyPaymentDay = uint8(day)
-	contract.MonthlyPaymentWay, _ = strconv.Atoi(args[22])
-	contract.SpecialAgreement = parseArray(args[23])
-
-	return contract
 }
 
 // ===================================================================================
@@ -184,9 +154,7 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 	fn, args := stub.GetFunctionAndParameters()
 	fmt.Println("invoke is running " + fn)
 
-	if fn == "createContract" {
-		return cc.createContract(stub, args)
-	} else if fn == "createContractJSON" {
+	if fn == "createContractJSON" {
 		return cc.createContractJSON(stub, args)
 	} else if fn == "getContractList" {
 		return cc.getContractList(stub, args)
@@ -194,45 +162,12 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.getContractListByKeyArray(stub, args)
 	} else if fn == "changeState" {
 		return cc.changeState(stub, args)
+	} else if fn == "changeStateSigned" {
+		return cc.changeStateSigned(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + fn) //error
 	return shim.Error("Received unknown function invocation")
-}
-
-func (cc *EstateChaincode) createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	if len(args) < 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 2")
-	}
-
-	key := args[0]
-	var err error
-
-	contractBytes, err := stub.GetState(key)
-	if err != nil {
-		return shim.Error("Failed to get contract: " + err.Error())
-	} else if contractBytes != nil {
-		fmt.Println("This contract key already exists: " + key)
-		return shim.Error("This contract key already exists: " + key)
-	}
-
-	contract := initContract(args)
-
-	contractBytes, err = json.Marshal(contract)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	err = stub.PutState(key, contractBytes)
-
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	fmt.Println("- end regist contract")
-
-	return shim.Success(contractBytes)
 }
 
 func (cc *EstateChaincode) createContractJSON(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -341,22 +276,8 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 	// key는 contractKey로, coin은 state로
 	// _state는 변경할(바꿔 주어야 하는) state를 의미한다.
 	contractKey := args[0]
-	_state := args[1]
-	userKey := args[2]
+	userKey := args[1]
 	var err error
-	var tmp int
-	var state int
-	
-	// 바꿀 state를 tmp에 저장한다.
-	tmp, err = strconv.Atoi(_state)
-
-	// argument가(state) 없을 경우 error 처리
-	if err != nil {
-		return shim.Error("Incorrect argument for state")
-	}
-
-	// 제대로 받았기 때문에 tmp 값을 state에 대입
-	state = int(tmp)
 
 	// key 값의 world state를 받아 stateAsBytes에 대입
 	stateAsBytes, err := stub.GetState(contractKey)
@@ -365,7 +286,7 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 	if err != nil {
 		// state를 못 받아올 경우
 		return shim.Error("Failed to get state:" + err.Error())
-	} else if contractAsBytes == nil {
+	} else if stateAsBytes == nil {
 		// Contract가 없을 경우(contractKey값으로 못 찾음)
 		return shim.Error("Contract does not exist")
 	}
@@ -380,20 +301,33 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 	
 
 	// flag는 SignArray에 입력되었는지 여부 판단하는 변수
-	var flag := false;
+	flag := false;
 	// count는 왼료된 sign의 개수
-	var count := 0;
+	count := 0;
 
-	for i := 0; i < len(stateToTransfer.LandLordSignArray) && !flag; i++ {
+	for i := 0; i < len(stateToTransfer.LandLordSignArray); i++ {
 		// 이미 사인된 상태라면 count를 하나 올려준다.
-		if LandLordSignArray[i] == true { ++count }
+		if stateToTransfer.LandLordSignArray[i] == true { 
+			count++ 
+		}
+	}
+
+	for i := 0; i < len(stateToTransfer.LesseeSignArray); i++ {
+		// 이미 사인된 상태라면 count를 하나 올려준다.
+		if stateToTransfer.LesseeSignArray[i] == true { 
+			count++ 
+		}
+	}
+
+	for i := 0; i < len(stateToTransfer.LandLordKeyArray) && !flag; i++ {
+		
 		// 사인해야 하는 대상에 userKey가 없다면 넘기고,
-		if LandLordSignArray[i] != userKey {}
-		// 존재할 경우에만 array의 값을 true로 바꾼다(사인했다는 의미).
-		else { 
-			LandLordSignArray[i] = true
+		if stateToTransfer.LandLordKeyArray[i] != userKey {
+
+		} else if stateToTransfer.LandLordSignArray[i] == false { 
+			stateToTransfer.LandLordSignArray[i] = true
 			flag = true
-			++count
+			count++
 		}
 	}
 
@@ -401,31 +335,32 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 	if !flag {
 		// count를 0으로 재설정
 		count = 0;
-		for i := 0; i < len(stateToTransfer.LandLordSignArray) && !flag; i++ {
-			if LandLordSignArray[i] == true { ++count }
-			if LandLordSignArray[i] != userKey {}
-			else { 
-				LandLordSignArray[i] = true
+		for i := 0; i < len(stateToTransfer.LesseeKeyArray) && !flag; i++ {
+
+			if stateToTransfer.LesseeKeyArray[i] != userKey {
+
+			} else if stateToTransfer.LesseeSignArray[i] == false { 
+				stateToTransfer.LesseeSignArray[i] = true
 				flag = true
-				++count
+				count++
 			}
 		}
 	}
 
 	// count가 LandLordSignArray나 LesseeSignArray의 길이와 같다면 모든 사람이 사인한 것이므로
-	if count == len(stateToTransfer.LandLordSignArray) || count == len(stateToTransfer.LesseeSignArray) {
+	if count >= len(stateToTransfer.LandLordSignArray) + len(stateToTransfer.LesseeSignArray) {
 		// state를 변경한다.
-		stateToTransfer.state = state //change the state
-
-		stateJSONasBytes, _ := json.Marshal(stateToTransfer)
-		err = stub.PutState(name, stateJSONasBytes) //rewrite the marble
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-
-		fmt.Println("- end Contract State Change (success)")
-		return shim.Success(nil)
+		stateToTransfer.ContractFlag = WAIT_PAYFEE
 	}
+
+	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
+	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end Contract Sign (success)")
+	return shim.Success(nil)
 }
 
 func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -460,7 +395,7 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 	if err != nil {
 		// state를 못 받아올 경우
 		return shim.Error("Failed to get state:" + err.Error())
-	} else if contractAsBytes == nil {
+	} else if stateAsBytes == nil {
 		// Contract가 없을 경우(contractKey값으로 못 찾음)
 		return shim.Error("Contract does not exist")
 	}
@@ -474,10 +409,10 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 	}
 
 	// ContractState
-	stateToTransfer.state = state //change the state
+	stateToTransfer.ContractFlag = state //change the state
 
 	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
-	err = stub.PutState(name, stateJSONasBytes) //rewrite the marble
+	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
 	if err != nil {
 		return shim.Error(err.Error())
 	}
