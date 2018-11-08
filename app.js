@@ -1081,7 +1081,20 @@ app.get('/main/:channelName', async function(req, res) {
 	
 		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
 
+		logger.debug(message);
+		res.send(message);
+	 });
 
+	 app.get('/estate/query/getContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
 
 		logger.debug(message);
 		res.send(message);

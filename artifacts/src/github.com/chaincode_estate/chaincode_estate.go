@@ -175,7 +175,7 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.createContractJSON(stub, args)
 	} else if fn == "getContractList" {
 		return cc.getContractList(stub, args)
-	} else if fn == "getContractListByKeyArsrray" {
+	} else if fn == "getContractListByKeyArray" {
 		return cc.getContractListByKeyArray(stub, args)
 	} else if fn == "changeState" {
 		return cc.changeState(stub, args)
@@ -414,7 +414,7 @@ func (cc *EstateChaincode) completeContract(stub shim.ChaincodeStubInterface, ar
 
 func (cc *EstateChaincode) getContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	queryString := "{\"selector\": {\"docType\":\"contract\"}}"
+	queryString := "{\"selector\": {\"docType\":\"Contract\"}}"
 
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
@@ -428,6 +428,8 @@ func (cc *EstateChaincode) getContractListByKeyArray(stub shim.ChaincodeStubInte
 	userKey := args[0]
 
 	queryString := "{\"selector\": {\"$and\": [{\"docType\": \"Contract\"},{\"$or\": [{\"landLordKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}},{\"lesseeKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}}]}]}}"
+
+	//return shim.Error(queryString)
 
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
