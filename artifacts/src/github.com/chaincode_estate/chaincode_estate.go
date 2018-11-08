@@ -427,7 +427,7 @@ func (cc *EstateChaincode) getContractListByKeyArray(stub shim.ChaincodeStubInte
 
 	userKey := args[0]
 
-	queryString := "{\"selector\": {\"$or\": [{\"landLordKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}},{\"lesseeKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}}]}}"
+	queryString := "{\"selector\": {\"$and\": [{\"docType\": \"Contract\"},{\"$or\": [{\"landLordKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}},{\"lesseeKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}}]}]}}"
 
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
