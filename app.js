@@ -903,7 +903,24 @@ app.get('/main/:channelName', async function(req, res) {
 	res.send(message);
  });
 
+ app.post('/estate/invoke/completeContract', async function(req, res) {
 
+	var args = [];
+
+	args.push(req.body.contractKey);
+
+	var peers = contractStruct.PEERS;
+	var channelName = contractStruct.CHANNEL_NAME;
+	var chaincodeName = contractStruct.CHAINCODE_NAME;
+	var fcn = "completeContract";
+
+	let message;
+
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+	logger.debug(message);
+	res.send(message);
+ });
 
   ////////////////////////////////// 계약 state Flag 변경 API
   ////////////////////////////////// Created by Jiyoung Park(2018.11.06)
@@ -949,13 +966,18 @@ app.get('/main/:channelName', async function(req, res) {
 	var state = contractStruct.CONTRACT_FLAG.REJECT_SIGN.value;
 	args.push(state.toString());
 
+	if (req.body.cancelReason == undefined) {
+		res.send(responseCode.makeFailureContractResponse(responseCode.ERROR_CODE.REQUEST_OMIT_REQURIED.value, "cancelReason omitted"));
+	}
+
 	// 서명 거절 이유 추가
 	args.push(req.body.cancelReason);
+
 
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "changeState";
+	var fcn = "changeStateTest";
 
 	console.log(state);
 
@@ -981,7 +1003,7 @@ app.get('/main/:channelName', async function(req, res) {
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "changeState";
+	var fcn = "changeStateTest";
 
 	console.log(state);
 
@@ -1007,7 +1029,7 @@ app.get('/main/:channelName', async function(req, res) {
 		var peers = contractStruct.PEERS;
 		var channelName = contractStruct.CHANNEL_NAME;
 		var chaincodeName = contractStruct.CHAINCODE_NAME;
-		var fcn = "changeState";
+		var fcn = "changeStateTest";
 	
 		console.log(state);
 	
@@ -1020,7 +1042,7 @@ app.get('/main/:channelName', async function(req, res) {
 	 });
 
     /***********		취소된 계약 완료함으로 이동: state를 CANCEL_COMPLETE으로 변경		**********/
-	app.post('/estate/invoke/destructContract', async function(req, res) {
+	app.post('/estate/invoke/completeCanceledContract', async function(req, res) {
  
 		var args = [];
 		// 첫 번째 argument에 push(args[0])
@@ -1033,7 +1055,7 @@ app.get('/main/:channelName', async function(req, res) {
 		var peers = contractStruct.PEERS;
 		var channelName = contractStruct.CHANNEL_NAME;
 		var chaincodeName = contractStruct.CHAINCODE_NAME;
-		var fcn = "changeState";
+		var fcn = "changeStateTest";
 	
 		console.log(state);
 	

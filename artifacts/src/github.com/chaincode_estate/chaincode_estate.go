@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/sha256"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
@@ -178,12 +179,16 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.getContractListByKeyArray(stub, args)
 	} else if fn == "changeState" {
 		return cc.changeState(stub, args)
+	} else if fn == "changeStateTest" {
+		return cc.changeStateTest(stub, args)
 	} else if fn == "changeStateSigned" {
 		return cc.changeStateSigned(stub, args)
 	} else if fn == "createContractModify" {
 		return cc.createContractModify(stub, args)
 	} else if fn == "contractModify" {
 		return cc.contractModify(stub, args)
+	} else if fn == "completeContract"{
+		return cc.completeContract(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + fn) //error
@@ -314,6 +319,7 @@ func (cc *EstateChaincode) contractModify(stub shim.ChaincodeStubInterface, args
 
 	modifyLogContract := ModifyLogContract{}
 
+	modifyLogContract.ObjectType = "ModifyLogContract"
 	modifyLogContract.Contract = stateToTransfer
 	modifyLogContract.ModifyDate = modifyContract.ModifyDate
 	modifyLogContract.ModifyUserKey = modifyContract.ModifyUserKey
@@ -328,6 +334,7 @@ func (cc *EstateChaincode) contractModify(stub shim.ChaincodeStubInterface, args
 
 	stateToTransfer.ContractFlag = WAIT_SIGN
 	stateToTransfer.PayContract = modifyContract.PayContract
+	stateToTransfer.ObjectType = "Contract"
 
 	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
 
@@ -348,6 +355,61 @@ func (cc *EstateChaincode) contractModify(stub shim.ChaincodeStubInterface, args
 	fmt.Println("- end contract modify")
 
 	return shim.Success([]byte(key))
+}
+
+func (cc *EstateChaincode) completeContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	t := time.Now()
+	date := t.Format("2006-01-02")
+
+	key := args[0]
+	completeKey := "cc_" + date + "_" + key
+	var err error
+
+	contractBytes, err := stub.GetState(key)
+
+	if err != nil {
+		return shim.Error("Failed to get contract: " + err.Error())
+	}
+
+	// temp contract(바꿔야 하는 contract)
+	stateToTransfer := Contract{}
+
+	err = json.Unmarshal(contractBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	stateToTransfer.ObjectType = "CompleteContract"
+	stateToTransfer.ContractFlag = COMPLETE
+	stateToTransfer.ContractDate = date
+
+	sum := sha256.Sum256(contractBytes)
+	stateToTransfer.ContractHash = string(sum[:])
+
+	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
+
+	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
+
+	err = stub.PutState(completeKey, stateJSONasBytes)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = stub.DelState(key)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end contract")
+
+	return shim.Success([]byte(completeKey))
 }
 
 func (cc *EstateChaincode) getContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
