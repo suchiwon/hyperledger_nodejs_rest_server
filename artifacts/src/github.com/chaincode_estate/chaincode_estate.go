@@ -197,6 +197,8 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.completeContract(stub, args)
 	} else if fn == "createFeeLog"{
 		return cc.createFeeLog(stub, args)
+	} else if fn == "deleteContractModify" {
+		return cc.deleteContractModify(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + fn) //error
@@ -406,6 +408,38 @@ func (cc *EstateChaincode) completeContract(stub shim.ChaincodeStubInterface, ar
 	fmt.Println("- end contract")
 
 	return shim.Success([]byte(completeKey))
+}
+
+func (cc *EstateChaincode) deleteContractModify(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	key := args[0]
+	modifyKey := "cm_" + key
+	state, err := strconv.Atoi(args[1])
+
+	// argument(state) 없을 경우 error 처리
+	if err != nil {
+		return shim.Error("Incorrect argument for state")
+	}
+
+	result, resultLog := changeContractState(stub, key, state, args)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	err = stub.DelState(modifyKey)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end delete contract modify")
+
+	return shim.Success([]byte(key))
 }
 
 func (cc *EstateChaincode) getContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {

@@ -1069,6 +1069,54 @@ app.get('/main/:channelName', async function(req, res) {
 		res.send(message);
 	 });
 
+	 app.post('/estate/invoke/rejectContractModify', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.body.contractKey);
+
+		var state = contractStruct.CONTRACT_FLAG.REJECT_MODIFY.value;
+		args.push(state.toString());
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "deleteContractModify";
+	
+		console.log(state);
+	
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.post('/estate/invoke/cancelRequestContractModify', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.body.contractKey);
+
+		var state = contractStruct.CONTRACT_FLAG.WAIT_SIGN.value;
+		args.push(state.toString());
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "deleteContractModify";
+	
+		console.log(state);
+	
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
+
 	app.post('/estate/invoke/createFeeLog', async function(req, res) {
  
 		var args = [];
