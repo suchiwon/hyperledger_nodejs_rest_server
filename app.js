@@ -842,20 +842,21 @@ app.get('/main/:channelName', async function(req, res) {
 
 	if (!isNaN(contractBody)) {
 		res.send(responseCode.makeFailureContractResponse(contractBody, "createContract error"));
+	} else {
+		args.push(contractBody);
+
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "createContractJSON";
+
+		let message;
+
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+		logger.debug(message);
+		res.send(message);
 	}
-	args.push(contractBody);
-
-	var peers = contractStruct.PEERS;
-	var channelName = contractStruct.CHANNEL_NAME;
-	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "createContractJSON";
-
-	let message;
-
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
-
-	logger.debug(message);
-	res.send(message);
  });
 
  app.post('/estate/invoke/requestContractModify', async function(req, res) {
@@ -868,20 +869,21 @@ app.get('/main/:channelName', async function(req, res) {
 
 	if (!isNaN(modifyContractBody)) {
 		res.send(responseCode.makeFailureContractResponse(modifyContractBody, "requestContractModify error"));
+	} else {
+		args.push(modifyContractBody);
+
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "createContractModify";
+
+		let message;
+
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+		logger.debug(message);
+		res.send(message);
 	}
-	args.push(modifyContractBody);
-
-	var peers = contractStruct.PEERS;
-	var channelName = contractStruct.CHANNEL_NAME;
-	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "createContractModify";
-
-	let message;
-
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
-
-	logger.debug(message);
-	res.send(message);
  });
 
  app.post('/estate/invoke/contractModify', async function(req, res) {
@@ -977,7 +979,7 @@ app.get('/main/:channelName', async function(req, res) {
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "changeStateTest";
+	var fcn = "changeState";
 
 	console.log(state);
 
@@ -1003,7 +1005,7 @@ app.get('/main/:channelName', async function(req, res) {
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "changeStateTest";
+	var fcn = "changeState";
 
 	console.log(state);
 
@@ -1029,7 +1031,7 @@ app.get('/main/:channelName', async function(req, res) {
 		var peers = contractStruct.PEERS;
 		var channelName = contractStruct.CHANNEL_NAME;
 		var chaincodeName = contractStruct.CHAINCODE_NAME;
-		var fcn = "changeStateTest";
+		var fcn = "changeState";
 	
 		console.log(state);
 	
@@ -1055,9 +1057,31 @@ app.get('/main/:channelName', async function(req, res) {
 		var peers = contractStruct.PEERS;
 		var channelName = contractStruct.CHANNEL_NAME;
 		var chaincodeName = contractStruct.CHAINCODE_NAME;
-		var fcn = "changeStateTest";
+		var fcn = "changeState";
 	
 		console.log(state);
+	
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	app.post('/estate/invoke/createFeeLog', async function(req, res) {
+ 
+		var args = [];
+		// 첫 번째 argument에 push(args[0])
+		// args[0] == contractKey가 된다.
+		args.push(req.body.userKey);
+		args.push(req.body.contractKey);
+		args.push(req.body.fee.toString());
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "createFeeLog";
 	
 		let message;
 	
