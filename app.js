@@ -1171,3 +1171,33 @@ app.get('/main/:channelName', async function(req, res) {
 		logger.debug(message);
 		res.send(message);
 	 });
+
+	 app.get('/estate/query/getSignContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getSignContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getCompleteContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getCompleteContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });

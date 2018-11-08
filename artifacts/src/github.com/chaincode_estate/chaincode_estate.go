@@ -183,6 +183,10 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.createContractJSON(stub, args)
 	} else if fn == "getContractList" {
 		return cc.getContractList(stub, args)
+	} else if fn == "getSignContractList" {
+		return cc.getSignContractList(stub, args)
+	} else if fn == "getCompleteContractList" {
+		return cc.getCompleteContractList(stub, args)
 	} else if fn == "getContractListByKeyArray" {
 		return cc.getContractListByKeyArray(stub, args)
 	} else if fn == "changeState" {
@@ -445,6 +449,33 @@ func (cc *EstateChaincode) deleteContractModify(stub shim.ChaincodeStubInterface
 func (cc *EstateChaincode) getContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	queryString := "{\"selector\": {\"docType\":\"Contract\"}}"
+
+	queryResults, err := getQueryResultForQueryString(stub, queryString)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(queryResults)
+}
+
+func (cc *EstateChaincode) getSignContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	//queryString := "{\"selector\": {\"$and\": [{\"docType\": \"Contract\"},{\"contractFlag\":" + string(WAIT_PAYFEE) + "}]}}"
+	queryString := "{\"selector\": {\"$and\": [{\"docType\": \"Contract\"},{\"contractFlag\":2}]}}"
+
+	//return shim.Error(queryString)
+
+	queryResults, err := getQueryResultForQueryString(stub, queryString)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(queryResults)
+}
+
+func (cc *EstateChaincode) getCompleteContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	queryString := "{\"selector\": {\"docType\":\"CompleteContract\"}}"
+
+	//return shim.Error(queryString)
 
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
