@@ -1084,7 +1084,6 @@ app.get('/main/:channelName', async function(req, res) {
 		var fcn = "deleteContractModify";
 	
 		console.log(state);
-	
 		let message;
 	
 		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
@@ -1150,6 +1149,55 @@ app.get('/main/:channelName', async function(req, res) {
 		var channelName = contractStruct.CHANNEL_NAME;
 		var chaincodeName = contractStruct.CHAINCODE_NAME;
 		var fcn = "getContractListByKeyArray";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getContract/:contractKey', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.params.contractKey);
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContract";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getContractFlag/:contractKey', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.params.contractKey);
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContractFlag";
 	
 		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
 

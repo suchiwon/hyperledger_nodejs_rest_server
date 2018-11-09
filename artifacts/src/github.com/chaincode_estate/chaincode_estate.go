@@ -185,6 +185,10 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.getContractList(stub, args)
 	} else if fn == "getSignContractList" {
 		return cc.getSignContractList(stub, args)
+	} else if fn == "getContract" {
+		return cc.getContract(stub, args)
+	} else if fn == "getContractFlag" {
+		return cc.getContractFlag(stub, args)
 	} else if fn == "getCompleteContractList" {
 		return cc.getCompleteContractList(stub, args)
 	} else if fn == "getContractListByKeyArray" {
@@ -497,6 +501,34 @@ func (cc *EstateChaincode) getContractListByKeyArray(stub shim.ChaincodeStubInte
 		return shim.Error(err.Error())
 	}
 	return shim.Success(queryResults)
+}
+
+func (cc *EstateChaincode) getContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	contractKey := args[0]
+
+	bytes, err := stub.GetState(contractKey)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success(bytes)
+}
+
+func (cc *EstateChaincode) getContractFlag(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	contractKey := args[0]
+
+	result, resultLog, contract := getContractState(stub, contractKey)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	bytes := "{\"contractFlag\":" + strconv.Itoa(contract.ContractFlag) + ",\"updatedAt\":\"" + contract.UpdatedAt + "\"}"
+
+	return shim.Success([]byte(bytes))
 }
 
 func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString string) ([]byte, error) {
