@@ -52,10 +52,7 @@ var queryChaincode = async function(peer, channelName, chaincodeName, args, fcn,
 				logger.info(args[0]+' now has ' + response_payloads[i].toString('utf8') +
 					' after the move');
 			}
-			/*
-			return args[0]+' now has ' + response_payloads[0].toString('utf8') +
-				' after the move';
-				*/
+
 			var result = responseCode.makeSuccessQueryResponse(response_payloads[0].toString('utf8'));
 			return result;
 		} else {

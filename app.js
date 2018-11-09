@@ -842,20 +842,21 @@ app.get('/main/:channelName', async function(req, res) {
 
 	if (!isNaN(contractBody)) {
 		res.send(responseCode.makeFailureContractResponse(contractBody, "createContract error"));
+	} else {
+		args.push(contractBody);
+
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "createContractJSON";
+
+		let message;
+
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+		logger.debug(message);
+		res.send(message);
 	}
-	args.push(contractBody);
-
-	var peers = contractStruct.PEERS;
-	var channelName = contractStruct.CHANNEL_NAME;
-	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "createContractJSON";
-
-	let message;
-
-	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
-
-	logger.debug(message);
-	res.send(message);
  });
 
  app.post('/estate/invoke/requestContractModify', async function(req, res) {
@@ -868,13 +869,33 @@ app.get('/main/:channelName', async function(req, res) {
 
 	if (!isNaN(modifyContractBody)) {
 		res.send(responseCode.makeFailureContractResponse(modifyContractBody, "requestContractModify error"));
+	} else {
+		args.push(modifyContractBody);
+
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "createContractModify";
+
+		let message;
+
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+		logger.debug(message);
+		res.send(message);
 	}
-	args.push(modifyContractBody);
+ });
+
+ app.post('/estate/invoke/contractModify', async function(req, res) {
+
+	var args = [];
+
+	args.push(req.body.contractKey);
 
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
 	var chaincodeName = contractStruct.CHAINCODE_NAME;
-	var fcn = "createContractModify";
+	var fcn = "contractModify";
 
 	let message;
 
@@ -884,7 +905,24 @@ app.get('/main/:channelName', async function(req, res) {
 	res.send(message);
  });
 
+ app.post('/estate/invoke/completeContract', async function(req, res) {
 
+	var args = [];
+
+	args.push(req.body.contractKey);
+
+	var peers = contractStruct.PEERS;
+	var channelName = contractStruct.CHANNEL_NAME;
+	var chaincodeName = contractStruct.CHAINCODE_NAME;
+	var fcn = "completeContract";
+
+	let message;
+
+	message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+
+	logger.debug(message);
+	res.send(message);
+ });
 
   ////////////////////////////////// 계약 state Flag 변경 API
   ////////////////////////////////// Created by Jiyoung Park(2018.11.06)
@@ -930,8 +968,13 @@ app.get('/main/:channelName', async function(req, res) {
 	var state = contractStruct.CONTRACT_FLAG.REJECT_SIGN.value;
 	args.push(state.toString());
 
+	if (req.body.cancelReason == undefined) {
+		res.send(responseCode.makeFailureContractResponse(responseCode.ERROR_CODE.REQUEST_OMIT_REQURIED.value, "cancelReason omitted"));
+	}
+
 	// 서명 거절 이유 추가
 	args.push(req.body.cancelReason);
+
 
 	var peers = contractStruct.PEERS;
 	var channelName = contractStruct.CHANNEL_NAME;
@@ -1001,7 +1044,7 @@ app.get('/main/:channelName', async function(req, res) {
 	 });
 
     /***********		취소된 계약 완료함으로 이동: state를 CANCEL_COMPLETE으로 변경		**********/
-	app.post('/estate/invoke/destructContract', async function(req, res) {
+	app.post('/estate/invoke/completeCanceledContract', async function(req, res) {
  
 		var args = [];
 		// 첫 번째 argument에 push(args[0])
@@ -1026,6 +1069,75 @@ app.get('/main/:channelName', async function(req, res) {
 		res.send(message);
 	 });
 
+	 app.post('/estate/invoke/rejectContractModify', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.body.contractKey);
+
+		var state = contractStruct.CONTRACT_FLAG.REJECT_MODIFY.value;
+		args.push(state.toString());
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "deleteContractModify";
+	
+		console.log(state);
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.post('/estate/invoke/cancelRequestContractModify', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.body.contractKey);
+
+		var state = contractStruct.CONTRACT_FLAG.WAIT_SIGN.value;
+		args.push(state.toString());
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "deleteContractModify";
+	
+		console.log(state);
+	
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	app.post('/estate/invoke/createFeeLog', async function(req, res) {
+ 
+		var args = [];
+		// 첫 번째 argument에 push(args[0])
+		// args[0] == contractKey가 된다.
+		args.push(req.body.userKey);
+		args.push(req.body.contractKey);
+		args.push(req.body.fee.toString());
+	
+		var peers = contractStruct.PEERS;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "createFeeLog";
+	
+		let message;
+	
+		message = await invoke.invokeChaincode(peers, channelName, chaincodeName, fcn, args, req.username, req.orgname, txData, mongodb, utilJS, responseCode);
+	
+		logger.debug(message);
+		res.send(message);
+	 });
+
 	 app.get('/estate/query/getContractList/:userKey', async function(req, res) {
  
 		var args = [];
@@ -1040,7 +1152,99 @@ app.get('/main/:channelName', async function(req, res) {
 	
 		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
 
+		logger.debug(message);
+		res.send(message);
+	 });
 
+	 app.get('/estate/query/getContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getContract/:contractKey', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.params.contractKey);
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContract";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getContractFlag/:contractKey', async function(req, res) {
+ 
+		var args = [];
+
+		args.push(req.params.contractKey);
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContractFlag";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getSignContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getSignContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+
+		logger.debug(message);
+		res.send(message);
+	 });
+
+	 app.get('/estate/query/getCompleteContractList', async function(req, res) {
+ 
+		var args = [];
+	
+		var peer = contractStruct.PEER;
+		var channelName = contractStruct.CHANNEL_NAME;
+		var chaincodeName = contractStruct.CHAINCODE_NAME;
+		var fcn = "getCompleteContractList";
+	
+		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
 
 		logger.debug(message);
 		res.send(message);

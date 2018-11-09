@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/sha256"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
@@ -78,7 +79,7 @@ var LOAN_PROCESSING_METHOD = [...]string{
 type EstateChaincode struct {
 }
 
-type ModifyContract struct {
+type PayContract struct {
 	SalePrice uint64			`json:"salePrice"`
 	Deposit uint64				`json:"deposit"`
 	DepositDate string			`json:"depositDate"`
@@ -98,28 +99,48 @@ type ModifyContract struct {
 	MonthlyPaymentDay uint8		`json:"monthlyPaymentDay"`
 	MonthlyPaymentWay int		`json:"monthlyPaymentWay"`
 	SpecialAgreement []string	`json:"specialAgreement"`
-	ObjectType 	string 	`json:"docType"`
+	ObjectType 	string 			`json:"docType"`
 }
 
 type Contract struct {
-	ContractClass int		`json:"contractClass"`
-	ContractFlag int		`json:"contractFlag"`
-	ContractDate string 	`json:"contractDate"`
-	UpdatedAt string		`json:"updatedAt"`
-	ContractHash string		`json:"contractHash"`
+	ContractClass int			`json:"contractClass"`
+	ContractFlag int			`json:"contractFlag"`
+	ContractDate string 		`json:"contractDate"`
+	UpdatedAt string			`json:"updatedAt"`
+	ContractHash string			`json:"contractHash"`
 	LandLordKeyArray []string	`json:"landLordKeyArray"`
 	LandLordSignArray []bool	`json:"landLordSignArray"`
 	LesseeKeyArray []string		`json:"lesseeKeyArray"`
 	LesseeSignArray []bool		`json:"lesseeSignArray"`
-	UserKey string			`json:"userKey"`
-	CancelReason string		`json:"cancelReason"`
-	Address string			`json:"address"`
-	Landmark string			`json:"landmark"`
-	LandArea uint64			`json:"landArea"`
+	UserKey string				`json:"userKey"`
+	CancelReason string			`json:"cancelReason"`
+	Address string				`json:"address"`
+	Landmark string				`json:"landmark"`
+	LandArea uint64				`json:"landArea"`
 	BuildingStructure string	`json:"buildingStructure"`
 	BuildingPurpose string		`json:"buildingPurpose"`
 	BuildingArea uint64			`json:"buildingArea"`
-	ModifyContract
+	PayContract
+}
+
+type ModifyContract struct {
+	ModifyDate string				`json:"modifyDate"`
+	ModifyUserKey string			`json:"modifyUserKey"`
+	PayContract
+}
+
+type ModifyLogContract struct {
+	Contract
+	ModifyDate string				`json:"modifyDate"`
+	ModifyUserKey string			`json:"modifyUserKey"`
+}
+
+type PayfeeLog struct {
+	ObjectType string				`json:"docType"`
+	FeeDate string					`json:"feeDate"`
+	UserKey	string					`json:"userKey"`
+	ContractKey	string				`json:"contractKey"`
+	Fee	uint64						`json:"fee"`
 }
 
 func parseArray(arg string) []string {
@@ -162,7 +183,15 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.createContractJSON(stub, args)
 	} else if fn == "getContractList" {
 		return cc.getContractList(stub, args)
-	} else if fn == "getContractListByKeyArsrray" {
+	} else if fn == "getSignContractList" {
+		return cc.getSignContractList(stub, args)
+	} else if fn == "getContract" {
+		return cc.getContract(stub, args)
+	} else if fn == "getContractFlag" {
+		return cc.getContractFlag(stub, args)
+	} else if fn == "getCompleteContractList" {
+		return cc.getCompleteContractList(stub, args)
+	} else if fn == "getContractListByKeyArray" {
 		return cc.getContractListByKeyArray(stub, args)
 	} else if fn == "changeState" {
 		return cc.changeState(stub, args)
@@ -170,6 +199,14 @@ func (cc *EstateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response 
 		return cc.changeStateSigned(stub, args)
 	} else if fn == "createContractModify" {
 		return cc.createContractModify(stub, args)
+	} else if fn == "contractModify" {
+		return cc.contractModify(stub, args)
+	} else if fn == "completeContract"{
+		return cc.completeContract(stub, args)
+	} else if fn == "createFeeLog"{
+		return cc.createFeeLog(stub, args)
+	} else if fn == "deleteContractModify" {
+		return cc.deleteContractModify(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + fn) //error
@@ -183,22 +220,19 @@ func (cc *EstateChaincode) createContractJSON(stub shim.ChaincodeStubInterface, 
 	}
 
 	key := args[0]
-	var err error
 
-	contractBytes, err := stub.GetState(key)
-	if err != nil {
-		return shim.Error("Failed to get contract: " + err.Error())
-	} else if contractBytes != nil {
-		fmt.Println("This contract key already exists: " + key)
-		return shim.Error("This contract key already exists: " + key)
+	result, resultLog := isKeyUsed(stub, key)
+
+	if !result {
+		return shim.Error(resultLog)
 	}
 
-	contractBytes = []byte(args[1])
+	contractBytes := []byte(args[1])
 
-	err = stub.PutState(key, contractBytes)
+	result, resultLog = putStateBytes(stub, key, contractBytes)
 
-	if err != nil {
-		return shim.Error(err.Error())
+	if !result {
+		return shim.Error(resultLog)
 	}
 
 	fmt.Println("- end regist contract")
@@ -214,42 +248,25 @@ func (cc *EstateChaincode) createContractModify(stub shim.ChaincodeStubInterface
 
 	key := args[0]
 	modifyKey := "cm_" + key
-	var err error
 
-	contractBytes, err := stub.GetState(key)
+	result, resultLog := isKeyUsed(stub, modifyKey)
 
-	if err != nil {
-		return shim.Error("Failed to get contract: " + err.Error())
+	if !result {
+		return shim.Error(resultLog)
 	}
 
-	// temp contract(바꿔야 하는 contract)
-	stateToTransfer := Contract{}
+	result, resultLog = changeContractState(stub, key, REQUEST_MODIFY, args)
 
-	err = json.Unmarshal(contractBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	stateToTransfer.ContractFlag = REQUEST_MODIFY
-
-	t := time.Now()
-
-	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
-
-	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
-
-	err = stub.PutState(key, stateJSONasBytes)
-
-	if err != nil {
-		return shim.Error(err.Error())
+	if !result {
+		return shim.Error(resultLog)
 	}
 
 	contractModifyBytes := []byte(args[1])
 
-	err = stub.PutState(modifyKey, contractModifyBytes)
+	result, resultLog = putStateBytes(stub, modifyKey, contractModifyBytes)
 
-	if err != nil {
-		return shim.Error(err.Error())
+	if !result {
+		return shim.Error(resultLog)
 	}
 
 	fmt.Println("- end regist contract modify")
@@ -257,9 +274,212 @@ func (cc *EstateChaincode) createContractModify(stub shim.ChaincodeStubInterface
 	return shim.Success([]byte(key))
 }
 
+func (cc *EstateChaincode) createFeeLog(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 3 {
+		return shim.Error("Incorrect number of arguments. Expecting 3")
+	}
+
+	userKey := args[0]
+	contractKey := args[1]
+	
+	fee, err := strconv.ParseUint(args[2], 10, 64)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	result, resultLog := putPayfeeLog(stub, userKey, contractKey, fee)
+
+	if !result {
+		return shim.Error(resultLog)
+	} else {
+		fmt.Println("- end createFeeLog")
+		return shim.Success([]byte(resultLog))
+	}
+}
+
+func (cc *EstateChaincode) contractModify(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	t := time.Now()
+
+	key := args[0]
+	modifyKey := "cm_" + key
+	modifyLogKey := "cml_" + key + "_" + t.Format(time.RFC3339)
+	var err error
+
+	// temp contract(바꿔야 하는 contract)
+	result, resultLog, stateToTransfer := getContractState(stub, key)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	modifyBytes, err := stub.GetState(modifyKey)
+
+	if err != nil {
+		return shim.Error("Failed to get contract modify: " + err.Error())
+	}
+
+	// temp contract(바꿔야 하는 contract)
+	modifyContract := ModifyContract{}
+
+	err = json.Unmarshal(modifyBytes, &modifyContract) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	modifyLogContract := ModifyLogContract{}
+
+	modifyLogContract.ObjectType = "ModifyLogContract"
+	modifyLogContract.Contract = stateToTransfer
+	modifyLogContract.ModifyDate = modifyContract.ModifyDate
+	modifyLogContract.ModifyUserKey = modifyContract.ModifyUserKey
+
+	modifyLogBytes, _ := json.Marshal(modifyLogContract)
+
+	err = stub.PutState(modifyLogKey, modifyLogBytes)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	stateToTransfer.ContractFlag = WAIT_SIGN
+	stateToTransfer.PayContract = modifyContract.PayContract
+	stateToTransfer.ObjectType = "Contract"
+
+	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
+
+	result, resultLog = putContractState(stub, key, stateToTransfer)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	err = stub.DelState(modifyKey)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end contract modify")
+
+	return shim.Success([]byte(key))
+}
+
+func (cc *EstateChaincode) completeContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	t := time.Now()
+	date := t.Format("2006-01-02")
+
+	key := args[0]
+	completeKey := "cc_" + date + "_" + key
+	var err error
+
+	result, resultLog, stateToTransfer := getContractState(stub, key)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	stateToTransfer.ObjectType = "CompleteContract"
+	stateToTransfer.ContractFlag = COMPLETE
+	stateToTransfer.ContractDate = date
+
+	contractBytes, _ := json.Marshal(stateToTransfer)
+
+	sum := sha256.Sum256(contractBytes)
+	stateToTransfer.ContractHash = string(sum[:])
+
+	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
+
+	result, resultLog = putContractState(stub, completeKey, stateToTransfer)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	err = stub.DelState(key)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end contract")
+
+	return shim.Success([]byte(completeKey))
+}
+
+func (cc *EstateChaincode) deleteContractModify(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	key := args[0]
+	modifyKey := "cm_" + key
+	state, err := strconv.Atoi(args[1])
+
+	// argument(state) 없을 경우 error 처리
+	if err != nil {
+		return shim.Error("Incorrect argument for state")
+	}
+
+	result, resultLog := changeContractState(stub, key, state, args)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	err = stub.DelState(modifyKey)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end delete contract modify")
+
+	return shim.Success([]byte(key))
+}
+
 func (cc *EstateChaincode) getContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	queryString := "{\"selector\": {\"docType\":\"contract\"}}"
+	queryString := "{\"selector\": {\"docType\":\"Contract\"}}"
+
+	queryResults, err := getQueryResultForQueryString(stub, queryString)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(queryResults)
+}
+
+func (cc *EstateChaincode) getSignContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	//queryString := "{\"selector\": {\"$and\": [{\"docType\": \"Contract\"},{\"contractFlag\":" + string(WAIT_PAYFEE) + "}]}}"
+	queryString := "{\"selector\": {\"$and\": [{\"docType\": \"Contract\"},{\"contractFlag\":2}]}}"
+
+	//return shim.Error(queryString)
+
+	queryResults, err := getQueryResultForQueryString(stub, queryString)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(queryResults)
+}
+
+func (cc *EstateChaincode) getCompleteContractList(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	queryString := "{\"selector\": {\"docType\":\"CompleteContract\"}}"
+
+	//return shim.Error(queryString)
 
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
@@ -272,13 +492,43 @@ func (cc *EstateChaincode) getContractListByKeyArray(stub shim.ChaincodeStubInte
 
 	userKey := args[0]
 
-	queryString := "{\"selector\": {\"$or\": [{\"landLordKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}},{\"lesseeKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}}]}}"
+	queryString := "{\"selector\": {\"$and\": [{\"docType\": \"Contract\"},{\"$or\": [{\"landLordKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}},{\"lesseeKeyArray\": {\"$elemMatch\": {\"$eq\": \"" + userKey + "\"}}}]}]}}"
+
+	//return shim.Error(queryString)
 
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 	return shim.Success(queryResults)
+}
+
+func (cc *EstateChaincode) getContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	contractKey := args[0]
+
+	bytes, err := stub.GetState(contractKey)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success(bytes)
+}
+
+func (cc *EstateChaincode) getContractFlag(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	contractKey := args[0]
+
+	result, resultLog, contract := getContractState(stub, contractKey)
+
+	if !result {
+		return shim.Error(resultLog)
+	}
+
+	bytes := "{\"contractFlag\":" + strconv.Itoa(contract.ContractFlag) + ",\"updatedAt\":\"" + contract.UpdatedAt + "\"}"
+
+	return shim.Success([]byte(bytes))
 }
 
 func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString string) ([]byte, error) {
@@ -334,28 +584,12 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 	// _state는 변경할(바꿔 주어야 하는) state를 의미한다.
 	contractKey := args[0]
 	userKey := args[1]
-	var err error
 
-	// key 값의 world state를 받아 stateAsBytes에 대입
-	stateAsBytes, err := stub.GetState(contractKey)
+	result, resultLog, stateToTransfer := getContractState(stub, contractKey)
 
-	// error 처리
-	if err != nil {
-		// state를 못 받아올 경우
-		return shim.Error("Failed to get state:" + err.Error())
-	} else if stateAsBytes == nil {
-		// Contract가 없을 경우(contractKey값으로 못 찾음)
-		return shim.Error("Contract does not exist")
+	if !result {
+		return shim.Error(resultLog)
 	}
-
-	// temp contract(바꿔야 하는 contract)
-	stateToTransfer := Contract{}
-
-	err = json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	
 
 	// flag는 SignArray에 입력되었는지 여부 판단하는 변수
 	flag := false;
@@ -412,10 +646,10 @@ func (cc *EstateChaincode) changeStateSigned(stub shim.ChaincodeStubInterface, a
 
 	stateToTransfer.UpdatedAt = t.Format(time.RFC3339)
 
-	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
-	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
-	if err != nil {
-		return shim.Error(err.Error())
+	result, resultLog = putContractState(stub, contractKey, stateToTransfer)
+
+	if !result {
+		return shim.Error(resultLog)
 	}
 
 	fmt.Println("- end Contract Sign (success)")
@@ -440,6 +674,7 @@ func (cc *EstateChaincode) changeState(stub shim.ChaincodeStubInterface, args []
 		return shim.Error("Incorrect argument for state")
 	}
 
+<<<<<<< HEAD
 	// contractKey 값의 world state를 받아 stateAsBytes에 대입
 	stateAsBytes, err := stub.GetState(contractKey)
 
@@ -514,6 +749,9 @@ func (cc *EstateChaincode) changeStateTest(stub shim.ChaincodeStubInterface, arg
 	}
 
 	result, resultLog = putContractState(stub, contractKey, stateToTransfer)
+=======
+	result, resultLog := changeContractState(stub, contractKey, state, args)
+>>>>>>> 361ea63381e2cbaf26b37d7816cf16ddd4878b6b
 
 	if(!result) {
 		return shim.Error(resultLog)
@@ -570,6 +808,74 @@ func putContractState(stub shim.ChaincodeStubInterface, contractKey string, stat
 		result = false;
 		resultLog = err.Error()
 	}
+
+	return result, resultLog
+}
+
+func putStateBytes(stub shim.ChaincodeStubInterface, key string, bytes []byte) (result bool, resultLog string) {
+	// contractKey 값의 world state를 받아 stateAsBytes에 대입
+	// 두 번째 리턴값은 사용하지 않겠다. (공백처리)
+	result = true;
+	resultLog = "Success"
+
+	err := stub.PutState(key, bytes) //rewrite the marble
+	if err != nil {
+		result = false;
+		resultLog = err.Error()
+	}
+
+	return result, resultLog
+}
+
+func putPayfeeLog(stub shim.ChaincodeStubInterface, userKey string, contractKey string, fee uint64) (result bool, resultLog string) {
+
+	t := time.Now()
+	feeDate := t.Format(time.RFC3339)
+
+	payfeeLogKey := "pf_" + contractKey + "_" + feeDate
+
+	payfeeLog := &PayfeeLog{"PayfeeLog", feeDate, userKey, contractKey, fee}
+
+	payfeeBytes, _ := json.Marshal(payfeeLog)
+
+	err := stub.PutState(payfeeLogKey, payfeeBytes)
+
+	if err != nil {
+		return false, err.Error()
+	} else {
+		return true, payfeeLogKey
+	}
+}
+
+func isKeyUsed(stub shim.ChaincodeStubInterface, key string) (result bool, resultLog string) {
+	contractBytes, err := stub.GetState(key)
+	if err != nil {
+		return false, string("Failed to get contract: " + err.Error())
+	} else if contractBytes != nil {
+		return false, string("This contract key already exists: " + key)
+	} else {
+		return true, "vaild key"
+	}
+}
+
+func changeContractState(stub shim.ChaincodeStubInterface, contractKey string, state int, args []string) (result bool, resultLog string) {
+	result, resultLog, stateToTransfer := getContractState(stub, contractKey)
+
+	if(!result) {
+		return result, resultLog
+	}
+
+	// state flag 변경
+	stateToTransfer.ContractFlag = state
+	// timestamp 추가
+	stateToTransfer.UpdatedAt = time.Now().Format(time.RFC3339)
+	stateToTransfer.ObjectType = "Contract"
+
+	if state == REJECT_SIGN { 
+		stateToTransfer.CancelReason = args[2]
+	}
+
+	result, resultLog = putContractState(stub, contractKey, stateToTransfer)
 
 	return result, resultLog
 }
