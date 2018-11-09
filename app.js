@@ -434,7 +434,7 @@ app.get('/channels/:channelName/chaincodes/:chaincodeName', async function(req, 
 	args = JSON.parse(args);
 	logger.debug(args);
 
-	let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname);
+	let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
 	res.send(message);
 });
 //  Query Get Block by BlockNumber
@@ -1150,7 +1150,7 @@ app.get('/main/:channelName', async function(req, res) {
 		var chaincodeName = contractStruct.CHAINCODE_NAME;
 		var fcn = "getContractListByKeyArray";
 	
-		let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
+		let message = await queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname, responseCode);
 
 		logger.debug(message);
 		res.send(message);

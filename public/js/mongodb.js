@@ -47,6 +47,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                 power: {type: String},
                 coin: {type: String},
                 name: {type: String},
+                contractKey: {type: String},
                 area_id: {type: String} 
             }, {collection: 'power_transactions'});
 
@@ -116,7 +117,7 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
 
             nodeInfoModel = mongoose.model('node_info', nodeInfoSchema, 'node_info');
         },
-        insertPowerTransaction: function(transactionId, channelName, blockNum, chaincodeName, timeUTC, fcn, args) {           
+        insertInvokeTransaction: function(transactionId, channelName, blockNum, chaincodeName, timeUTC, fcn, args) {           
 
             var object;
             var fcnKor;
@@ -233,6 +234,32 @@ define(["mongoose", "util", "log4js", "atomic", "./util.js"], function(mongoose,
                                 time: timeUTC,
                                 fcn: fcnKor
                             });  
+                    } else if (fcn == 'createContractJSON') {
+
+                        var contractKey = args[0];
+
+                        object = new transactionModel({
+                            tx_id: transactionId,
+                            channelName: channelName,
+                            blockNum: blockNum,
+                            chaincodeName: chaincodeName,
+                            time: timeUTC,
+                            fcn: fcnKor,
+                            contractKey: contractKey
+                        }); 
+                    } else if (fcn == 'createContractModify') {
+
+                        var contractKey = args[0];
+
+                        object = new transactionModel({
+                            tx_id: transactionId,
+                            channelName: channelName,
+                            blockNum: blockNum,
+                            chaincodeName: chaincodeName,
+                            time: timeUTC,
+                            fcn: fcnKor,
+                            contractKey: contractKey
+                        }); 
                     }
 
                     object.save(function(err, data){

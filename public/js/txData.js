@@ -15,7 +15,7 @@ define(["socket.io"], function(io) {
     var intervalInstance = false;
 
     var monitorChannelName = 'kcoinchannel';
-    const channelNameSet = ['energyseoulchannel','energygyochannel','energygangchannel'];
+    const channelNameSet = ['energyseoulchannel','energygyochannel','energygangchannel','estatechannel'];
     var monitorChaincodeName = 'energy';
     var username;
     var orgname;

@@ -510,11 +510,13 @@ $(document).ready(function() {
 
       var dataJSON = JSON.parse(JSON.stringify(data));
 
-      //console.log(dataJSON);
+      var records = JSON.parse(dataJSON.record);
 
-          for (var i = 0; i < dataJSON.record.length; i++) {
+      //console.log(dataJSON.record);
 
-              var transaction = dataJSON.record[i];
+          for (var i = 0; i < records.length; i++) {
+
+              var transaction = records[i];
 
               //if (transaction.Record.area == area_id) {
                 if (true) {
