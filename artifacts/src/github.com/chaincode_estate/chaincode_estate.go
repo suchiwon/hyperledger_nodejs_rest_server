@@ -497,26 +497,6 @@ func (cc *EstateChaincode) changeStateTest(stub shim.ChaincodeStubInterface, arg
 	if err != nil {
 		return shim.Error("Incorrect argument for state")
 	}
-/*
-	// contractKey 값의 world state를 받아 stateAsBytes에 대입
-	stateAsBytes, err = stub.GetState(contractKey)
-
-	// error 처리
-	if err != nil {
-		// state를 못 받아올 경우
-		return shim.Error("Failed to get state:" + err.Error())
-	} else if stateAsBytes == nil {
-		// Contract가 없을 경우(contractKey값으로 못 찾음)
-		return shim.Error("Contract does not exist")
-	}
-
-	// temp contract(바꿔야 하는 contract)
-	stateToTransfer := Contract{}
-	err := json.Unmarshal(stateAsBytes, &stateToTransfer) //unmarshal it aka JSON.parse()
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	*/
 
 	result, resultLog, stateToTransfer := getContractState(stub, contractKey)
 	if(!result) {
@@ -532,15 +512,6 @@ func (cc *EstateChaincode) changeStateTest(stub shim.ChaincodeStubInterface, arg
 	if state == REJECT_SIGN { 
 		stateToTransfer.CancelReason = args[2]
 	}
-
-	/*
-	// 두 번째 리턴값은 사용하지 않겠다. (공백처리)
-	stateJSONasBytes, _ := json.Marshal(stateToTransfer)
-	err = stub.PutState(contractKey, stateJSONasBytes) //rewrite the marble
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	*/
 
 	result, resultLog = putContractState(stub, contractKey, stateToTransfer)
 
